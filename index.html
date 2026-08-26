@@ -1125,242 +1125,279 @@
         }
 
         /* Enterprise Split Auth Container */
-        /* 🌌 Luxury 2026 Aurora Glassmorphism Auth System */
+        /* 🌌 World-Class Deep Space Glassmorphism System */
         .lock-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.15) 0%, transparent 40%),
-                        radial-gradient(circle at 80% 80%, rgba(6, 78, 59, 0.25) 0%, transparent 40%),
-                        radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.95) 0%, #050811 100%);
-            backdrop-filter: blur(35px);
-            -webkit-backdrop-filter: blur(35px);
+            background: #060913;
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 999999;
-            padding: 20px;
+            padding: 24px 16px;
             overflow-y: auto;
         }
 
-        .auth-split-card {
-            display: grid;
-            grid-template-columns: 400px 1fr;
+        #starfieldCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 1040px;
-            min-height: 580px;
-            background: rgba(13, 20, 36, 0.82);
-            border-radius: 32px;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            box-shadow: 0 40px 120px -20px rgba(0, 0, 0, 0.85),
-                        0 0 60px -10px rgba(16, 185, 129, 0.25),
-                        inset 0 1px 1px rgba(255, 255, 255, 0.15);
-            overflow: hidden;
-            animation: authCardEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
         }
 
-        @keyframes authCardEnter {
-            from { opacity: 0; transform: scale(0.96) translateY(15px); }
+        .space-auth-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 520px;
+            margin: auto;
+        }
+
+        .space-auth-card {
+            background: rgba(15, 23, 42, 0.72);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(99, 102, 241, 0.22);
+            border-radius: 24px;
+            padding: 36px 32px;
+            box-shadow: 0 25px 70px -10px rgba(0, 0, 0, 0.75),
+                        0 0 50px -10px rgba(99, 102, 241, 0.2),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.12);
+            color: #f8fafc;
+            animation: spaceCardFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes spaceCardFadeIn {
+            from { opacity: 0; transform: scale(0.95) translateY(20px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
-        .auth-showcase-side {
-            background: linear-gradient(160deg, rgba(16, 185, 129, 0.12) 0%, rgba(6, 78, 59, 0.25) 50%, rgba(5, 10, 20, 0.8) 100%),
-                        rgba(9, 14, 26, 0.9);
-            padding: 40px 32px;
+        .space-auth-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .space-auth-title {
+            font-size: 1.55rem;
+            font-weight: 900;
+            margin: 0 0 6px;
             color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            border-left: 1px solid rgba(255, 255, 255, 0.08);
-            overflow: hidden;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #ffffff 60%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .space-auth-subtitle {
+            font-size: 0.84rem;
+            color: #94a3b8;
+            margin: 0;
         }
 
-        .auth-showcase-side::after {
-            content: '';
-            position: absolute;
-            top: -60px;
-            right: -60px;
-            width: 220px;
-            height: 220px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(16, 185, 129, 0.35) 0%, transparent 70%);
-            filter: blur(25px);
-            pointer-events: none;
-        }
-
-        .auth-brand-badge {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .auth-brand-logo {
-            width: 58px;
-            height: 58px;
-            border-radius: 18px;
-            background: linear-gradient(135deg, #10b981, #059669);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            color: white;
-            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4), inset 0 2px 2px rgba(255,255,255,0.4);
-            flex-shrink: 0;
-        }
-
-        .auth-feature-pill {
-            display: flex;
-            align-items: flex-start;
-            gap: 14px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 18px;
-            padding: 14px 16px;
-            backdrop-filter: blur(10px);
-            transition: all 0.25s ease;
-        }
-        .auth-feature-pill:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(16, 185, 129, 0.45);
-            transform: translateX(-4px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-        }
-        .auth-feature-icon {
-            width: 38px;
-            height: 38px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.1));
-            border: 1px solid rgba(16, 185, 129, 0.4);
-            color: #34d399;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.05rem;
-            flex-shrink: 0;
-        }
-
-        .auth-form-side {
-            padding: 40px 44px;
-            background: rgba(10, 15, 28, 0.75);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            overflow-y: auto;
-            color: #f8fafc;
-        }
-
-        /* Luxury Tab Switcher */
-        .auth-nav-tabs {
+        /* Top Modern Tab Switcher */
+        .space-tabs {
             display: flex;
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 5px;
+            border-radius: 14px;
+            padding: 4px;
             margin-bottom: 24px;
-            gap: 6px;
+            gap: 4px;
         }
-        .auth-tab-btn {
+        .space-tab-btn {
             flex: 1;
             border: none;
             background: transparent;
             color: #94a3b8;
-            padding: 10px 0;
-            border-radius: 12px;
+            padding: 9px 0;
+            border-radius: 11px;
             font-weight: 800;
-            font-size: 0.88rem;
+            font-size: 0.86rem;
             cursor: pointer;
             transition: all 0.25s ease;
+            font-family: inherit;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            font-family: inherit;
+            gap: 6px;
         }
-        .auth-tab-btn.active {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        .space-tab-btn.active {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
             color: #ffffff;
-            box-shadow: 0 4px 18px rgba(16, 185, 129, 0.4);
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
         }
-        .auth-tab-btn:hover:not(.active) {
-            color: #f1f5f9;
+        .space-tab-btn:hover:not(.active) {
+            color: #ffffff;
             background: rgba(255, 255, 255, 0.05);
         }
 
-        /* Luxury Form Inputs */
-        .auth-input-wrap {
+        /* Form Inputs */
+        .space-form-group {
             margin-bottom: 16px;
-            position: relative;
         }
-        .auth-label {
-            display: block;
-            font-size: 0.84rem;
+        .space-form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .space-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.82rem;
             font-weight: 800;
             color: #cbd5e1;
-            margin-bottom: 6px;
+            margin-bottom: 7px;
         }
-        .auth-input {
+        .space-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .space-input {
             width: 100%;
-            height: 48px;
-            background: rgba(255, 255, 255, 0.04);
+            height: 46px;
+            background: rgba(10, 15, 30, 0.6);
             border: 1.5px solid rgba(255, 255, 255, 0.1);
-            border-radius: 14px;
+            border-radius: 12px;
             color: #ffffff;
-            padding: 0 16px;
-            font-size: 0.95rem;
+            padding: 0 14px;
+            font-size: 0.92rem;
             font-family: inherit;
             transition: all 0.25s ease;
             outline: none;
             box-sizing: border-box;
         }
-        .auth-input:focus {
-            background: rgba(16, 185, 129, 0.06);
-            border-color: #10b981;
-            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+        .space-input:focus {
+            background: rgba(99, 102, 241, 0.08);
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
         }
-        .auth-input::placeholder {
+        .space-input::placeholder {
+            color: #475569;
+        }
+        .space-input-icon {
+            position: absolute;
+            left: 14px;
             color: #64748b;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .space-input-icon:hover {
+            color: #a5b4fc;
         }
 
-        .auth-btn-submit {
+        /* Password Strength Bar */
+        .pwd-strength-bar {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            margin-top: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+        .pwd-strength-fill {
+            height: 100%;
+            width: 0%;
+            transition: all 0.3s ease;
+            border-radius: 4px;
+        }
+
+        /* Checkbox */
+        .space-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82rem;
+            color: #94a3b8;
+            cursor: pointer;
+            user-select: none;
+            margin-bottom: 20px;
+        }
+        .space-checkbox-label a {
+            color: #818cf8;
+            text-decoration: none;
+            font-weight: 800;
+        }
+        .space-checkbox-label a:hover {
+            text-decoration: underline;
+        }
+        .space-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+        .space-checkbox:checked {
+            background: #6366f1;
+            border-color: #6366f1;
+        }
+        .space-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        /* Main Submit Button */
+        .space-submit-btn {
             width: 100%;
-            height: 50px;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            height: 48px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             color: #ffffff;
             border: none;
-            border-radius: 14px;
-            font-size: 1.05rem;
+            border-radius: 13px;
+            font-size: 1rem;
             font-weight: 900;
             font-family: inherit;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            box-shadow: 0 10px 30px -5px rgba(16, 185, 129, 0.5);
+            gap: 8px;
+            box-shadow: 0 10px 28px -5px rgba(99, 102, 241, 0.5);
             transition: all 0.25s ease;
-            margin-top: 8px;
-            margin-bottom: 14px;
+            margin-bottom: 16px;
         }
-        .auth-btn-submit:hover {
+        .space-submit-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 14px 35px -5px rgba(16, 185, 129, 0.65);
+            box-shadow: 0 14px 34px -5px rgba(99, 102, 241, 0.65);
             filter: brightness(1.08);
         }
-        .auth-btn-submit:active {
+        .space-submit-btn:active {
             transform: translateY(0);
         }
 
-        @media (max-width: 900px) {
-            .auth-split-card {
-                grid-template-columns: 1fr;
-                max-width: 500px;
-            }
+        .space-footer-link {
+            text-align: center;
+            font-size: 0.84rem;
+            color: #94a3b8;
+        }
+        .space-footer-link a {
+            color: #818cf8;
+            font-weight: 800;
+            text-decoration: none;
+            margin-right: 4px;
+        }
+        .space-footer-link a:hover {
+            text-decoration: underline;
+        }
             .auth-showcase-side {
                 display: none;
             }
@@ -3776,180 +3813,159 @@
     </div>
 </div>
 
-<!-- ================= FIRST-RUN REGISTRATION & ACTIVATION GATE ================= -->
+<!-- ================= WORLD-CLASS SPACE AUTHENTICATION GATE ================= -->
 <div class="lock-overlay" id="onboardingGate" style="display:none">
-    <div class="auth-split-card">
-        <!-- 🌟 Left Showcase Column (Brand & Luxury Features) -->
-        <div class="auth-showcase-side">
-            <div>
-                <!-- Brand Header -->
-                <div class="auth-brand-badge">
-                    <div class="auth-brand-logo">
-                        <i class="fa-brands fa-whatsapp"></i>
-                    </div>
-                    <div>
-                        <div style="display:flex;align-items:center;gap:8px">
-                            <h2 style="font-size:1.45rem;font-weight:900;margin:0;color:#ffffff;letter-spacing:-0.02em">WhatsApp Flow</h2>
-                            <span style="background:linear-gradient(135deg,#10b981,#059669);color:white;padding:3px 9px;border-radius:8px;font-size:0.75rem;font-weight:900;box-shadow:0 4px 10px rgba(16,185,129,0.3)">PRO 3.0</span>
-                        </div>
-                        <small style="color:#94a3b8;font-size:0.82rem;font-weight:600">المنظومة الاحترافية لإدارة وتسويق واتساب</small>
-                    </div>
-                </div>
-
-                <p style="font-size:0.88rem;color:#94a3b8;line-height:1.65;margin-bottom:24px">
-                    أقوى منصة سحابية ومكتبية متكاملة لإدارة الحملات التسويقية، أتمتة الردود بالذكاء الاصطناعي، ومضاعفة المبيعات بأمان تام.
-                </p>
-
-                <!-- Feature Highlights -->
-                <div style="display:flex;flex-direction:column;gap:12px">
-                    <div class="auth-feature-pill">
-                        <div class="auth-feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                        <div>
-                            <div style="font-size:0.9rem;font-weight:900;color:#ffffff">حماية Anti-Ban الذكية</div>
-                            <div style="font-size:0.76rem;color:#94a3b8;margin-top:2px">خوارزميات Spintax وفواصل أمان طبيعية تحمي أرقامك</div>
-                        </div>
-                    </div>
-
-                    <div class="auth-feature-pill">
-                        <div class="auth-feature-icon"><i class="fa-solid fa-bolt"></i></div>
-                        <div>
-                            <div style="font-size:0.9rem;font-weight:900;color:#ffffff">إرسال جماعي فائق وسحابي</div>
-                            <div style="font-size:0.76rem;color:#94a3b8;margin-top:2px">استيراد Excel، إرفاق الوسائط، واستطلاعات رأي تفاعلية</div>
-                        </div>
-                    </div>
-
-                    <div class="auth-feature-pill">
-                        <div class="auth-feature-icon"><i class="fa-solid fa-robot"></i></div>
-                        <div>
-                            <div style="font-size:0.9rem;font-weight:900;color:#ffffff">شات بوت الذكاء الاصطناعي</div>
-                            <div style="font-size:0.76rem;color:#94a3b8;margin-top:2px">ردود مؤتمتة 24/7 ومنيو تفاعلي IVR مخصص لعملائك</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Trust Badge Footer -->
-            <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:16px;margin-top:20px;display:flex;align-items:center;justify-content:space-between">
-                <span style="font-size:0.76rem;color:#94a3b8;display:flex;align-items:center;gap:6px"><i class="fa-solid fa-circle-check" style="color:#10b981"></i> خوادم سحابية فائقة السرعة</span>
-                <span style="font-size:0.76rem;color:#34d399;font-weight:800"><i class="fa-solid fa-lock"></i> تشفير E2EE آمن</span>
-            </div>
-        </div>
-
-        <!-- 📝 Right Form Column (Unified Login & Registration) -->
-        <div class="auth-form-side">
+    <canvas id="starfieldCanvas"></canvas>
+    
+    <div class="space-auth-container">
+        <div class="space-auth-card">
             <!-- Header Title -->
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
-                <div>
-                    <h3 style="font-size:1.35rem;font-weight:900;margin:0 0 4px;color:#ffffff;display:flex;align-items:center;gap:8px">
-                        <i class="fa-solid fa-user-shield" style="color:#10b981"></i> بوابة الدخول والتفعيل
-                    </h3>
-                    <small style="color:#94a3b8;font-size:0.8rem">سجل دخولك أو فعّل حسابك للوصول إلى المنصة فوراً</small>
-                </div>
-                <span style="background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.3);font-size:0.75rem;padding:5px 12px;border-radius:20px;font-weight:800;display:inline-flex;align-items:center;gap:6px">
-                    <span style="width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981"></span> سحابي نشط
-                </span>
+            <div class="space-auth-header">
+                <h2 class="space-auth-title" id="spaceAuthHeadingTitle">تسجيل الدخول</h2>
+                <p class="space-auth-subtitle" id="spaceAuthHeadingSubtitle">أهلاً بك مجدداً في منصة WhatsApp Flow Pro</p>
             </div>
 
-            <!-- Tab Switcher -->
-            <div class="auth-nav-tabs">
-                <button type="button" id="tabBtnLogin" class="auth-tab-btn active" onclick="switchAuthTab('login')">
+            <!-- Sleek Top Switcher -->
+            <div class="space-tabs">
+                <button type="button" id="tabBtnLogin" class="space-tab-btn active" onclick="switchAuthTab('login')">
                     <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول
                 </button>
-                <button type="button" id="tabBtnRegister" class="auth-tab-btn" onclick="switchAuthTab('register')">
-                    <i class="fa-solid fa-user-plus"></i> حساب جديد
+                <button type="button" id="tabBtnRegister" class="space-tab-btn" onclick="switchAuthTab('register')">
+                    <i class="fa-solid fa-user-plus"></i> إنشاء حساب جديد
                 </button>
-                <button type="button" id="tabBtnKey" class="auth-tab-btn" onclick="switchAuthTab('key')">
+                <button type="button" id="tabBtnKey" class="space-tab-btn" onclick="switchAuthTab('key')">
                     <i class="fa-solid fa-key"></i> كود تفعيل
                 </button>
             </div>
 
             <!-- 1️⃣ TAB 1: USERNAME & PASSWORD LOGIN -->
             <div id="authSectionLogin">
-                <div class="auth-input-wrap">
-                    <label class="auth-label"><i class="fa-solid fa-user" style="color:#10b981"></i> اسم المستخدم أو البريد الإلكتروني: <span style="color:#ef4444">*</span></label>
-                    <input type="text" id="loginUsernameOrEmail" class="auth-input" style="direction:ltr;text-align:right" placeholder="أدخل اسم المستخدم أو الإيميل" onkeydown="if(event.key==='Enter') submitUserLogin()">
+                <div class="space-form-group">
+                    <label class="space-label"><i class="fa-solid fa-user" style="color:#818cf8"></i> اسم المستخدم أو البريد الإلكتروني</label>
+                    <div class="space-input-wrap">
+                        <input type="text" id="loginUsernameOrEmail" class="space-input" style="direction:ltr;text-align:right" placeholder="أدخل اسم المستخدم أو الإيميل" onkeydown="if(event.key==='Enter') submitUserLogin()">
+                    </div>
                 </div>
 
-                <div class="auth-input-wrap">
-                    <label class="auth-label"><i class="fa-solid fa-lock" style="color:#10b981"></i> كلمة المرور: <span style="color:#ef4444">*</span></label>
-                    <input type="password" id="loginPassword" class="auth-input" placeholder="••••••••" onkeydown="if(event.key==='Enter') submitUserLogin()">
+                <div class="space-form-group">
+                    <label class="space-label"><i class="fa-solid fa-lock" style="color:#818cf8"></i> كلمة المرور</label>
+                    <div class="space-input-wrap">
+                        <input type="password" id="loginPassword" class="space-input" placeholder="••••••••" onkeydown="if(event.key==='Enter') submitUserLogin()">
+                        <i class="fa-solid fa-eye space-input-icon" onclick="togglePassVisibility('loginPassword', this)"></i>
+                    </div>
                 </div>
 
-                <button class="auth-btn-submit" type="button" onclick="submitUserLogin()">
-                    <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول وفتح المنصة
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;font-size:0.82rem">
+                    <label style="display:flex;align-items:center;gap:6px;color:#94a3b8;cursor:pointer">
+                        <input type="checkbox" checked class="space-checkbox"> تذكر بيانات الدخول
+                    </label>
+                    <a href="javascript:void(0)" onclick="switchAuthTab('key')" style="color:#818cf8;text-decoration:none;font-weight:700">تفعيل بكود أوفلاين</a>
+                </div>
+
+                <button class="space-submit-btn" type="button" onclick="submitUserLogin()">
+                    <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول
                 </button>
 
-                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.82rem;color:#94a3b8;margin-top:10px">
-                    <span>ليس لديك حساب؟ <a href="javascript:void(0)" onclick="switchAuthTab('register')" style="color:#34d399;font-weight:800;text-decoration:none">أنشئ حساباً جديداً</a></span>
-                    <a href="javascript:void(0)" onclick="switchAuthTab('key')" style="color:#94a3b8;text-decoration:none;transition:0.2s" onmouseover="this.style.color='#34d399'" onmouseout="this.style.color='#94a3b8'">تفعيل بكود مباشر</a>
+                <div class="space-footer-link">
+                    ليس لديك حساب بعد؟ <a href="javascript:void(0)" onclick="switchAuthTab('register')">إنشاء حساب جديد</a>
                 </div>
             </div>
 
-            <!-- 2️⃣ TAB 2: REGISTER NEW ACCOUNT -->
+            <!-- 2️⃣ TAB 2: REGISTER NEW ACCOUNT (EXACT REPLICA OF REFERENCE IMAGE) -->
             <div id="authSectionRegister" style="display:none">
-                <div class="grid-2" style="margin-bottom:10px">
-                    <div class="auth-input-wrap" style="margin-bottom:0">
-                        <label class="auth-label"><i class="fa-solid fa-id-card" style="color:#10b981"></i> اسم المستخدم: <span style="color:#ef4444">*</span></label>
-                        <input type="text" id="regUsername" class="auth-input" style="direction:ltr;text-align:right" placeholder="مثال: ahmed2026">
+                <!-- Name Row (الاسم الأول | الاسم الأخير / اسم المستخدم) -->
+                <div class="space-form-row">
+                    <div>
+                        <label class="space-label"><i class="fa-solid fa-user" style="color:#818cf8"></i> الاسم الأول</label>
+                        <input type="text" id="regName" class="space-input" placeholder="الاسم الشخصي">
                     </div>
-                    <div class="auth-input-wrap" style="margin-bottom:0">
-                        <label class="auth-label"><i class="fa-solid fa-lock" style="color:#10b981"></i> كلمة المرور: <span style="color:#ef4444">*</span></label>
-                        <input type="password" id="regUserPassword" class="auth-input" placeholder="4 خانات على الأقل">
-                    </div>
-                </div>
-
-                <div class="grid-2" style="margin-bottom:10px">
-                    <div class="auth-input-wrap" style="margin-bottom:0">
-                        <label class="auth-label"><i class="fa-solid fa-user" style="color:#10b981"></i> اسم العميل: <span style="color:#ef4444">*</span></label>
-                        <input type="text" id="regName" class="auth-input" placeholder="اسمك الكامل">
-                    </div>
-                    <div class="auth-input-wrap" style="margin-bottom:0">
-                        <label class="auth-label"><i class="fa-solid fa-building" style="color:#10b981"></i> اسم النشاط / الشركة: <span style="color:#ef4444">*</span></label>
-                        <input type="text" id="regCompany" class="auth-input" placeholder="مثال: شركة التسويق">
+                    <div>
+                        <label class="space-label"><i class="fa-solid fa-id-card" style="color:#818cf8"></i> اسم المستخدم (Login)</label>
+                        <input type="text" id="regUsername" class="space-input" style="direction:ltr;text-align:right" placeholder="مثال: ahmed2026">
                     </div>
                 </div>
 
-                <div class="grid-2" style="margin-bottom:14px">
-                    <div class="auth-input-wrap" style="margin-bottom:0">
-                        <label class="auth-label"><i class="fa-solid fa-phone" style="color:#10b981"></i> رقم الهاتف: <span style="color:#ef4444">*</span></label>
-                        <input type="tel" id="regPhone" class="auth-input" style="direction:ltr;text-align:right" placeholder="01012345678">
+                <!-- Email -->
+                <div class="space-form-group">
+                    <label class="space-label"><i class="fa-solid fa-envelope" style="color:#818cf8"></i> البريد الإلكتروني</label>
+                    <input type="email" id="regEmail" class="space-input" style="direction:ltr;text-align:right" placeholder="name@example.com">
+                </div>
+
+                <!-- Password & Confirm Password Row -->
+                <div class="space-form-row" style="margin-bottom:6px">
+                    <div>
+                        <label class="space-label"><i class="fa-solid fa-lock" style="color:#818cf8"></i> كلمة المرور</label>
+                        <div class="space-input-wrap">
+                            <input type="password" id="regUserPassword" class="space-input" placeholder="••••••••" oninput="checkPwdStrength(this.value)">
+                            <i class="fa-solid fa-eye space-input-icon" onclick="togglePassVisibility('regUserPassword', this)"></i>
+                        </div>
                     </div>
-                    <div class="auth-input-wrap" style="margin-bottom:0">
-                        <label class="auth-label"><i class="fa-solid fa-envelope" style="color:#10b981"></i> البريد (اختياري):</label>
-                        <input type="email" id="regEmail" class="auth-input" style="direction:ltr;text-align:right" placeholder="user@domain.com">
+                    <div>
+                        <label class="space-label"><i class="fa-solid fa-shield-check" style="color:#818cf8"></i> تأكيد كلمة المرور</label>
+                        <div class="space-input-wrap">
+                            <input type="password" id="regUserPasswordConfirm" class="space-input" placeholder="••••••••">
+                            <i class="fa-solid fa-eye space-input-icon" onclick="togglePassVisibility('regUserPasswordConfirm', this)"></i>
+                        </div>
+                    </div>
+                </div>
+                <!-- Password Strength Indicator -->
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+                    <div style="flex:1;margin-left:10px">
+                        <div class="pwd-strength-bar">
+                            <div class="pwd-strength-fill" id="pwdStrengthFill"></div>
+                        </div>
+                    </div>
+                    <small id="pwdStrengthText" style="font-size:0.72rem;color:#ef4444;font-weight:800">ضعيفة</small>
+                </div>
+
+                <!-- Phone & Company -->
+                <div class="space-form-row">
+                    <div>
+                        <label class="space-label"><i class="fa-solid fa-phone" style="color:#818cf8"></i> رقم الهاتف</label>
+                        <input type="tel" id="regPhone" class="space-input" style="direction:ltr;text-align:right" placeholder="01012345678">
+                    </div>
+                    <div>
+                        <label class="space-label"><i class="fa-solid fa-briefcase" style="color:#818cf8"></i> العمل / النشاط (اختياري)</label>
+                        <input type="text" id="regCompany" class="space-input" placeholder="اسم الشركة أو المتجر">
                     </div>
                 </div>
 
-                <button class="auth-btn-submit" type="button" onclick="submitCloudRegistration()">
-                    <i class="fa-solid fa-user-plus"></i> إنشاء وتفعيل الحساب فوراً
+                <!-- Terms & Conditions Checkbox -->
+                <label class="space-checkbox-label">
+                    <input type="checkbox" id="regAgreeTerms" checked class="space-checkbox">
+                    <span>أوافق على <a href="javascript:void(0)">الشروط والأحكام</a> و <a href="javascript:void(0)">سياسة الخصوصية</a></span>
+                </label>
+
+                <button class="space-submit-btn" type="button" onclick="submitCloudRegistration()">
+                    <i class="fa-solid fa-user-plus"></i> إنشاء حساب
                 </button>
 
-                <div style="text-align:center;font-size:0.82rem;color:#94a3b8">
-                    لديك حساب بالفعل؟ <a href="javascript:void(0)" onclick="switchAuthTab('login')" style="color:#34d399;font-weight:800;text-decoration:none">تسجيل الدخول هنا</a>
+                <div class="space-footer-link">
+                    لديك حساب بالفعل؟ <a href="javascript:void(0)" onclick="switchAuthTab('login')">تسجيل الدخول</a>
                 </div>
             </div>
 
             <!-- 3️⃣ TAB 3: OFFLINE LICENSE KEY / HWID -->
             <div id="authSectionKey" style="display:none">
                 <!-- HWID Box -->
-                <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:10px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:10px">
+                <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:10px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:10px">
                     <div style="flex:1">
-                        <div style="font-size:0.74rem;font-weight:800;color:#94a3b8;margin-bottom:2px">بصمة جهازك (HWID):</div>
-                        <input type="text" id="regHwidVal" readonly class="auth-input" style="font-family:'Consolas',monospace;font-size:0.88rem;font-weight:900;color:#34d399;height:36px;text-align:center;direction:ltr">
+                        <div style="font-size:0.75rem;font-weight:800;color:#94a3b8;margin-bottom:2px">بصمة جهازك (HWID):</div>
+                        <input type="text" id="regHwidVal" readonly class="space-input" style="font-family:'Consolas',monospace;font-size:0.88rem;font-weight:900;color:#818cf8;height:36px;text-align:center;direction:ltr">
                     </div>
                     <button class="btn btn-secondary btn-sm" type="button" onclick="copyRegHwid()" style="margin-top:14px;height:36px;padding:0 14px;font-weight:800"><i class="fa-solid fa-copy"></i> نسخ</button>
                 </div>
 
-                <div class="auth-input-wrap">
-                    <label class="auth-label"><i class="fa-solid fa-key" style="color:#f59e0b"></i> كود التفعيل المباشر (License Key): <span style="color:#ef4444">*</span></label>
-                    <input type="text" id="regLicenseKey" class="auth-input" style="font-family:'Consolas',monospace;font-size:0.88rem;font-weight:800;direction:ltr;text-align:left;color:#34d399" placeholder="KEY-..." oninput="this.value = this.value.replace(/[`'()\[\]{}]/g, '').trim()">
+                <div class="space-form-group">
+                    <label class="space-label"><i class="fa-solid fa-key" style="color:#f59e0b"></i> كود التفعيل المباشر (License Key)</label>
+                    <input type="text" id="regLicenseKey" class="space-input" style="font-family:'Consolas',monospace;font-size:0.88rem;font-weight:800;direction:ltr;text-align:left;color:#818cf8" placeholder="KEY-..." oninput="this.value = this.value.replace(/[`'()\[\]{}]/g, '').trim()">
                 </div>
 
-                <button class="auth-btn-submit" type="button" onclick="submitRegistration()">
+                <button class="space-submit-btn" type="button" onclick="submitRegistration()">
                     <i class="fa-solid fa-bolt"></i> تفعيل الترخيص وفتح المنظومة
                 </button>
 
-                <button class="btn btn-secondary" style="width:100%;font-size:0.86rem;border:1px dashed #10b981;color:#34d399;height:44px;border-radius:14px;font-weight:800" type="button" onclick="quickActivateTrial()">
+                <button class="btn btn-secondary" style="width:100%;font-size:0.86rem;border:1px dashed #6366f1;color:#a5b4fc;height:44px;border-radius:12px;font-weight:800" type="button" onclick="quickActivateTrial()">
                     <i class="fa-solid fa-gift"></i> 🎁 تفعيل تجربة مجانية 3 أيام (Free Trial)
                 </button>
             </div>
@@ -6150,7 +6166,128 @@ function exportReportsPdf() {
                 <div>تم إنشاء هذا التقرير تلقائياً بواسطة نظام WhatsApp Flow Pro v3.7</div>
                 <div>الصفحة 1 من 1</div>
             </div>
-        </body>
+        <script>
+
+// 🌌 Animated Deep Space Starfield Engine
+function initStarfield() {
+    const canvas = document.getElementById('starfieldCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        createStars();
+    });
+
+    function createStars() {
+        stars = [];
+        const numStars = Math.floor((width * height) / 3200);
+        for (let i = 0; i < numStars; i++) {
+            stars.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                radius: Math.random() * 1.4 + 0.3,
+                alpha: Math.random() * 0.8 + 0.2,
+                speed: Math.random() * 0.015 + 0.005,
+                color: ['#ffffff', '#a5b4fc', '#c7d2fe', '#818cf8', '#34d399'][Math.floor(Math.random() * 5)]
+            });
+        }
+    }
+
+    function render() {
+        ctx.clearRect(0, 0, width, height);
+        
+        // Deep space subtle gradient background
+        const bgGrad = ctx.createRadialGradient(width * 0.5, height * 0.4, 100, width * 0.5, height * 0.5, Math.max(width, height));
+        bgGrad.addColorStop(0, '#0c1228');
+        bgGrad.addColorStop(0.5, '#070b18');
+        bgGrad.addColorStop(1, '#04060d');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, width, height);
+
+        // Render stars with soft twinkling
+        for (let s of stars) {
+            s.alpha += s.speed;
+            if (s.alpha > 1 || s.alpha < 0.2) s.speed = -s.speed;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+            ctx.fillStyle = s.color;
+            ctx.globalAlpha = Math.max(0.1, Math.min(1, s.alpha));
+            ctx.shadowBlur = s.radius > 1 ? 6 : 0;
+            ctx.shadowColor = s.color;
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        ctx.shadowBlur = 0;
+
+        requestAnimationFrame(render);
+    }
+
+    createStars();
+    render();
+}
+
+function togglePassVisibility(inputId, iconEl) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        iconEl.className = 'fa-solid fa-eye-slash space-input-icon';
+    } else {
+        input.type = 'password';
+        iconEl.className = 'fa-solid fa-eye space-input-icon';
+    }
+}
+
+function checkPwdStrength(pwd) {
+    const fill = document.getElementById('pwdStrengthFill');
+    const text = document.getElementById('pwdStrengthText');
+    if (!fill || !text) return;
+
+    if (!pwd) {
+        fill.style.width = '0%';
+        fill.style.background = 'transparent';
+        text.textContent = '';
+        return;
+    }
+
+    let score = 0;
+    if (pwd.length >= 6) score++;
+    if (pwd.length >= 8) score++;
+    if (/[A-Z]/.test(pwd) || /[a-z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+
+    if (score <= 2) {
+        fill.style.width = '30%';
+        fill.style.background = '#ef4444';
+        text.textContent = 'ضعيفة';
+        text.style.color = '#ef4444';
+    } else if (score <= 3) {
+        fill.style.width = '65%';
+        fill.style.background = '#f59e0b';
+        text.textContent = 'متوسطة';
+        text.style.color = '#f59e0b';
+    } else {
+        fill.style.width = '100%';
+        fill.style.background = '#10b981';
+        text.textContent = 'قوية وممتازة';
+        text.style.color = '#10b981';
+    }
+}
+
+// Attach starfield on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+    initStarfield();
+});
+setTimeout(initStarfield, 200);
+
+</script>
+</body>
         </html>
     `);
     printWin.document.close();
@@ -6263,7 +6400,128 @@ function exportSingleCampaignPdf(id) {
                 <div>تم إنشاء هذا التقرير تلقائياً بواسطة نظام WhatsApp Flow Pro</div>
                 <div>${dateStr}</div>
             </div>
-        </body>
+        <script>
+
+// 🌌 Animated Deep Space Starfield Engine
+function initStarfield() {
+    const canvas = document.getElementById('starfieldCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        createStars();
+    });
+
+    function createStars() {
+        stars = [];
+        const numStars = Math.floor((width * height) / 3200);
+        for (let i = 0; i < numStars; i++) {
+            stars.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                radius: Math.random() * 1.4 + 0.3,
+                alpha: Math.random() * 0.8 + 0.2,
+                speed: Math.random() * 0.015 + 0.005,
+                color: ['#ffffff', '#a5b4fc', '#c7d2fe', '#818cf8', '#34d399'][Math.floor(Math.random() * 5)]
+            });
+        }
+    }
+
+    function render() {
+        ctx.clearRect(0, 0, width, height);
+        
+        // Deep space subtle gradient background
+        const bgGrad = ctx.createRadialGradient(width * 0.5, height * 0.4, 100, width * 0.5, height * 0.5, Math.max(width, height));
+        bgGrad.addColorStop(0, '#0c1228');
+        bgGrad.addColorStop(0.5, '#070b18');
+        bgGrad.addColorStop(1, '#04060d');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, width, height);
+
+        // Render stars with soft twinkling
+        for (let s of stars) {
+            s.alpha += s.speed;
+            if (s.alpha > 1 || s.alpha < 0.2) s.speed = -s.speed;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+            ctx.fillStyle = s.color;
+            ctx.globalAlpha = Math.max(0.1, Math.min(1, s.alpha));
+            ctx.shadowBlur = s.radius > 1 ? 6 : 0;
+            ctx.shadowColor = s.color;
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        ctx.shadowBlur = 0;
+
+        requestAnimationFrame(render);
+    }
+
+    createStars();
+    render();
+}
+
+function togglePassVisibility(inputId, iconEl) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        iconEl.className = 'fa-solid fa-eye-slash space-input-icon';
+    } else {
+        input.type = 'password';
+        iconEl.className = 'fa-solid fa-eye space-input-icon';
+    }
+}
+
+function checkPwdStrength(pwd) {
+    const fill = document.getElementById('pwdStrengthFill');
+    const text = document.getElementById('pwdStrengthText');
+    if (!fill || !text) return;
+
+    if (!pwd) {
+        fill.style.width = '0%';
+        fill.style.background = 'transparent';
+        text.textContent = '';
+        return;
+    }
+
+    let score = 0;
+    if (pwd.length >= 6) score++;
+    if (pwd.length >= 8) score++;
+    if (/[A-Z]/.test(pwd) || /[a-z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+
+    if (score <= 2) {
+        fill.style.width = '30%';
+        fill.style.background = '#ef4444';
+        text.textContent = 'ضعيفة';
+        text.style.color = '#ef4444';
+    } else if (score <= 3) {
+        fill.style.width = '65%';
+        fill.style.background = '#f59e0b';
+        text.textContent = 'متوسطة';
+        text.style.color = '#f59e0b';
+    } else {
+        fill.style.width = '100%';
+        fill.style.background = '#10b981';
+        text.textContent = 'قوية وممتازة';
+        text.style.color = '#10b981';
+    }
+}
+
+// Attach starfield on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+    initStarfield();
+});
+setTimeout(initStarfield, 200);
+
+</script>
+</body>
         </html>
     `);
     printWin.document.close();
@@ -6377,7 +6635,128 @@ function downloadCampaignPdf() {
                 <div>تم تصدير التقرير بواسطة WhatsApp Flow Pro</div>
                 <div>${dateStr}</div>
             </div>
-        </body>
+        <script>
+
+// 🌌 Animated Deep Space Starfield Engine
+function initStarfield() {
+    const canvas = document.getElementById('starfieldCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        createStars();
+    });
+
+    function createStars() {
+        stars = [];
+        const numStars = Math.floor((width * height) / 3200);
+        for (let i = 0; i < numStars; i++) {
+            stars.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                radius: Math.random() * 1.4 + 0.3,
+                alpha: Math.random() * 0.8 + 0.2,
+                speed: Math.random() * 0.015 + 0.005,
+                color: ['#ffffff', '#a5b4fc', '#c7d2fe', '#818cf8', '#34d399'][Math.floor(Math.random() * 5)]
+            });
+        }
+    }
+
+    function render() {
+        ctx.clearRect(0, 0, width, height);
+        
+        // Deep space subtle gradient background
+        const bgGrad = ctx.createRadialGradient(width * 0.5, height * 0.4, 100, width * 0.5, height * 0.5, Math.max(width, height));
+        bgGrad.addColorStop(0, '#0c1228');
+        bgGrad.addColorStop(0.5, '#070b18');
+        bgGrad.addColorStop(1, '#04060d');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, width, height);
+
+        // Render stars with soft twinkling
+        for (let s of stars) {
+            s.alpha += s.speed;
+            if (s.alpha > 1 || s.alpha < 0.2) s.speed = -s.speed;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+            ctx.fillStyle = s.color;
+            ctx.globalAlpha = Math.max(0.1, Math.min(1, s.alpha));
+            ctx.shadowBlur = s.radius > 1 ? 6 : 0;
+            ctx.shadowColor = s.color;
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        ctx.shadowBlur = 0;
+
+        requestAnimationFrame(render);
+    }
+
+    createStars();
+    render();
+}
+
+function togglePassVisibility(inputId, iconEl) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        iconEl.className = 'fa-solid fa-eye-slash space-input-icon';
+    } else {
+        input.type = 'password';
+        iconEl.className = 'fa-solid fa-eye space-input-icon';
+    }
+}
+
+function checkPwdStrength(pwd) {
+    const fill = document.getElementById('pwdStrengthFill');
+    const text = document.getElementById('pwdStrengthText');
+    if (!fill || !text) return;
+
+    if (!pwd) {
+        fill.style.width = '0%';
+        fill.style.background = 'transparent';
+        text.textContent = '';
+        return;
+    }
+
+    let score = 0;
+    if (pwd.length >= 6) score++;
+    if (pwd.length >= 8) score++;
+    if (/[A-Z]/.test(pwd) || /[a-z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+
+    if (score <= 2) {
+        fill.style.width = '30%';
+        fill.style.background = '#ef4444';
+        text.textContent = 'ضعيفة';
+        text.style.color = '#ef4444';
+    } else if (score <= 3) {
+        fill.style.width = '65%';
+        fill.style.background = '#f59e0b';
+        text.textContent = 'متوسطة';
+        text.style.color = '#f59e0b';
+    } else {
+        fill.style.width = '100%';
+        fill.style.background = '#10b981';
+        text.textContent = 'قوية وممتازة';
+        text.style.color = '#10b981';
+    }
+}
+
+// Attach starfield on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+    initStarfield();
+});
+setTimeout(initStarfield, 200);
+
+</script>
+</body>
         </html>
     `);
     printWin.document.close();
@@ -8234,6 +8613,9 @@ function switchAuthTab(tab) {
     const secRegister = document.getElementById('authSectionRegister');
     const secKey = document.getElementById('authSectionKey');
 
+    const headTitle = document.getElementById('spaceAuthHeadingTitle');
+    const headSub = document.getElementById('spaceAuthHeadingSubtitle');
+
     if (!btnLogin || !btnRegister || !btnKey) return;
 
     btnLogin.classList.remove('active');
@@ -8247,7 +8629,20 @@ function switchAuthTab(tab) {
     if (tab === 'login') {
         btnLogin.classList.add('active');
         secLogin.style.display = 'block';
+        if (headTitle) headTitle.textContent = 'تسجيل الدخول';
+        if (headSub) headSub.textContent = 'أهلاً بك مجدداً في منصة WhatsApp Flow Pro';
     } else if (tab === 'register') {
+        btnRegister.classList.add('active');
+        secRegister.style.display = 'block';
+        if (headTitle) headTitle.textContent = 'إنشاء حساب جديد';
+        if (headSub) headSub.textContent = 'انضم إلى المنظومة السحابية الذكية لإدارة وتسويق واتساب';
+    } else {
+        btnKey.classList.add('active');
+        secKey.style.display = 'block';
+        if (headTitle) headTitle.textContent = 'تفعيل كود الترخيص';
+        if (headSub) headSub.textContent = 'أدخل كود الترخيص المباشر الخاص بك لتفعيل البرنامج';
+    }
+} else if (tab === 'register') {
         btnRegister.classList.add('active');
         secRegister.style.display = 'block';
     } else {
@@ -8669,6 +9064,127 @@ loadTemplates();
 renderPhonePreview();
 loadDashboard();
 setInterval(loadDashboard, 60000); // Auto-refresh dashboard every 60 seconds
+</script>
+<script>
+
+// 🌌 Animated Deep Space Starfield Engine
+function initStarfield() {
+    const canvas = document.getElementById('starfieldCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        createStars();
+    });
+
+    function createStars() {
+        stars = [];
+        const numStars = Math.floor((width * height) / 3200);
+        for (let i = 0; i < numStars; i++) {
+            stars.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                radius: Math.random() * 1.4 + 0.3,
+                alpha: Math.random() * 0.8 + 0.2,
+                speed: Math.random() * 0.015 + 0.005,
+                color: ['#ffffff', '#a5b4fc', '#c7d2fe', '#818cf8', '#34d399'][Math.floor(Math.random() * 5)]
+            });
+        }
+    }
+
+    function render() {
+        ctx.clearRect(0, 0, width, height);
+        
+        // Deep space subtle gradient background
+        const bgGrad = ctx.createRadialGradient(width * 0.5, height * 0.4, 100, width * 0.5, height * 0.5, Math.max(width, height));
+        bgGrad.addColorStop(0, '#0c1228');
+        bgGrad.addColorStop(0.5, '#070b18');
+        bgGrad.addColorStop(1, '#04060d');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, width, height);
+
+        // Render stars with soft twinkling
+        for (let s of stars) {
+            s.alpha += s.speed;
+            if (s.alpha > 1 || s.alpha < 0.2) s.speed = -s.speed;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+            ctx.fillStyle = s.color;
+            ctx.globalAlpha = Math.max(0.1, Math.min(1, s.alpha));
+            ctx.shadowBlur = s.radius > 1 ? 6 : 0;
+            ctx.shadowColor = s.color;
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        ctx.shadowBlur = 0;
+
+        requestAnimationFrame(render);
+    }
+
+    createStars();
+    render();
+}
+
+function togglePassVisibility(inputId, iconEl) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        iconEl.className = 'fa-solid fa-eye-slash space-input-icon';
+    } else {
+        input.type = 'password';
+        iconEl.className = 'fa-solid fa-eye space-input-icon';
+    }
+}
+
+function checkPwdStrength(pwd) {
+    const fill = document.getElementById('pwdStrengthFill');
+    const text = document.getElementById('pwdStrengthText');
+    if (!fill || !text) return;
+
+    if (!pwd) {
+        fill.style.width = '0%';
+        fill.style.background = 'transparent';
+        text.textContent = '';
+        return;
+    }
+
+    let score = 0;
+    if (pwd.length >= 6) score++;
+    if (pwd.length >= 8) score++;
+    if (/[A-Z]/.test(pwd) || /[a-z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+
+    if (score <= 2) {
+        fill.style.width = '30%';
+        fill.style.background = '#ef4444';
+        text.textContent = 'ضعيفة';
+        text.style.color = '#ef4444';
+    } else if (score <= 3) {
+        fill.style.width = '65%';
+        fill.style.background = '#f59e0b';
+        text.textContent = 'متوسطة';
+        text.style.color = '#f59e0b';
+    } else {
+        fill.style.width = '100%';
+        fill.style.background = '#10b981';
+        text.textContent = 'قوية وممتازة';
+        text.style.color = '#10b981';
+    }
+}
+
+// Attach starfield on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+    initStarfield();
+});
+setTimeout(initStarfield, 200);
+
 </script>
 </body>
 </html>
