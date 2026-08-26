@@ -170,10 +170,52 @@ module.exports = (req, res) => {
         return true;
     };
 
-    try {
-        // Ping
+        // Ping & Status
         if (pathname === '/ping' || pathname === '') {
             return sendJson(200, { success: true, status: 'online', time: new Date().toISOString() });
+        }
+
+        if (pathname === '/status' && method === 'GET') {
+            return sendJson(200, {
+                isReady: false,
+                hasQr: false,
+                phone: '',
+                name: '',
+                isCloudPlatform: true,
+                message: 'المنصة السحابية متصلة ونشطة'
+            });
+        }
+
+        if (pathname === '/user/profile' && method === 'GET') {
+            const users = getUsers();
+            const user = (users && users.length > 0) ? users[users.length - 1] : null;
+            if (user) {
+                return sendJson(200, {
+                    success: true,
+                    profile: {
+                        registered: true,
+                        name: user.name,
+                        company: user.company,
+                        username: user.username,
+                        email: user.email,
+                        phone: user.phone
+                    },
+                    license: {
+                        isActivated: true,
+                        plan: user.plan,
+                        daysLeft: user.expiry === 'LIFETIME' ? 'LIFETIME' : 30,
+                        isSuspended: user.status === 'suspended',
+                        broadcast: getConfig().broadcastMessage
+                    },
+                    hwid: (user.hwids && user.hwids[0]) || 'WEB-CLOUD-2026'
+                });
+            }
+            return sendJson(200, {
+                success: true,
+                profile: { registered: false },
+                license: { isActivated: false },
+                hwid: 'WEB-CLOUD-2026'
+            });
         }
 
         // ==========================================
