@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const crypto = require('crypto');
-const fs = require('fs-extra');
+const fs = require('fs');
 
 const app = express();
 
@@ -10,9 +10,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Storage Directories
+// Storage Directories (Uses /tmp on Vercel)
 const DATA_DIR = process.env.VERCEL ? path.join('/tmp', 'data') : path.join(__dirname, '..', 'data');
-try { fs.ensureDirSync(DATA_DIR); } catch (_) {}
+try { if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true }); } catch (_) {}
 
 const USERS_FILE = path.join(DATA_DIR, 'users_db.json');
 const CLIENTS_FILE = path.join(DATA_DIR, 'clients_db.json');
@@ -20,6 +20,24 @@ const CONFIG_FILE = path.join(DATA_DIR, 'admin_config.json');
 
 const LICENSE_SECRET = 'WA_BULK_SENDER_SECRET_KEY_@2026#MARKETING!';
 const PASSWORD_SALT = 'WA_AUTH_SECURE_SALT_2026!';
+
+function readJsonSafe(file, defaultVal) {
+    try {
+        if (fs.existsSync(file)) {
+            const content = fs.readFileSync(file, 'utf8');
+            return JSON.parse(content);
+        }
+    } catch (_) {}
+    return defaultVal;
+}
+
+function writeJsonSafe(file, data) {
+    try {
+        const dir = path.dirname(file);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
+    } catch (_) {}
+}
 
 // Initial in-memory data
 let memoryUsers = [
@@ -58,31 +76,21 @@ function hashPassword(pwd) {
 }
 
 function getUsers() {
-    try {
-        if (fs.existsSync(USERS_FILE)) return fs.readJsonSync(USERS_FILE);
-    } catch (_) {}
-    return memoryUsers;
+    return readJsonSafe(USERS_FILE, memoryUsers);
 }
 
 function saveUsers(users) {
     memoryUsers = users;
-    try {
-        fs.writeJsonSync(USERS_FILE, users, { spaces: 2 });
-    } catch (_) {}
+    writeJsonSafe(USERS_FILE, users);
 }
 
 function getConfig() {
-    try {
-        if (fs.existsSync(CONFIG_FILE)) return fs.readJsonSync(CONFIG_FILE);
-    } catch (_) {}
-    return memoryConfig;
+    return readJsonSafe(CONFIG_FILE, memoryConfig);
 }
 
 function saveConfig(cfg) {
     memoryConfig = cfg;
-    try {
-        fs.writeJsonSync(CONFIG_FILE, cfg, { spaces: 2 });
-    } catch (_) {}
+    writeJsonSafe(CONFIG_FILE, cfg);
 }
 
 function generateKey(hwid, plan = 'lifetime', days = null) {
