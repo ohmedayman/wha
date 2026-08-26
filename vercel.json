@@ -18,6 +18,10 @@
       "use": "@vercel/static"
     },
     {
+      "src": "showcase.html",
+      "use": "@vercel/static"
+    },
+    {
       "src": "sitemap.xml",
       "use": "@vercel/static"
     },
@@ -38,6 +42,10 @@
     {
       "src": "/agent",
       "dest": "/agent.html"
+    },
+    {
+      "src": "/showcase",
+      "dest": "/showcase.html"
     },
     {
       "src": "/sitemap.xml",
