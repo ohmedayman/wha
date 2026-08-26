@@ -1,5 +1,12 @@
 {
   "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/portal",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -11,10 +18,6 @@
     },
     {
       "source": "/portal",
-      "destination": "/portal.html"
-    },
-    {
-      "source": "/",
       "destination": "/portal.html"
     }
   ]
