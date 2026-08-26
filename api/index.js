@@ -655,28 +655,9 @@ app.post('/api/v1/license/sync', (req, res) => {
     });
 });
 
-// Bundled UI Views
-let adminHtml = '';
-let clientHtml = '';
-try { adminHtml = require('./admin_view'); } catch (_) { adminHtml = '<h1>WhatsApp Flow Pro Admin</h1>'; }
-try { clientHtml = require('./client_view'); } catch (_) { clientHtml = '<h1>WhatsApp Flow Pro</h1>'; }
-
-// 👑 Admin Dashboard UI Route
-app.get(['/admin', '/admin.html'], (req, res) => {
-    res.type('html').send(adminHtml);
-});
-
-// 💻 Web Platform Home / Client Portal
-app.get(['/', '/login', '/register', '/dashboard'], (req, res) => {
-    res.type('html').send(clientHtml);
-});
-
-// Catch-all route
-app.use((req, res) => {
-    if (req.path.startsWith('/api')) {
-        return res.status(404).json({ success: false, error: 'Endpoint not found' });
-    }
-    return res.type('html').send(clientHtml);
+// Catch-all for unknown API routes
+app.use('/api/*', (req, res) => {
+    res.status(404).json({ success: false, error: 'API endpoint not found' });
 });
 
 module.exports = app;
