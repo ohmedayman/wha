@@ -10,6 +10,7 @@ const DATA_DIR = process.env.VERCEL ? path.join('/tmp', 'data') : path.join(__di
 try { if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true }); } catch (_) {}
 
 const USERS_FILE = path.join(DATA_DIR, 'users_db.json');
+const AGENTS_FILE = path.join(DATA_DIR, 'agents_db.json');
 const CONFIG_FILE = path.join(DATA_DIR, 'admin_config.json');
 const AUDIT_FILE = path.join(DATA_DIR, 'audit_logs.json');
 
@@ -51,6 +52,8 @@ let memoryUsers = [
         suspendReason: '',
         hwids: ['WA-DEMO-2026-VIP'],
         licenseKey: '',
+        agentId: null,
+        agentName: '',
         createdAt: new Date().toISOString(),
         lastLoginAt: new Date().toISOString(),
         lastSeenAt: new Date().toISOString(),
@@ -59,6 +62,23 @@ let memoryUsers = [
         whatsappAccount: { phone: '+201012345678', name: 'الحساب التجريبي' },
         campaignMetrics: { active: false, sentToday: 1450, totalSent: 8520, lastCampaignAt: new Date().toISOString() },
         directMessage: null
+    }
+];
+
+let memoryAgents = [
+    {
+        id: 'agent_cairo_vip',
+        name: 'وكالة النخبة للتسويق',
+        username: 'agent1',
+        passwordHash: hashPassword('agent123'),
+        phone: '01098765432',
+        company: 'وكيل معتمد - القاهرة',
+        credits: 30, // 30 license quota
+        totalIssued: 5,
+        commission: '30%',
+        status: 'active',
+        notes: 'الوكيل الإقليمي لمنطقة القاهرة',
+        createdAt: new Date().toISOString()
     }
 ];
 
@@ -79,32 +99,20 @@ let memoryAuditLogs = [
         timestamp: new Date().toISOString(),
         action: '🚀 SYSTEM_START',
         username: 'SYSTEM',
-        details: 'تم تشغيل المنظومة السحابية المركزية بنجاح'
+        details: 'تم تشغيل المنظومة السحابية المركزية وإدارة الوكلاء بنجاح'
     }
 ];
 
-function getUsers() {
-    return readJsonSafe(USERS_FILE, memoryUsers);
-}
+function getUsers() { return readJsonSafe(USERS_FILE, memoryUsers); }
+function saveUsers(users) { memoryUsers = users; writeJsonSafe(USERS_FILE, users); }
 
-function saveUsers(users) {
-    memoryUsers = users;
-    writeJsonSafe(USERS_FILE, users);
-}
+function getAgents() { return readJsonSafe(AGENTS_FILE, memoryAgents); }
+function saveAgents(agents) { memoryAgents = agents; writeJsonSafe(AGENTS_FILE, agents); }
 
-function getConfig() {
-    return readJsonSafe(CONFIG_FILE, memoryConfig);
-}
+function getConfig() { return readJsonSafe(CONFIG_FILE, memoryConfig); }
+function saveConfig(cfg) { memoryConfig = cfg; writeJsonSafe(CONFIG_FILE, cfg); }
 
-function saveConfig(cfg) {
-    memoryConfig = cfg;
-    writeJsonSafe(CONFIG_FILE, cfg);
-}
-
-function getAuditLogs() {
-    return readJsonSafe(AUDIT_FILE, memoryAuditLogs);
-}
-
+function getAuditLogs() { return readJsonSafe(AUDIT_FILE, memoryAuditLogs); }
 function addAuditLog(action, username, details) {
     const logs = getAuditLogs();
     const entry = {
@@ -115,7 +123,7 @@ function addAuditLog(action, username, details) {
         details: details || ''
     };
     logs.unshift(entry);
-    if (logs.length > 200) logs.pop();
+    if (logs.length > 300) logs.pop();
     memoryAuditLogs = logs;
     writeJsonSafe(AUDIT_FILE, logs);
 }
@@ -149,8 +157,8 @@ function generateKey(hwid, plan = 'lifetime', days = null) {
     return `KEY-${payloadB64}-${signature}`;
 }
 
-function generateSessionToken(user) {
-    const payload = `${user.id}:${user.username}:${Date.now()}`;
+function generateSessionToken(user, type = 'user') {
+    const payload = `${type}:${user.id}:${user.username}:${Date.now()}`;
     const b64 = Buffer.from(payload).toString('base64url');
     const sig = crypto.createHmac('sha256', LICENSE_SECRET).update(payload).digest('hex').substring(0, 16);
     return `${b64}.${sig}`;
@@ -163,9 +171,18 @@ function verifySessionToken(token) {
         const payload = Buffer.from(b64, 'base64url').toString('utf8');
         const expectedSig = crypto.createHmac('sha256', LICENSE_SECRET).update(payload).digest('hex').substring(0, 16);
         if (sig !== expectedSig) return null;
-        const [userId, username] = payload.split(':');
-        const users = getUsers();
-        return users.find(u => u.id === userId && u.username === username) || null;
+        const parts = payload.split(':');
+        if (parts.length >= 3) {
+            const [type, id, username] = parts;
+            if (type === 'agent') {
+                const agents = getAgents();
+                return { isAgent: true, agent: agents.find(a => a.id === id && a.username === username) || null };
+            } else {
+                const users = getUsers();
+                return { isUser: true, user: users.find(u => u.id === id && u.username === username) || null };
+            }
+        }
+        return null;
     } catch (_) {
         return null;
     }
@@ -173,23 +190,20 @@ function verifySessionToken(token) {
 
 // Master Serverless Export
 module.exports = (req, res) => {
-    // 1. CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-pin');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-pin, x-agent-token');
     
     if (req.method === 'OPTIONS') {
         res.statusCode = 200;
         return res.end();
     }
 
-    // 2. Body parsing (Vercel provides pre-parsed body)
     let body = req.body || {};
     if (typeof body === 'string') {
         try { body = JSON.parse(body); } catch (_) { body = {}; }
     }
 
-    // 3. Path resolution
     const rawUrl = req.url || '';
     let pathname = rawUrl.split('?')[0].replace(/^\/api/, '');
     if (!pathname.startsWith('/')) pathname = '/' + pathname;
@@ -217,32 +231,22 @@ module.exports = (req, res) => {
     };
 
     try {
-        // Ping & Status
+        // Ping
         if (pathname === '/ping' || pathname === '') {
             return sendJson(200, { success: true, status: 'online', time: new Date().toISOString() });
         }
 
-        if (pathname === '/status' && method === 'GET') {
-            return sendJson(200, {
-                isReady: false,
-                hasQr: false,
-                phone: '',
-                name: '',
-                isCloudPlatform: true,
-                message: 'المنصة السحابية متصلة ونشطة'
-            });
-        }
-
         // ==========================================
-        // 👤 User Account & Profile APIs
+        // 👤 Client Authentication & Lifecycle
         // ==========================================
 
         if (pathname === '/user/profile' && method === 'GET') {
             const authHeader = req.headers['authorization'] || '';
             const token = authHeader.replace('Bearer ', '').trim();
-            const user = verifySessionToken(token);
+            const session = verifySessionToken(token);
 
-            if (user) {
+            if (session && session.user) {
+                const user = session.user;
                 let daysLeft = 'LIFETIME';
                 let isExpired = false;
                 if (user.expiry && user.expiry !== 'LIFETIME') {
@@ -265,7 +269,8 @@ module.exports = (req, res) => {
                         company: user.company,
                         username: user.username,
                         email: user.email,
-                        phone: user.phone
+                        phone: user.phone,
+                        agentName: user.agentName || ''
                     },
                     license: {
                         isActivated: isActivated && !isExpired && user.status !== 'suspended',
@@ -277,29 +282,24 @@ module.exports = (req, res) => {
                         suspendReason: user.suspendReason || '',
                         broadcast: getConfig().broadcastMessage
                     },
-                    hwid: (user.hwids && user.hwids[0]) || 'WEB-CLOUD-2026'
+                    hwid: (user.hwids && user.hwids[0]) || 'DESKTOP-APP-2026'
                 });
             }
 
-            // No active session token -> Return unauthenticated state
             return sendJson(200, {
                 success: true,
                 profile: { registered: false },
                 license: { isActivated: false },
-                hwid: 'WEB-CLOUD-2026'
+                hwid: 'DESKTOP-APP-2026'
             });
         }
 
-        // ==========================================
-        // 🔐 User Authentication & Lifecycle APIs
-        // ==========================================
-
-        // Register
+        // Client Register
         if (pathname === '/user/auth/register' && method === 'POST') {
-            const { username, password, name, company, phone, email, hwid, plan = 'trial', licenseKey: inputKey } = body;
+            const { username, password, name, company, phone, email, hwid, plan = 'trial', licenseKey: inputKey, agentCode } = body;
 
             if (!username || !password || !name) {
-                return sendJson(400, { success: false, error: 'يرجى ملء جميع الحقول المطلوبة (اسم المستخدم، كلمة السر، الاسم)' });
+                return sendJson(400, { success: false, error: 'يرجى ملء الحقول المطلوبة (اسم المستخدم، كلمة السر، الاسم)' });
             }
 
             const cleanUser = username.trim().toLowerCase();
@@ -312,9 +312,16 @@ module.exports = (req, res) => {
                 return sendJson(400, { success: false, error: 'اسم المستخدم مسجل بالفعل، يرجى اختيار اسم آخر' });
             }
 
-            const cleanHWID = (hwid || '').trim().toUpperCase() || 'WEB-CLOUD-USER';
+            const cleanHWID = (hwid || '').trim().toUpperCase() || 'DESKTOP-APP-USER';
             let finalPlan = plan || 'trial';
             let expiry = null;
+
+            // Check if registered under an agent
+            let assignedAgent = null;
+            if (agentCode) {
+                const agents = getAgents();
+                assignedAgent = agents.find(a => a.username.toLowerCase() === agentCode.trim().toLowerCase() || a.id === agentCode.trim());
+            }
 
             if (inputKey && inputKey.trim()) {
                 finalPlan = 'lifetime';
@@ -344,10 +351,12 @@ module.exports = (req, res) => {
                 suspendReason: '',
                 hwids: [cleanHWID],
                 licenseKey,
+                agentId: assignedAgent ? assignedAgent.id : null,
+                agentName: assignedAgent ? assignedAgent.name : '',
                 createdAt: new Date().toISOString(),
                 lastLoginAt: new Date().toISOString(),
                 lastSeenAt: new Date().toISOString(),
-                activeSource: 'web',
+                activeSource: 'desktop',
                 whatsappStatus: 'disconnected',
                 whatsappAccount: null,
                 campaignMetrics: { active: false, sentToday: 0, totalSent: 0, lastCampaignAt: null },
@@ -356,28 +365,26 @@ module.exports = (req, res) => {
 
             users.push(newUser);
             saveUsers(users);
-            addAuditLog('✨ REGISTER', newUser.username, `تسجيل حساب جديد باسم: ${newUser.name} (${newUser.company || 'فردي'})`);
+            addAuditLog('✨ REGISTER', newUser.username, `تسجيل مستخدم جديد: ${newUser.name} (${newUser.company || 'فردي'}) ${assignedAgent ? 'عبر وكيل: ' + assignedAgent.name : ''}`);
 
-            const token = generateSessionToken(newUser);
+            const token = generateSessionToken(newUser, 'user');
             return sendJson(200, {
                 success: true,
-                message: 'تم إنشاء الحساب وتفعيله بنجاح! 🎉',
+                message: 'تم إنشاء الحساب بنجاح! 🎉',
                 token,
                 user: {
                     id: newUser.id,
                     username: newUser.username,
                     name: newUser.name,
                     company: newUser.company,
-                    email: newUser.email,
                     phone: newUser.phone,
                     plan: newUser.plan,
-                    expiry: newUser.expiry,
-                    licenseKey: newUser.licenseKey
+                    expiry: newUser.expiry
                 }
             });
         }
 
-        // Login
+        // Client Login
         if (pathname === '/user/auth/login' && method === 'POST') {
             const { usernameOrEmail, password, hwid, source = 'desktop' } = body;
             const loginId = (usernameOrEmail || '').trim().toLowerCase();
@@ -397,7 +404,7 @@ module.exports = (req, res) => {
                 return sendJson(403, {
                     success: false,
                     isSuspended: true,
-                    error: user.suspendReason || 'تم إيقاف هذا الحساب من قبل الإدارة، يرجى التواصل لتجديد الاشتراك 🔒'
+                    error: user.suspendReason || 'تم إيقاف هذا الحساب من قبل الإدارة 🔒'
                 });
             }
 
@@ -413,9 +420,9 @@ module.exports = (req, res) => {
             user.activeSource = source;
             saveUsers(users);
 
-            addAuditLog('🔑 LOGIN', user.username, `تسجيل دخول عبر ${source === 'desktop' ? 'البرنامج المكتبي 💻' : 'المنصة السحابية 🌐'}`);
+            addAuditLog('🔑 LOGIN', user.username, 'تسجيل دخول إلى تطبيق WhatsApp Flow Pro');
 
-            const token = generateSessionToken(user);
+            const token = generateSessionToken(user, 'user');
             const config = getConfig();
 
             return sendJson(200, {
@@ -426,13 +433,11 @@ module.exports = (req, res) => {
                     username: user.username,
                     name: user.name,
                     company: user.company,
-                    email: user.email,
                     phone: user.phone,
                     plan: user.plan,
                     expiry: user.expiry,
                     status: user.status,
-                    licenseKey: user.licenseKey,
-                    activeSource: user.activeSource
+                    licenseKey: user.licenseKey
                 },
                 broadcast: config.broadcastMessage && config.broadcastMessage.enabled ? config.broadcastMessage : null
             });
@@ -448,11 +453,7 @@ module.exports = (req, res) => {
             if (!user) return sendJson(404, { success: false, error: 'User not found' });
 
             if (user.status === 'suspended') {
-                return sendJson(403, {
-                    success: false,
-                    isSuspended: true,
-                    error: user.suspendReason || 'تم إيقاف هذا الحساب من قبل الإدارة 🔒'
-                });
+                return sendJson(403, { success: false, isSuspended: true, error: user.suspendReason || 'الحساب معلق' });
             }
 
             user.lastSeenAt = new Date().toISOString();
@@ -489,6 +490,287 @@ module.exports = (req, res) => {
         }
 
         // ==========================================
+        // 👔 Agents & Resellers Master APIs
+        // ==========================================
+
+        // List Agents (Admin)
+        if (pathname === '/admin/agents' && method === 'GET') {
+            if (!checkAdminAuth()) return;
+            const agents = getAgents();
+            const users = getUsers();
+
+            const formatted = agents.map(a => {
+                const myClients = users.filter(u => u.agentId === a.id);
+                const activeClients = myClients.filter(u => u.status === 'active').length;
+                return {
+                    id: a.id,
+                    name: a.name,
+                    username: a.username,
+                    phone: a.phone,
+                    company: a.company,
+                    credits: a.credits || 0,
+                    totalIssued: a.totalIssued || 0,
+                    totalClients: myClients.length,
+                    activeClients,
+                    commission: a.commission || '30%',
+                    status: a.status || 'active',
+                    notes: a.notes || '',
+                    createdAt: a.createdAt
+                };
+            });
+
+            return sendJson(200, { success: true, agents: formatted });
+        }
+
+        // Create Agent (Admin)
+        if (pathname === '/admin/agents/create' && method === 'POST') {
+            if (!checkAdminAuth()) return;
+            const { name, username, password, phone, company, credits = 10, commission = '30%', notes } = body;
+
+            if (!name || !username || !password) {
+                return sendJson(400, { success: false, error: 'يرجى إدخال اسم الوكيل، اسم المستخدم، وكلمة المرور' });
+            }
+
+            const cleanUser = username.trim().toLowerCase();
+            const agents = getAgents();
+
+            if (agents.some(a => a.username.toLowerCase() === cleanUser)) {
+                return sendJson(400, { success: false, error: 'اسم مستخدم الوكيل مسجل بالفعل' });
+            }
+
+            const newAgent = {
+                id: 'agent_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+                name: name.trim(),
+                username: cleanUser,
+                passwordHash: hashPassword(password.trim()),
+                phone: (phone || '').trim(),
+                company: (company || '').trim() || 'وكالة تسويق معتمدة',
+                credits: parseInt(credits) || 0,
+                totalIssued: 0,
+                commission: commission || '30%',
+                status: 'active',
+                notes: notes || '',
+                createdAt: new Date().toISOString()
+            };
+
+            agents.push(newAgent);
+            saveAgents(agents);
+            addAuditLog('👔 NEW_AGENT', 'ADMIN', `إضافة وكيل جديد: ${newAgent.name} (${newAgent.username}) برصيد ${newAgent.credits} ترخيص`);
+
+            return sendJson(200, { success: true, agent: newAgent, message: 'تم إضافة الوكيل بنجاح وتخصيص رصيد التراخيص له! 🎉' });
+        }
+
+        // Recharge Agent Credits (Admin)
+        if (pathname === '/admin/agents/recharge' && method === 'POST') {
+            if (!checkAdminAuth()) return;
+            const { agentId, addCredits } = body;
+            const agents = getAgents();
+            const agent = agents.find(a => a.id === agentId || a.username.toLowerCase() === (agentId || '').toLowerCase());
+
+            if (!agent) return sendJson(404, { success: false, error: 'الوكيل غير موجود' });
+
+            const amount = parseInt(addCredits) || 0;
+            agent.credits = (agent.credits || 0) + amount;
+            saveAgents(agents);
+
+            addAuditLog('⚡ AGENT_RECHARGE', 'ADMIN', `شحن رصيد للوكيل ${agent.name}: +${amount} ترخيص (الرصيد الحالي: ${agent.credits})`);
+            return sendJson(200, { success: true, credits: agent.credits, message: `تم شحن رصيد الوكيل بنجاح! الرصيد الحالي: ${agent.credits} ترخيص.` });
+        }
+
+        // Toggle Agent Status (Admin)
+        if (pathname === '/admin/agents/toggle-status' && method === 'POST') {
+            if (!checkAdminAuth()) return;
+            const { agentId } = body;
+            const agents = getAgents();
+            const agent = agents.find(a => a.id === agentId || a.username.toLowerCase() === (agentId || '').toLowerCase());
+
+            if (!agent) return sendJson(404, { success: false, error: 'الوكيل غير موجود' });
+
+            agent.status = (agent.status === 'suspended') ? 'active' : 'suspended';
+            saveAgents(agents);
+
+            addAuditLog('🔄 AGENT_STATUS', 'ADMIN', `تعديل حالة الوكيل ${agent.name} إلى: ${agent.status}`);
+            return sendJson(200, { success: true, status: agent.status, message: `تم ${agent.status === 'suspended' ? 'إيقاف' : 'تفعيل'} حساب الوكيل!` });
+        }
+
+        // Delete Agent (Admin)
+        if (pathname === '/admin/agents/delete' && method === 'POST') {
+            if (!checkAdminAuth()) return;
+            const { agentId } = body;
+            let agents = getAgents();
+            agents = agents.filter(a => a.id !== agentId && a.username.toLowerCase() !== (agentId || '').toLowerCase());
+            saveAgents(agents);
+
+            addAuditLog('🗑️ DELETE_AGENT', 'ADMIN', `حذف الوكيل: ${agentId}`);
+            return sendJson(200, { success: true, message: 'تم حذف الوكيل بنجاح' });
+        }
+
+        // Agent Self-Login
+        if (pathname === '/agent/auth/login' && method === 'POST') {
+            const { username, password } = body;
+            const cleanUser = (username || '').trim().toLowerCase();
+
+            const agents = getAgents();
+            const agent = agents.find(a => a.username.toLowerCase() === cleanUser);
+
+            if (!agent || agent.passwordHash !== hashPassword((password || '').trim())) {
+                return sendJson(401, { success: false, error: 'اسم مستخدم الوكيل أو كلمة المرور غير صحيحة' });
+            }
+
+            if (agent.status === 'suspended') {
+                return sendJson(403, { success: false, error: 'حساب الوكيل موقوف حالياً، يرجى التواصل مع الإدارة العليا' });
+            }
+
+            const token = generateSessionToken(agent, 'agent');
+            addAuditLog('👔 AGENT_LOGIN', agent.username, `تسجيل دخول الوكيل: ${agent.name}`);
+
+            return sendJson(200, {
+                success: true,
+                token,
+                agent: {
+                    id: agent.id,
+                    name: agent.name,
+                    username: agent.username,
+                    company: agent.company,
+                    credits: agent.credits,
+                    commission: agent.commission
+                }
+            });
+        }
+
+        // Agent Self Dashboard
+        if (pathname === '/agent/my-dashboard' && method === 'GET') {
+            const authHeader = req.headers['authorization'] || req.headers['x-agent-token'] || '';
+            const token = authHeader.replace('Bearer ', '').trim();
+            const session = verifySessionToken(token);
+
+            if (!session || !session.isAgent || !session.agent) {
+                return sendJson(401, { success: false, error: 'جلسة الوكيل منتهية أو غير صحيحة' });
+            }
+
+            const agent = session.agent;
+            const users = getUsers();
+            const myClients = users.filter(u => u.agentId === agent.id);
+
+            return sendJson(200, {
+                success: true,
+                agent: {
+                    id: agent.id,
+                    name: agent.name,
+                    company: agent.company,
+                    credits: agent.credits || 0,
+                    totalIssued: agent.totalIssued || 0,
+                    commission: agent.commission
+                },
+                clients: myClients.map(c => ({
+                    id: c.id,
+                    name: c.name,
+                    username: c.username,
+                    company: c.company,
+                    phone: c.phone,
+                    plan: c.plan,
+                    expiry: c.expiry,
+                    status: c.status,
+                    whatsappStatus: c.whatsappStatus,
+                    createdAt: c.createdAt
+                }))
+            });
+        }
+
+        // Agent Creates Client Account using 1 Credit
+        if (pathname === '/agent/client/create' && method === 'POST') {
+            const authHeader = req.headers['authorization'] || req.headers['x-agent-token'] || '';
+            const token = authHeader.replace('Bearer ', '').trim();
+            const session = verifySessionToken(token);
+
+            if (!session || !session.isAgent || !session.agent) {
+                return sendJson(401, { success: false, error: 'جلسة الوكيل غير مصرح بها' });
+            }
+
+            const agents = getAgents();
+            const agent = agents.find(a => a.id === session.agent.id);
+            if (!agent) return sendJson(404, { success: false, error: 'الوكيل غير موجود' });
+
+            if ((agent.credits || 0) < 1) {
+                return sendJson(400, { success: false, error: 'رصيد التراخيص لديك غير كافٍ! يرجى طلب شحن رصيد من الإدارة' });
+            }
+
+            const { username, password, name, company, phone, plan = '1year' } = body;
+            if (!username || !password || !name) {
+                return sendJson(400, { success: false, error: 'يرجى ملء جميع الحقول المطلوبة' });
+            }
+
+            const cleanUser = username.trim().toLowerCase();
+            const users = getUsers();
+            if (users.some(u => u.username.toLowerCase() === cleanUser)) {
+                return sendJson(400, { success: false, error: 'اسم المستخدم مسجل بالفعل' });
+            }
+
+            let expiry = 'LIFETIME';
+            if (plan === '1year') {
+                const exp = new Date();
+                exp.setDate(exp.getDate() + 365);
+                expiry = exp.toISOString().split('T')[0];
+            } else if (plan === '1month') {
+                const exp = new Date();
+                exp.setDate(exp.getDate() + 30);
+                expiry = exp.toISOString().split('T')[0];
+            }
+
+            const cleanHWID = 'DESKTOP-APP-AGENT-CLIENT';
+            const licenseKey = generateKey(cleanHWID, plan, plan === '1year' ? 365 : (plan === '1month' ? 30 : null));
+
+            const newClient = {
+                id: 'usr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+                username: cleanUser,
+                email: '',
+                passwordHash: hashPassword(password.trim()),
+                name: name.trim(),
+                company: (company || '').trim(),
+                phone: (phone || '').trim(),
+                plan,
+                expiry,
+                status: 'active',
+                suspendReason: '',
+                hwids: [cleanHWID],
+                licenseKey,
+                agentId: agent.id,
+                agentName: agent.name,
+                createdAt: new Date().toISOString(),
+                lastLoginAt: new Date().toISOString(),
+                lastSeenAt: new Date().toISOString(),
+                activeSource: 'desktop',
+                whatsappStatus: 'disconnected',
+                whatsappAccount: null,
+                campaignMetrics: { active: false, sentToday: 0, totalSent: 0, lastCampaignAt: null },
+                directMessage: null
+            };
+
+            users.push(newClient);
+            saveUsers(users);
+
+            // Deduct 1 credit from agent
+            agent.credits = (agent.credits || 1) - 1;
+            agent.totalIssued = (agent.totalIssued || 0) + 1;
+            saveAgents(agents);
+
+            addAuditLog('✨ AGENT_ISSUE', agent.username, `إصدار ترخيص (${plan}) للمستخدم: ${newClient.name} - الرصيد المتبقي: ${agent.credits}`);
+
+            return sendJson(200, {
+                success: true,
+                message: `تم إنشاء حساب العميل وإصدار الترخيص بنجاح! الرصيد المتبقي: ${agent.credits}`,
+                client: {
+                    username: newClient.username,
+                    name: newClient.name,
+                    plan: newClient.plan,
+                    expiry: newClient.expiry,
+                    licenseKey: newClient.licenseKey
+                },
+                remainingCredits: agent.credits
+            });
+        }
+
+        // ==========================================
         // 👑 Master Admin APIs
         // ==========================================
 
@@ -496,6 +778,7 @@ module.exports = (req, res) => {
         if (pathname === '/admin/stats' && method === 'GET') {
             if (!checkAdminAuth()) return;
             const users = getUsers();
+            const agents = getAgents();
             const now = Date.now();
 
             const totalUsers = users.length;
@@ -511,6 +794,9 @@ module.exports = (req, res) => {
                 }
             });
 
+            const totalAgents = agents.length;
+            const totalAgentCredits = agents.reduce((s, a) => s + (a.credits || 0), 0);
+
             return sendJson(200, {
                 success: true,
                 stats: {
@@ -519,7 +805,9 @@ module.exports = (req, res) => {
                     activeUsers,
                     suspendedUsers,
                     waConnectedUsers,
-                    totalMessagesSent
+                    totalMessagesSent,
+                    totalAgents,
+                    totalAgentCredits
                 }
             });
         }
@@ -556,6 +844,7 @@ module.exports = (req, res) => {
                     suspendReason: u.suspendReason || '',
                     hwids: u.hwids || [],
                     licenseKey: u.licenseKey,
+                    agentName: u.agentName || 'مباشر (الإدارة)',
                     isOnline,
                     lastSeenText,
                     activeSource: u.activeSource || 'desktop',
