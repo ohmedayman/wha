@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "electron": "electron .",
-    "dist": "electron-packager . \"WhatsApp Flow Pro\" --platform=win32 --arch=x64 --out=dist --icon=icon.ico --asar --prune --ignore=\"^/(data|\\.wwebjs_auth|\\.wwebjs_cache|uploads|dist|\\.git|scratch|keygen\\.js|2_.*|3_.*|لوحة.*|.*\\.zip)\" --overwrite",
+    "dist": "electron-packager . \"WhatsApp Flow Pro\" --platform=win32 --arch=x64 --out=dist --icon=icon.ico --asar --prune --ignore=\"^/(data|\\.wwebjs_auth|\\.wwebjs_cache|uploads|dist|\\.git|scratch|keygen\\.js|2_.*|3_.*|لوحة.*|.*\\.zip|node_modules/(app-builder-bin|typescript|7zip-bin|electron-builder|electron-packager))\" --overwrite",
     "build": "node -e \"console.log('Vercel build OK')\"",
     "keygen": "node keygen.js"
   },
