@@ -285,7 +285,7 @@ async function syncWithCloudServer(dataDir, userProfile = {}, clientVersion = '3
         try { currentKey = fs.readJsonSync(licenseFile).key || ''; } catch (_) {}
     }
 
-    const targetUrl = serverUrl || process.env.LICENSE_SERVER_URL || 'http://localhost:5000';
+    const targetUrl = serverUrl || process.env.LICENSE_SERVER_URL || 'https://wha-beige.vercel.app';
 
     try {
         const response = await axios.post(`${targetUrl}/api/v1/license/sync`, {
