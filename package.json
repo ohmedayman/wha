@@ -3,7 +3,7 @@
   "version": "3.0.0",
   "description": "WhatsApp Flow Pro - المنظومة الذكية للتسويق المتقدم وإدارة محادثات واتساب",
   "author": "WhatsApp Flow Suite",
-  "main": "electron-main.js",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "electron": "electron .",

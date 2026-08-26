@@ -1,0 +1,8 @@
+dist/
+uploads/
+scratch/
+*.zip
+*.log
+electron-main.js
+icon.ico
+app-icon.png
