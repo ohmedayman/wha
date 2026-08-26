@@ -3367,6 +3367,17 @@
             <p style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:15px" id="qrConnectedInfo">
                 الحساب مربوط ويعمل بكفاءة لإرسال الحملات واستقبال الرسائل.
             </p>
+            <div style="background:rgba(15,23,42,0.6);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:15px;text-align:right">
+                <div style="font-size:0.85rem;font-weight:700;color:var(--text-main);margin-bottom:4px">
+                    <i class="fa-solid fa-address-book" style="color:var(--primary)"></i> سحب ومزامنة محادثات الحساب:
+                </div>
+                <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:8px">
+                    يمكنك سحب جميع جهات الاتصال والمحادثات المفتوحة في هذا الرقم بضغطة زر وإضافتها لقائمة عملائك.
+                </p>
+                <button id="btnExtractChats" class="btn btn-sm btn-primary" style="width:100%;font-size:0.85rem;font-weight:bold" onclick="extractAllAccountChats()">
+                    <i class="fa-solid fa-cloud-arrow-down"></i> سحب أرقام المحادثات النشطة الآن
+                </button>
+            </div>
             <div style="display:flex;gap:10px;justify-content:center">
                 <button class="btn btn-secondary" onclick="checkStatus(true)"><i class="fa-solid fa-arrows-rotate"></i> فحص الاتصال</button>
                 <button class="btn btn-danger" onclick="logoutWhatsApp()"><i class="fa-solid fa-arrow-right-from-bracket"></i> تسجيل الخروج وربط رقم آخر</button>
