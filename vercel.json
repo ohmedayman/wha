@@ -1,24 +1,35 @@
 {
-  "cleanUrls": true,
-  "redirects": [
+  "version": 2,
+  "builds": [
     {
-      "source": "/",
-      "destination": "/portal",
-      "permanent": false
+      "src": "api/index.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "portal.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "admin.html",
+      "use": "@vercel/static"
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index.js"
+      "src": "/api/(.*)",
+      "dest": "/api/index.js"
     },
     {
-      "source": "/admin",
-      "destination": "/admin.html"
+      "src": "/admin",
+      "dest": "/admin.html"
     },
     {
-      "source": "/portal",
-      "destination": "/portal.html"
+      "src": "/portal",
+      "dest": "/portal.html"
+    },
+    {
+      "src": "/",
+      "dest": "/portal.html"
     }
   ]
 }
