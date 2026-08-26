@@ -8104,14 +8104,27 @@ async function submitCloudRegistration() {
     });
 
     if (res && res.success) {
-        showToast('🎉 مرحباً بك', res.message || 'تم إنشاء الحساب بنجاح!', 'success', 3500);
+        showToast('🎉 تم تسجيل الحساب', 'تم إنشاء حسابك بنجاح! يرجى إدخال كود التفعيل لتشغيل المنظومة 🔑', 'success', 4000);
         playChime('pop');
-        document.getElementById('onboardingGate').style.display = 'none';
-        sessionStorage.setItem('app_unlocked', 'true');
-        localStorage.setItem('app_unlocked', 'true');
         if (res.token) localStorage.setItem('cloud_token', res.token);
-        loadUserProfile();
-        checkStatus();
+        
+        if (res.isActivated) {
+            document.getElementById('onboardingGate').style.display = 'none';
+            sessionStorage.setItem('app_unlocked', 'true');
+            localStorage.setItem('app_unlocked', 'true');
+            loadUserProfile();
+            checkStatus();
+        } else {
+            // Switch to License Key tab to enter activation code
+            if (typeof switchAuthTab === 'function') {
+                switchAuthTab('key');
+            } else {
+                const tabKey = document.getElementById('tabBtnKey');
+                if (tabKey) tabKey.click();
+            }
+            const keyInput = document.getElementById('regLicenseKey');
+            if (keyInput) keyInput.focus();
+        }
     } else {
         showToast('❌ خطأ في التسجيل', (res && res.error) ? res.error : 'فشل إنشاء الحساب', 'error', 4500);
     }
