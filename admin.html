@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>👑 WhatsApp Flow Pro - لوحة تحكم الأدمن المركزية</title>
-    <link rel="icon" type="image/png" href="app-icon.png">
-    <link rel="shortcut icon" href="favicon.ico">
+    <link rel="icon" type="image/png" href="/app-icon.png">
+    <link rel="shortcut icon" href="/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -26,9 +26,7 @@
             --radius-md: 12px;
             --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-
         body {
             background: radial-gradient(circle at top right, #064e3b 0%, #090d16 50%, #030712 100%);
             color: var(--text-main);
@@ -37,804 +35,634 @@
             display: flex;
             justify-content: center;
         }
-
-        .container { width: 100%; max-width: 1280px; display: flex; flex-direction: column; gap: 22px; }
-
-        .card {
-            background: rgba(17, 24, 39, 0.85);
-            backdrop-filter: blur(14px);
+        .dashboard-container {
+            width: 100%;
+            max-width: 1440px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(16px);
             border: 1px solid var(--card-border);
             border-radius: var(--radius-lg);
-            padding: 22px 24px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
         }
-
-        .header-card { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
-        .brand-box { display: flex; align-items: center; gap: 16px; }
-        .brand-icon { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .brand-icon img { width: 48px; height: 48px; object-fit: contain; filter: drop-shadow(0 4px 14px rgba(16, 185, 129, 0.5)); }
-        .brand-title { font-size: 1.35rem; font-weight: 900; color: #fff; display: flex; align-items: center; gap: 8px; }
-        .badge-pro { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; }
-        .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .brand-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .brand-icon {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            color: white;
+            box-shadow: 0 0 25px var(--primary-glow);
+        }
+        .brand-title h1 {
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .badge-cloud {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            font-size: 11px;
+            font-weight: 800;
+            padding: 2px 10px;
+            border-radius: 999px;
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
         .btn {
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-            padding: 9px 16px; border-radius: var(--radius-md); font-size: 0.88rem; font-weight: 700;
-            cursor: pointer; border: 1px solid transparent; transition: var(--transition); text-decoration: none; outline: none;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 10px 18px;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
         }
-        .btn-primary { background: linear-gradient(135deg, #10b981, #059669); color: white; box-shadow: 0 4px 14px var(--primary-glow); }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5); }
-        .btn-secondary { background: rgba(255, 255, 255, 0.06); color: var(--text-main); border-color: var(--card-border); }
-        .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); color: white; }
-        .btn-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border-color: rgba(239, 68, 68, 0.3); }
-        .btn-danger:hover { background: #ef4444; color: white; }
-        .btn-warning { background: rgba(217, 119, 6, 0.15); color: #fbbf24; border-color: rgba(217, 119, 6, 0.3); }
-        .btn-warning:hover { background: #d97706; color: white; }
-        .btn-sm { padding: 5px 10px; font-size: 0.78rem; border-radius: 8px; }
-
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: none;
+            color: white;
+            box-shadow: 0 4px 15px var(--primary-glow);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 16px;
+        }
         .stat-card {
-            background: rgba(17, 24, 39, 0.7); border: 1px solid var(--card-border);
-            border-radius: var(--radius-md); padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; transition: var(--transition);
+            background: rgba(31, 41, 55, 0.5);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: relative;
+            overflow: hidden;
         }
-        .stat-card:hover { border-color: rgba(16, 185, 129, 0.3); transform: translateY(-2px); }
-        .stat-info h4 { font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-bottom: 6px; }
-        .stat-info .stat-value { font-size: 1.7rem; font-weight: 900; color: white; line-height: 1.1; }
-        .stat-icon { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
-
-        .controls-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
-        .search-box {
-            display: flex; align-items: center; gap: 10px; background: rgba(0, 0, 0, 0.25);
-            border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 8px 14px; flex: 1; min-width: 260px; max-width: 450px;
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
         }
-        .search-box input { background: transparent; border: none; outline: none; color: white; font-size: 0.88rem; width: 100%; }
-        .filter-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        select { background: #1f2937; color: white; border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 8px 12px; font-size: 0.85rem; outline: none; cursor: pointer; }
-
-        .table-responsive { overflow-x: auto; border: 1px solid var(--card-border); border-radius: var(--radius-md); background: rgba(15, 23, 42, 0.6); }
-        table { width: 100%; border-collapse: collapse; text-align: right; font-size: 0.84rem; }
-        th { background: #111827; padding: 13px 14px; font-weight: 800; color: var(--text-muted); border-bottom: 1px solid var(--card-border); white-space: nowrap; }
-        td { padding: 13px 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); vertical-align: middle; }
+        .stat-val { font-size: 24px; font-weight: 900; }
+        .stat-lbl { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 14px;
+            border: 1px solid var(--card-border);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: right;
+            font-size: 13px;
+        }
+        th {
+            background: rgba(31, 41, 55, 0.9);
+            padding: 14px 16px;
+            color: var(--text-muted);
+            font-weight: 700;
+            border-bottom: 1px solid var(--card-border);
+            white-space: nowrap;
+        }
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            vertical-align: middle;
+            white-space: nowrap;
+        }
         tr:hover td { background: rgba(255, 255, 255, 0.02); }
-
-        .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; }
-        .badge-success { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
-        .badge-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
-        .badge-warning { background: rgba(217, 119, 6, 0.15); color: #fbbf24; border: 1px solid rgba(217, 119, 6, 0.3); }
-        .badge-info { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
-        .badge-purple { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
-
-        .client-name { font-weight: 800; color: #ffffff; font-size: 0.9rem; }
-        .client-sub { font-size: 0.75rem; color: var(--text-muted); }
-        .hwid-code { font-family: monospace; font-size: 0.8rem; background: rgba(0, 0, 0, 0.3); padding: 3px 6px; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.08); color: #a7f3d0; display: inline-flex; align-items: center; gap: 6px; }
-        .action-btns { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
-
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
-        .modal-card { background: #111827; border: 1px solid var(--card-border); border-radius: var(--radius-lg); width: 100%; max-width: 520px; padding: 26px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); display: flex; flex-direction: column; gap: 18px; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 14px; }
-        .modal-header h3 { font-size: 1.15rem; font-weight: 800; color: white; display: flex; align-items: center; gap: 10px; }
-        .modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; }
-        .modal-close:hover { color: white; }
-
-        .form-group { display: flex; flex-direction: column; gap: 6px; }
-        .form-group label { font-size: 0.82rem; font-weight: 700; color: var(--text-muted); }
-        .form-control { background: #1f2937; border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 10px 14px; color: white; font-size: 0.88rem; outline: none; }
-        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
-
-        .login-gate { position: fixed; inset: 0; background: radial-gradient(circle at top, #064e3b 0%, #090d16 60%, #030712 100%); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
-        .login-card { background: rgba(17, 24, 39, 0.9); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 22px; width: 100%; max-width: 440px; padding: 34px 30px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 20px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7); }
-        .toast { position: fixed; bottom: 24px; left: 24px; background: #1f2937; color: #fff; padding: 14px 20px; border-radius: 12px; border-right: 5px solid var(--primary); box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: none; z-index: 3000; font-weight: 700; font-size: 0.88rem; }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+        .badge-online { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-offline { background: rgba(156, 163, 175, 0.1); color: #9ca3af; border: 1px solid rgba(156, 163, 175, 0.2); }
+        .badge-active { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-suspended { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-wa-conn { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-wa-disc { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+        .action-btns {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--card-border);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .action-btn:hover { background: rgba(255, 255, 255, 0.15); transform: translateY(-1px); }
+        .action-btn.btn-suspend { color: #ef4444; border-color: rgba(239, 68, 68, 0.3); }
+        .action-btn.btn-renew { color: #10b981; border-color: rgba(16, 185, 129, 0.3); }
+        .action-btn.btn-reset { color: #3b82f6; border-color: rgba(59, 130, 246, 0.3); }
+        .action-btn.btn-msg { color: #f59e0b; border-color: rgba(245, 158, 11, 0.3); }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .modal-card {
+            background: #111827;
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 480px;
+            padding: 28px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+        }
+        .form-input {
+            width: 100%;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 0 14px;
+            color: white;
+            margin-top: 6px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            outline: none;
+        }
+        .form-input:focus { border-color: var(--primary); }
     </style>
 </head>
 <body>
-
-<div class="login-gate" id="loginGate">
-    <div class="login-card">
-        <div class="brand-icon" style="width:68px;height:68px;">
-            <img src="app-icon.png" style="width:64px;height:64px;" alt="Logo">
-        </div>
-        <div>
-            <h2 style="font-size:1.45rem;font-weight:900;color:#fff;margin-bottom:6px">WhatsApp Flow Pro</h2>
-            <div style="color:var(--text-muted);font-size:0.85rem">👑 بوابة الأدمن المركزية للتحكم في التراخيص والمشتركين</div>
-        </div>
-        <div style="width:100%;display:flex;flex-direction:column;gap:12px;text-align:right">
-            <div class="form-group">
-                <label>🔑 رمز مرور الأدمن (Admin PIN):</label>
-                <input type="password" id="loginPin" class="form-control" placeholder="أدخل رمز المرور..." onkeydown="if(event.key==='Enter') doLogin()">
-            </div>
-            <button class="btn btn-primary" style="width:100%;padding:12px" onclick="doLogin()">
-                <i class="fa-solid fa-lock-open"></i> دخول لوحة التحكم
-            </button>
-            <div id="loginError" style="color:#f87171;font-size:0.8rem;display:none"></div>
-        </div>
-        <div style="font-size:0.75rem;color:#64748b">رمز المرور الافتراضي: <code>admin2026</code></div>
-    </div>
-</div>
-
-<div class="container" id="mainApp" style="display:none">
-    <header class="card header-card">
-        <div class="brand-box">
-            <div class="brand-icon">
-                <img src="app-icon.png" alt="Logo">
-            </div>
-            <div>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="glass-panel header">
+            <div class="brand-box">
+                <div class="brand-icon"><i class="fa-solid fa-crown"></i></div>
                 <div class="brand-title">
-                    WhatsApp Flow <span class="badge-pro">MASTER CLOUD</span>
+                    <h1>لوحة تحكم الأدمن المركزية <span class="badge-cloud">Live Cloud Sync</span></h1>
+                    <div style="font-size:12px;color:var(--text-muted);font-weight:600">منظومة المتابعة والتحكم الفوري بجميع المشتركين والتراخيص</div>
                 </div>
-                <div style="font-size:0.78rem;color:var(--text-muted)">منظومة التحكم السحابية المركزية وإدارة العملاء عن بُعد</div>
+            </div>
+            <div class="header-actions">
+                <button class="btn" onclick="fetchData()"><i class="fa-solid fa-arrows-rotate"></i> تحديث مباشر</button>
+                <button class="btn btn-primary" onclick="openBroadcastModal()"><i class="fa-solid fa-bullhorn"></i> بث تنبيه عام</button>
+                <button class="btn" style="color:#ef4444" onclick="logoutAdmin()"><i class="fa-solid fa-power-off"></i> قفل اللوحة</button>
+            </div>
+        </header>
+
+        <!-- Stats Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:rgba(59,130,246,0.15);color:#3b82f6"><i class="fa-solid fa-users"></i></div>
+                <div>
+                    <div class="stat-val" id="statTotalUsers">0</div>
+                    <div class="stat-lbl">إجمالي العملاء المسجلين</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:rgba(16,185,129,0.15);color:#10b981"><i class="fa-solid fa-wifi"></i></div>
+                <div>
+                    <div class="stat-val" id="statOnlineUsers">0</div>
+                    <div class="stat-lbl">متصلون الآن (Live Online)</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:rgba(16,185,129,0.15);color:#10b981"><i class="fa-brands fa-whatsapp"></i></div>
+                <div>
+                    <div class="stat-val" id="statWaConnected">0</div>
+                    <div class="stat-lbl">مرتبطون بواتساب حالياً</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:rgba(245,158,11,0.15);color:#f59e0b"><i class="fa-solid fa-paper-plane"></i></div>
+                <div>
+                    <div class="stat-val" id="statMessagesSent">0</div>
+                    <div class="stat-lbl">رسائل مرسلة اليوم</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:rgba(239,68,68,0.15);color:#ef4444"><i class="fa-solid fa-user-slash"></i></div>
+                <div>
+                    <div class="stat-val" id="statSuspendedUsers">0</div>
+                    <div class="stat-lbl">حسابات موقوفة</div>
+                </div>
             </div>
         </div>
 
-        <div class="header-actions">
-            <button class="btn btn-secondary btn-sm" onclick="openBroadcastModal()">
-                <i class="fa-solid fa-bullhorn" style="color:var(--accent)"></i> تنبيه عام للبرامج
-            </button>
-            <button class="btn btn-secondary btn-sm" onclick="openChangePasswordModal()">
-                <i class="fa-solid fa-key"></i> تغيير الرمز
-            </button>
-            <button class="btn btn-danger btn-sm" onclick="doLogout()">
-                <i class="fa-solid fa-right-from-bracket"></i> خروج
-            </button>
-        </div>
-    </header>
+        <!-- Clients Lifecycle Table -->
+        <div class="glass-panel">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px">
+                <h2 style="font-size:16px;font-weight:900;display:flex;align-items:center;gap:8px">
+                    <i class="fa-solid fa-users-gear" style="color:var(--primary)"></i> جدول متابعة المشتركين والتحكم اللحظي
+                </h2>
+                <div style="display:flex;gap:10px">
+                    <input type="text" id="searchInput" oninput="renderTable()" placeholder="🔍 بحث بالاسم أو الإيميل أو الهاتف..." class="form-input" style="width:260px;margin:0">
+                </div>
+            </div>
 
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-info">
-                <h4>👥 إجمالي العملاء</h4>
-                <div class="stat-value" id="statTotal">0</div>
-            </div>
-            <div class="stat-icon" style="background:rgba(59,130,246,0.15);color:#60a5fa">
-                <i class="fa-solid fa-users"></i>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-info">
-                <h4>🟢 المشتركين النشطين</h4>
-                <div class="stat-value" id="statActive" style="color:#34d399">0</div>
-            </div>
-            <div class="stat-icon" style="background:rgba(16,185,129,0.15);color:#34d399">
-                <i class="fa-solid fa-circle-check"></i>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-info">
-                <h4>🔴 المعلقين / المحظورين</h4>
-                <div class="stat-value" id="statSuspended" style="color:#f87171">0</div>
-            </div>
-            <div class="stat-icon" style="background:rgba(239,68,68,0.15);color:#f87171">
-                <i class="fa-solid fa-ban"></i>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>العميل / النشاط</th>
+                            <th>حالة الاتصال بالبرنامج</th>
+                            <th>حالة ربط واتساب</th>
+                            <th>النشاط اليومي</th>
+                            <th>الباقة والصلاحية</th>
+                            <th>الجهاز (HWID)</th>
+                            <th>التحكم الفوري</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientsTableBody">
+                        <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:30px">جاري تحميل البيانات الحية...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-        <div class="stat-card">
-            <div class="stat-info">
-                <h4>⌛ منتهية الصلاحية</h4>
-                <div class="stat-value" id="statExpired" style="color:#fbbf24">0</div>
-            </div>
-            <div class="stat-icon" style="background:rgba(217,119,6,0.15);color:#fbbf24">
-                <i class="fa-solid fa-clock-rotate-left"></i>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-info">
-                <h4>⚡ شوهدوا اليوم (24h)</h4>
-                <div class="stat-value" id="statOnline" style="color:#c084fc">0</div>
-            </div>
-            <div class="stat-icon" style="background:rgba(168,85,247,0.15);color:#c084fc">
-                <i class="fa-solid fa-bolt"></i>
+
+        <!-- Live Audit Logs -->
+        <div class="glass-panel">
+            <h2 style="font-size:15px;font-weight:900;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+                <i class="fa-solid fa-clock-rotate-left" style="color:var(--accent)"></i> سجل العمليات المباشر (Live Real-time Audit Logs)
+            </h2>
+            <div id="auditLogsContainer" style="max-height:220px;overflow-y:auto;font-size:12px;display:flex;flex-direction:column;gap:8px">
+                <div style="color:var(--text-muted)">جاري تحميل السجل...</div>
             </div>
         </div>
     </div>
 
-    <div class="card" style="display:flex;flex-direction:column;gap:16px;">
-        <div class="controls-bar">
-            <div class="search-box">
-                <i class="fa-solid fa-magnifying-glass" style="color:var(--text-muted)"></i>
-                <input type="text" id="searchInput" placeholder="بحث باسم العميل، الهاتف، HWID، أو الشركة..." oninput="loadClients()">
-            </div>
+    <!-- Master PIN Auth Modal -->
+    <div class="modal-overlay" id="authModal" style="display:flex">
+        <div class="modal-card" style="text-align:center">
+            <div class="brand-icon" style="margin:0 auto 16px"><i class="fa-solid fa-lock"></i></div>
+            <h2 style="font-size:18px;font-weight:900;margin-bottom:6px">تسجيل دخول الإدارة المركزية</h2>
+            <p style="font-size:12px;color:var(--text-muted);margin-bottom:18px">يرجى إدخال رمز المرور السري (Master PIN) للوصول للوحة التحكم</p>
+            <input type="password" id="adminPinInput" class="form-input" placeholder="••••••••" style="text-align:center;font-size:18px;letter-spacing:4px">
+            <button class="btn btn-primary" style="width:100%" onclick="submitAdminPin()"><i class="fa-solid fa-arrow-right-to-bracket"></i> فتح لوحة التحكم</button>
+        </div>
+    </div>
 
-            <div class="filter-group">
-                <select id="statusFilter" onchange="loadClients()">
-                    <option value="all">كل الحالات</option>
-                    <option value="active">🟢 النشطين فقط</option>
-                    <option value="suspended">🔴 المعلقين فقط</option>
-                    <option value="expired">⌛ المنتهيين فقط</option>
-                </select>
-
-                <select id="planFilter" onchange="loadClients()">
-                    <option value="all">كل الباقات</option>
-                    <option value="trial">تجريبي (Trial)</option>
-                    <option value="1month">شهري (1 Month)</option>
-                    <option value="1year">سنوي (1 Year)</option>
-                    <option value="lifetime">مدى الحياة (Lifetime)</option>
-                </select>
-
-                <button class="btn btn-primary" onclick="openAddClientModal()">
-                    <i class="fa-solid fa-user-plus"></i> إضافة عميل / ترخيص
-                </button>
-                <button class="btn btn-secondary" onclick="loadClients()" title="تحديث القائمة">
-                    <i class="fa-solid fa-rotate"></i>
-                </button>
+    <!-- Renew Modal -->
+    <div class="modal-overlay" id="renewModal">
+        <div class="modal-card">
+            <h2 style="font-size:16px;font-weight:900;margin-bottom:14px"><i class="fa-solid fa-hourglass-half" style="color:var(--primary)"></i> تجديد وتمديد اشتراك العميل</h2>
+            <input type="hidden" id="renewUsername">
+            <label style="font-size:12px;font-weight:700">نوع الباقة:</label>
+            <select id="renewPlanSelect" class="form-input">
+                <option value="lifetime">VIP مدى الحياة (Lifetime)</option>
+                <option value="1year">اشتراك سنوي (1 Year - 365 يوم)</option>
+                <option value="1month">اشتراك شهري (1 Month - 30 يوم)</option>
+                <option value="trial">تجربة مجانية (Trial - 3 أيام)</option>
+            </select>
+            <div style="display:flex;gap:10px;margin-top:10px">
+                <button class="btn btn-primary" style="flex:1" onclick="submitRenew()"><i class="fa-solid fa-check"></i> حفظ وتجديد</button>
+                <button class="btn" style="flex:1" onclick="closeModal('renewModal')">إلغاء</button>
             </div>
         </div>
+    </div>
 
-        <div class="table-responsive">
-            <table>
-                <thead>
+    <!-- Direct Message Modal -->
+    <div class="modal-overlay" id="directMsgModal">
+        <div class="modal-card">
+            <h2 style="font-size:16px;font-weight:900;margin-bottom:14px"><i class="fa-solid fa-comment-dots" style="color:var(--accent)"></i> إرسال تنبيه مباشر لشاشة العميل</h2>
+            <input type="hidden" id="msgUsername">
+            <label style="font-size:12px;font-weight:700">نص الرسالة المنبثقة للعميل:</label>
+            <textarea id="msgTextInput" class="form-input" style="height:90px;padding:10px" placeholder="أدخل التنبيه الذي سيظهر على شاشة العميل فوراً..."></textarea>
+            <div style="display:flex;gap:10px;margin-top:10px">
+                <button class="btn btn-primary" style="flex:1" onclick="submitDirectMsg()"><i class="fa-solid fa-paper-plane"></i> إرسال الآن</button>
+                <button class="btn" style="flex:1" onclick="closeModal('directMsgModal')">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Broadcast Modal -->
+    <div class="modal-overlay" id="broadcastModal">
+        <div class="modal-card">
+            <h2 style="font-size:16px;font-weight:900;margin-bottom:14px"><i class="fa-solid fa-bullhorn" style="color:var(--primary)"></i> بث تنبيه عام لجميع المستخدمين</h2>
+            <label style="font-size:12px;font-weight:700">نص الإعلان أو التنبيه:</label>
+            <textarea id="broadcastTextInput" class="form-input" style="height:90px;padding:10px" placeholder="سيظهر هذا الإعلان في الشريط العلوي عند جميع العملاء..."></textarea>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+                <input type="checkbox" id="broadcastActiveCheck" checked style="width:18px;height:18px">
+                <label for="broadcastActiveCheck" style="font-size:13px;font-weight:700">تفعيل الإعلان فوراً</label>
+            </div>
+            <div style="display:flex;gap:10px">
+                <button class="btn btn-primary" style="flex:1" onclick="submitBroadcast()"><i class="fa-solid fa-check"></i> نشر الإعلان</button>
+                <button class="btn" style="flex:1" onclick="closeModal('broadcastModal')">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let adminPin = localStorage.getItem('flow_admin_pin') || '';
+        let clientsData = [];
+        let refreshInterval = null;
+
+        if (adminPin) {
+            document.getElementById('authModal').style.display = 'none';
+            fetchData();
+            startAutoRefresh();
+        }
+
+        function submitAdminPin() {
+            const input = document.getElementById('adminPinInput').value.trim();
+            if (input) {
+                adminPin = input;
+                localStorage.setItem('flow_admin_pin', adminPin);
+                document.getElementById('authModal').style.display = 'none';
+                fetchData();
+                startAutoRefresh();
+            }
+        }
+
+        function logoutAdmin() {
+            localStorage.removeItem('flow_admin_pin');
+            adminPin = '';
+            location.reload();
+        }
+
+        function startAutoRefresh() {
+            if (refreshInterval) clearInterval(refreshInterval);
+            refreshInterval = setInterval(fetchData, 10000);
+        }
+
+        async function fetchData() {
+            if (!adminPin) return;
+            try {
+                // 1. Stats
+                const statsRes = await fetch('/api/admin/stats', { headers: { 'x-admin-pin': adminPin } });
+                if (statsRes.status === 401) {
+                    logoutAdmin();
+                    return;
+                }
+                const statsData = await statsRes.json();
+                if (statsData.success) {
+                    document.getElementById('statTotalUsers').textContent = statsData.stats.totalUsers;
+                    document.getElementById('statOnlineUsers').textContent = statsData.stats.onlineUsers;
+                    document.getElementById('statWaConnected').textContent = statsData.stats.waConnectedUsers;
+                    document.getElementById('statMessagesSent').textContent = statsData.stats.totalMessagesSent.toLocaleString();
+                    document.getElementById('statSuspendedUsers').textContent = statsData.stats.suspendedUsers;
+                }
+
+                // 2. Clients
+                const clientsRes = await fetch('/api/admin/clients', { headers: { 'x-admin-pin': adminPin } });
+                const cData = await clientsRes.json();
+                if (cData.success) {
+                    clientsData = cData.clients;
+                    renderTable();
+                }
+
+                // 3. Audit Logs
+                const logsRes = await fetch('/api/admin/audit-logs', { headers: { 'x-admin-pin': adminPin } });
+                const lData = await logsRes.json();
+                if (lData.success) {
+                    renderAuditLogs(lData.logs);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function renderTable() {
+            const search = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+            const filtered = clientsData.filter(c => 
+                (c.name && c.name.toLowerCase().includes(search)) ||
+                (c.username && c.username.toLowerCase().includes(search)) ||
+                (c.email && c.email.toLowerCase().includes(search)) ||
+                (c.phone && c.phone.includes(search)) ||
+                (c.company && c.company.toLowerCase().includes(search))
+            );
+
+            const tbody = document.getElementById('clientsTableBody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:30px">لا يوجد مشتركون مطابقون للبحث</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(c => {
+                const presenceBadge = c.isOnline 
+                    ? `<span class="badge badge-online"><i class="fa-solid fa-circle" style="font-size:8px"></i> ${c.activeSource === 'desktop' ? 'ديسكتوب متصل 💻' : 'المنصة 🌐'}</span>`
+                    : `<span class="badge badge-offline">${c.lastSeenText}</span>`;
+
+                const waBadge = c.whatsappStatus === 'connected'
+                    ? `<span class="badge badge-wa-conn"><i class="fa-brands fa-whatsapp"></i> متصل: ${c.whatsappAccount ? c.whatsappAccount.phone : 'نشط'}</span>`
+                    : (c.whatsappStatus === 'scanning_qr' ? `<span class="badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">🟡 بانتظار مسح QR</span>` : `<span class="badge badge-wa-disc">⚪ غير مربوط</span>`);
+
+                const activityText = c.campaignMetrics && c.campaignMetrics.active 
+                    ? `<span style="color:#10b981;font-weight:800"><i class="fa-solid fa-paper-plane fa-fade"></i> جاري الإرسال (${c.campaignMetrics.sentToday || 0})</span>`
+                    : `<span style="color:var(--text-muted)">📊 ${c.campaignMetrics ? (c.campaignMetrics.sentToday || 0) : 0} رسالة اليوم</span>`;
+
+                const statusBadge = c.status === 'suspended'
+                    ? `<span class="badge badge-suspended"><i class="fa-solid fa-ban"></i> موقوف</span>`
+                    : `<span class="badge badge-active"><i class="fa-solid fa-circle-check"></i> ${c.plan === 'lifetime' ? 'VIP مدى الحياة' : (c.plan === '1year' ? 'سنوي' : 'تجريبي')}</span>`;
+
+                const hwidText = (c.hwids && c.hwids.length > 0) ? `<code style="font-size:10px;background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px">${c.hwids[0].substring(0, 14)}...</code>` : '<span style="color:var(--text-muted);font-size:11px">لم يربط جهاز</span>';
+
+                return `
                     <tr>
-                        <th>العميل والنشاط</th>
-                        <th>الهاتف</th>
-                        <th>بصمة الجهاز (HWID)</th>
-                        <th>الباقة</th>
-                        <th>الصلاحية</th>
-                        <th>آخر ظهور</th>
-                        <th>الحالة</th>
-                        <th style="text-align:center">إجراءات التحكم</th>
-                    </tr>
-                </thead>
-                <tbody id="clientsTableBody">
-                    <tr>
-                        <td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted)">
-                            <i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem;color:var(--primary)"></i>
-                            <div style="margin-top:8px">جاري تحميل بيانات العملاء...</div>
+                        <td>
+                            <div style="font-weight:800;font-size:13px">${c.name || c.username}</div>
+                            <div style="font-size:11px;color:var(--text-muted)">@${c.username} ${c.company ? '• ' + c.company : ''} ${c.phone ? '• ' + c.phone : ''}</div>
+                        </td>
+                        <td>${presenceBadge}</td>
+                        <td>${waBadge}</td>
+                        <td>${activityText}</td>
+                        <td>
+                            ${statusBadge}
+                            <div style="font-size:10px;color:var(--text-muted);margin-top:4px">ينتهي: ${c.expiry === 'LIFETIME' ? 'دائم' : c.expiry} (${c.daysLeft} يوم)</div>
+                        </td>
+                        <td>${hwidText}</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="action-btn btn-suspend" title="${c.status === 'suspended' ? 'إلغاء الحظر والتفعيل' : 'إيقاف/حظر فوري'}" onclick="toggleSuspend('${c.username}')">
+                                    <i class="fa-solid ${c.status === 'suspended' ? 'fa-unlock' : 'fa-ban'}"></i>
+                                </button>
+                                <button class="action-btn btn-renew" title="تجديد وتمديد الاشتراك" onclick="openRenewModal('${c.username}', '${c.plan}')">
+                                    <i class="fa-solid fa-hourglass-half"></i>
+                                </button>
+                                <button class="action-btn btn-reset" title="فك ارتباط الجهاز (Reset HWID)" onclick="resetHWID('${c.username}')">
+                                    <i class="fa-solid fa-laptop-medical"></i>
+                                </button>
+                                <button class="action-btn btn-msg" title="إرسال تنبيه مباشر لشاشته" onclick="openDirectMsgModal('${c.username}')">
+                                    <i class="fa-solid fa-comment-dots"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- Modals -->
-<div class="modal-overlay" id="clientModal">
-    <div class="modal-card">
-        <div class="modal-header">
-            <h3 id="modalTitle"><i class="fa-solid fa-user-plus" style="color:var(--primary)"></i> إضافة عميل وترخيص جديد</h3>
-            <button class="modal-close" onclick="closeModal('clientModal')">&times;</button>
-        </div>
-        <div class="form-group">
-            <label>🔑 بصمة جهاز العميل (HWID) * :</label>
-            <input type="text" id="mHwid" class="form-control" placeholder="WA-XXXX-XXXX-XXXX">
-        </div>
-        <div class="form-group">
-            <label>👤 اسم العميل:</label>
-            <input type="text" id="mName" class="form-control" placeholder="مثال: أحمد محمد">
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-            <div class="form-group">
-                <label>🏢 اسم الشركة / النشاط:</label>
-                <input type="text" id="mCompany" class="form-control" placeholder="مثال: متجر الأناقة">
-            </div>
-            <div class="form-group">
-                <label>📱 رقم الهاتف:</label>
-                <input type="text" id="mPhone" class="form-control" placeholder="01012345678">
-            </div>
-        </div>
-        <div class="form-group">
-            <label>📦 باقة الاشتراك:</label>
-            <select id="mPlan" class="form-control" onchange="toggleCustomDays()">
-                <option value="lifetime">مدى الحياة (Lifetime - غير محدود)</option>
-                <option value="1year">سنوي (1 Year - 365 يوم)</option>
-                <option value="1month">شهري (1 Month - 30 يوم)</option>
-                <option value="trial">تجريبي (Trial - 3 أيام)</option>
-                <option value="custom">أيام مخصصة (Custom Days)</option>
-            </select>
-        </div>
-        <div class="form-group" id="mCustomDaysGroup" style="display:none">
-            <label>⏳ عدد الأيام:</label>
-            <input type="number" id="mDays" class="form-control" placeholder="مثال: 90">
-        </div>
-        <div class="form-group">
-            <label>📝 ملاحظات إضافية (خاصة بالأدمن):</label>
-            <input type="text" id="mNotes" class="form-control" placeholder="مثال: دفع عبر فودافون كاش">
-        </div>
-        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px">
-            <button class="btn btn-secondary" onclick="closeModal('clientModal')">إلغاء</button>
-            <button class="btn btn-primary" onclick="saveClientModal()">حفظ وإصدار الترخيص</button>
-        </div>
-    </div>
-</div>
-
-<div class="modal-overlay" id="renewModal">
-    <div class="modal-card">
-        <div class="modal-header">
-            <h3><i class="fa-solid fa-clock-rotate-left" style="color:var(--accent)"></i> تمديد / تجديد اشتراك العميل</h3>
-            <button class="modal-close" onclick="closeModal('renewModal')">&times;</button>
-        </div>
-        <div style="background:rgba(255,255,255,0.04);padding:12px;border-radius:10px;font-size:0.85rem">
-            <div><strong>العميل:</strong> <span id="rClientName">—</span></div>
-            <div><strong>بصمة الجهاز:</strong> <code id="rHwid">—</code></div>
-        </div>
-        <div class="form-group">
-            <label>📦 حدد مدة التجديد الجديدة:</label>
-            <select id="rPlan" class="form-control">
-                <option value="1month">تجديد لشهر إضافي (+30 يوم)</option>
-                <option value="1year">تجديد لسنة كاملة (+365 يوم)</option>
-                <option value="lifetime">ترقية لاشتراك دائم (مدى الحياة)</option>
-                <option value="trial">تجربة 3 أيام</option>
-            </select>
-        </div>
-        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px">
-            <button class="btn btn-secondary" onclick="closeModal('renewModal')">إلغاء</button>
-            <button class="btn btn-primary" onclick="confirmRenew()">تأكيد التجديد وتحديث الحساب</button>
-        </div>
-    </div>
-</div>
-
-<div class="modal-overlay" id="broadcastModal">
-    <div class="modal-card">
-        <div class="modal-header">
-            <h3><i class="fa-solid fa-bullhorn" style="color:var(--accent)"></i> إرسال تنبيه عام لجميع البرامج</h3>
-            <button class="modal-close" onclick="closeModal('broadcastModal')">&times;</button>
-        </div>
-        <p style="font-size:0.82rem;color:var(--text-muted)">
-            الرسالة التي ستكتبها هنا ستظهر في شريط علوي بارز داخل جميع برامج العملاء عند تشغيلهم للبرنامج.
-        </p>
-        <div class="form-group">
-            <label>حالة التنبيه:</label>
-            <select id="bcEnabled" class="form-control">
-                <option value="true">🟢 تفعيل التنبيه للجميع</option>
-                <option value="false">⚪ إيقاف التنبيه</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>نوع التنبيه:</label>
-            <select id="bcType" class="form-control">
-                <option value="info">معلومة عامة (أزرق)</option>
-                <option value="warning">تنبيه هام / صيانة (أصفر)</option>
-                <option value="success">عرض خاص / تحديث (أخضر)</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>نص التنبيه:</label>
-            <textarea id="bcText" class="form-control" rows="3" placeholder="مثال: تنبيه لجميع المشتركين، تم إطلاق تحديث جديد للبرنامج بميزات مضاعفة..."></textarea>
-        </div>
-        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px">
-            <button class="btn btn-secondary" onclick="closeModal('broadcastModal')">إلغاء</button>
-            <button class="btn btn-primary" onclick="saveBroadcast()">حفظ وبث التنبيه</button>
-        </div>
-    </div>
-</div>
-
-<div class="modal-overlay" id="passwordModal">
-    <div class="modal-card">
-        <div class="modal-header">
-            <h3><i class="fa-solid fa-key" style="color:var(--primary)"></i> تغيير رمز مرور الأدمن</h3>
-            <button class="modal-close" onclick="closeModal('passwordModal')">&times;</button>
-        </div>
-        <div class="form-group">
-            <label>رمز المرور الجديد:</label>
-            <input type="password" id="newPin" class="form-control" placeholder="أدخل 4 خانات على الأقل...">
-        </div>
-        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px">
-            <button class="btn btn-secondary" onclick="closeModal('passwordModal')">إلغاء</button>
-            <button class="btn btn-primary" onclick="saveNewPassword()">حفظ الرمز الجديد</button>
-        </div>
-    </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-let adminToken = localStorage.getItem('flow_admin_token') || '';
-let currentClients = [];
-let activeTargetHwid = null;
-
-window.addEventListener('DOMContentLoaded', () => {
-    if (adminToken) {
-        verifySession();
-    } else {
-        showLogin();
-    }
-});
-
-function showLogin() {
-    document.getElementById('loginGate').style.display = 'flex';
-    document.getElementById('mainApp').style.display = 'none';
-}
-
-function showApp() {
-    document.getElementById('loginGate').style.display = 'none';
-    document.getElementById('mainApp').style.display = 'flex';
-    loadStats();
-    loadClients();
-}
-
-async function doLogin() {
-    const pin = document.getElementById('loginPin').value.trim();
-    const errDiv = document.getElementById('loginError');
-    errDiv.style.display = 'none';
-
-    if (!pin) {
-        errDiv.innerText = 'يرجى إدخال رمز المرور';
-        errDiv.style.display = 'block';
-        return;
-    }
-
-    try {
-        const res = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pin })
-        });
-        const data = await res.json();
-        if (data.success) {
-            adminToken = data.token;
-            localStorage.setItem('flow_admin_token', adminToken);
-            showApp();
-            showToast('🎉 مرحباً بك في لوحة تحكم الأدمن المركزية!');
-        } else {
-            errDiv.innerText = data.error || 'رمز المرور غير صحيح';
-            errDiv.style.display = 'block';
-        }
-    } catch (e) {
-        errDiv.innerText = 'فشل الاتصال بالسيرفر';
-        errDiv.style.display = 'block';
-    }
-}
-
-async function verifySession() {
-    try {
-        const res = await fetch('/api/admin/stats', {
-            headers: { 'Authorization': 'Bearer ' + adminToken }
-        });
-        if (res.ok) {
-            showApp();
-        } else {
-            localStorage.removeItem('flow_admin_token');
-            showLogin();
-        }
-    } catch (_) {
-        showLogin();
-    }
-}
-
-function doLogout() {
-    localStorage.removeItem('flow_admin_token');
-    adminToken = '';
-    showLogin();
-    showToast('تم تسجيل الخروج بنجاح');
-}
-
-async function loadStats() {
-    try {
-        const res = await fetch('/api/admin/stats', {
-            headers: { 'Authorization': 'Bearer ' + adminToken }
-        });
-        const data = await res.json();
-        if (data.success) {
-            document.getElementById('statTotal').innerText = data.stats.total || 0;
-            document.getElementById('statActive').innerText = data.stats.active || 0;
-            document.getElementById('statSuspended').innerText = data.stats.suspended || 0;
-            document.getElementById('statExpired').innerText = data.stats.expired || 0;
-            document.getElementById('statOnline').innerText = data.stats.onlineRecently || 0;
-        }
-    } catch (e) {
-        console.error('Error loading stats:', e);
-    }
-}
-
-async function loadClients() {
-    const search = document.getElementById('searchInput').value.trim();
-    const status = document.getElementById('statusFilter').value;
-    const plan = document.getElementById('planFilter').value;
-    const tbody = document.getElementById('clientsTableBody');
-
-    try {
-        const params = new URLSearchParams({ search, status, plan });
-        const res = await fetch('/api/admin/clients?' + params.toString(), {
-            headers: { 'Authorization': 'Bearer ' + adminToken }
-        });
-        const data = await res.json();
-        if (data.success) {
-            currentClients = data.clients || [];
-            renderTable(currentClients);
-        }
-    } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#f87171;padding:20px">خطأ في جلب بيانات العملاء</td></tr>';
-    }
-}
-
-function renderTable(clients) {
-    const tbody = document.getElementById('clientsTableBody');
-    if (!clients || clients.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:30px">لا يوجد عملاء مطابقين للبحث حالياً</td></tr>';
-        return;
-    }
-
-    const planLabels = {
-        'trial': '<span class="badge badge-warning"><i class="fa-solid fa-flask"></i> تجريبي (3 أيام)</span>',
-        '1month': '<span class="badge badge-info"><i class="fa-solid fa-calendar"></i> شهري</span>',
-        '1year': '<span class="badge badge-purple"><i class="fa-solid fa-crown"></i> سنوي</span>',
-        'lifetime': '<span class="badge badge-success"><i class="fa-solid fa-infinity"></i> مدى الحياة</span>'
-    };
-
-    tbody.innerHTML = clients.map(c => {
-        const isSuspended = c.computedStatus === 'suspended';
-        const isExpired = c.computedStatus === 'expired';
-
-        let statusBadge = '<span class="badge badge-success">🟢 نشط</span>';
-        if (isSuspended) statusBadge = '<span class="badge badge-danger">🔴 معلق / محظور</span>';
-        else if (isExpired) statusBadge = '<span class="badge badge-warning">⌛ منتهي</span>';
-
-        const rawPhone = (c.phone || '').replace(/[^0-9]/g, '');
-        const waLink = rawPhone ? `<a href="https://wa.me/${rawPhone}" target="_blank" class="btn btn-sm btn-secondary" style="color:#34d399" title="محادثة واتساب مباشرة"><i class="fa-brands fa-whatsapp"></i> ${c.phone}</a>` : '<span style="color:#64748b">—</span>';
-
-        let lastSeenText = '<span style="color:#64748b">لم يسجل دخول</span>';
-        if (c.lastSeenAt) {
-            const diffMin = Math.round((new Date() - new Date(c.lastSeenAt)) / 60000);
-            if (diffMin < 5) lastSeenText = '<span style="color:#34d399;font-weight:700">متصل الآن ⚡</span>';
-            else if (diffMin < 60) lastSeenText = `منذ ${diffMin} دقيقة`;
-            else if (diffMin < 1440) lastSeenText = `منذ ${Math.round(diffMin/60)} ساعة`;
-            else lastSeenText = new Date(c.lastSeenAt).toLocaleDateString('ar-EG');
+                `;
+            }).join('');
         }
 
-        const toggleBtnIcon = isSuspended ? 'fa-play' : 'fa-ban';
-        const toggleBtnClass = isSuspended ? 'btn-primary' : 'btn-danger';
-        const toggleBtnTitle = isSuspended ? 'تفعيل وإلغاء الحظر' : 'حظر / إيقاف الحساب فوراً';
-
-        return `
-            <tr>
-                <td>
-                    <div class="client-name">${escapeHtml(c.name || 'عميل مسجل')}</div>
-                    <div class="client-sub">${escapeHtml(c.company || 'نشاط تجاري')}</div>
-                </td>
-                <td>${waLink}</td>
-                <td>
-                    <div class="hwid-code" title="بصمة الجهاز">
-                        ${c.hwid}
-                        <button onclick="copyText('${c.hwid}', 'تم نسخ بصمة الجهاز')" style="background:none;border:none;color:#94a3b8;cursor:pointer" title="نسخ"><i class="fa-regular fa-copy"></i></button>
+        function renderAuditLogs(logs) {
+            const container = document.getElementById('auditLogsContainer');
+            if (!logs || logs.length === 0) {
+                container.innerHTML = '<div style="color:var(--text-muted)">لا توجد سجلات بعد</div>';
+                return;
+            }
+            container.innerHTML = logs.slice(0, 30).map(l => {
+                const time = new Date(l.timestamp).toLocaleTimeString('ar-EG');
+                return `
+                    <div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,0.03);border-radius:8px">
+                        <span style="color:var(--text-muted);font-family:monospace;font-size:11px">${time}</span>
+                        <strong style="color:var(--primary);font-size:11px">${l.action}</strong>
+                        <span style="color:var(--text-muted)">[@${l.username}]</span>
+                        <span style="flex:1">${l.details}</span>
                     </div>
-                </td>
-                <td>${planLabels[c.plan] || planLabels.lifetime}</td>
-                <td>
-                    <div style="font-weight:700">${c.expiry === 'LIFETIME' ? '♾️ مدى الحياة' : c.expiry}</div>
-                    <div style="font-size:0.75rem;color:${isExpired ? '#f87171' : 'var(--text-muted)'}">${c.daysLeft === 'غير محدود' ? 'غير محدود' : 'متبقي: ' + c.daysLeft + ' يوم'}</div>
-                </td>
-                <td>${lastSeenText}</td>
-                <td>${statusBadge}</td>
-                <td style="text-align:center">
-                    <div class="action-btns" style="justify-content:center">
-                        <button class="btn btn-sm ${toggleBtnClass}" onclick="toggleClientStatus('${c.hwid}')" title="${toggleBtnTitle}">
-                            <i class="fa-solid ${toggleBtnIcon}"></i>
-                        </button>
-                        <button class="btn btn-sm btn-warning" onclick="openRenewModal('${c.hwid}')" title="تمديد / تجديد الاشتراك">
-                            <i class="fa-solid fa-clock-rotate-left"></i>
-                        </button>
-                        <button class="btn btn-sm btn-secondary" onclick="copyText('${c.licenseKey}', 'تم نسخ كود التفعيل الخاص بالعميل')" title="نسخ كود التفعيل">
-                            <i class="fa-solid fa-key"></i>
-                        </button>
-                        <button class="btn btn-sm btn-secondary" onclick="editClient('${c.hwid}')" title="تعديل بيانات العميل">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteClient('${c.hwid}')" title="حذف العميل">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `;
-    }).join('');
-}
-
-async function toggleClientStatus(hwid) {
-    try {
-        const res = await fetch('/api/admin/clients/' + hwid + '/toggle-status', {
-            method: 'PUT',
-            headers: { 'Authorization': 'Bearer ' + adminToken, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reason: 'تم إيقاف الاشتراك من قبل الإدارة' })
-        });
-        const data = await res.json();
-        if (data.success) {
-            showToast(data.status === 'suspended' ? '🔒 تم إيقاف وحظر العميل فوراً عن بعد!' : '✅ تم تفعيل العميل بنجاح!');
-            loadStats();
-            loadClients();
+                `;
+            }).join('');
         }
-    } catch (e) {
-        showToast('حدث خطأ أثناء تغيير الحالة');
-    }
-}
 
-function openRenewModal(hwid) {
-    const client = currentClients.find(c => c.hwid === hwid);
-    if (!client) return;
-    activeTargetHwid = hwid;
-    document.getElementById('rClientName').innerText = client.name || 'عميل';
-    document.getElementById('rHwid').innerText = hwid;
-    openModal('renewModal');
-}
-
-async function confirmRenew() {
-    if (!activeTargetHwid) return;
-    const plan = document.getElementById('rPlan').value;
-    try {
-        const res = await fetch('/api/admin/clients/' + activeTargetHwid + '/renew', {
-            method: 'PUT',
-            headers: { 'Authorization': 'Bearer ' + adminToken, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ plan })
-        });
-        const data = await res.json();
-        if (data.success) {
-            closeModal('renewModal');
-            showToast('🎉 تم تجديد اشتراك العميل بنجاح وتحديث صلاحيته!');
-            loadStats();
-            loadClients();
+        async function toggleSuspend(username) {
+            if (!confirm(`هل أنت متأكد من تغيير حالة المشترك @${username}؟`)) return;
+            const res = await fetch('/api/admin/toggle-suspend', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-admin-pin': adminPin },
+                body: JSON.stringify({ username })
+            });
+            const data = await res.json();
+            if (data.success) {
+                fetchData();
+            } else {
+                alert(data.error);
+            }
         }
-    } catch (e) {
-        showToast('حدث خطأ في عملية التجديد');
-    }
-}
 
-function openAddClientModal() {
-    activeTargetHwid = null;
-    document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-user-plus" style="color:var(--primary)"></i> إضافة عميل وترخيص جديد';
-    document.getElementById('mHwid').value = '';
-    document.getElementById('mHwid').disabled = false;
-    document.getElementById('mName').value = '';
-    document.getElementById('mCompany').value = '';
-    document.getElementById('mPhone').value = '';
-    document.getElementById('mPlan').value = 'lifetime';
-    document.getElementById('mNotes').value = '';
-    toggleCustomDays();
-    openModal('clientModal');
-}
-
-function editClient(hwid) {
-    const client = currentClients.find(c => c.hwid === hwid);
-    if (!client) return;
-    activeTargetHwid = hwid;
-    document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color:var(--primary)"></i> تعديل بيانات العميل';
-    document.getElementById('mHwid').value = client.hwid;
-    document.getElementById('mHwid').disabled = true;
-    document.getElementById('mName').value = client.name || '';
-    document.getElementById('mCompany').value = client.company || '';
-    document.getElementById('mPhone').value = client.phone || '';
-    document.getElementById('mPlan').value = client.plan || 'lifetime';
-    document.getElementById('mNotes').value = client.notes || '';
-    toggleCustomDays();
-    openModal('clientModal');
-}
-
-function toggleCustomDays() {
-    const plan = document.getElementById('mPlan').value;
-    document.getElementById('mCustomDaysGroup').style.display = (plan === 'custom') ? 'flex' : 'none';
-}
-
-async function saveClientModal() {
-    const hwid = document.getElementById('mHwid').value.trim();
-    const name = document.getElementById('mName').value.trim();
-    const company = document.getElementById('mCompany').value.trim();
-    const phone = document.getElementById('mPhone').value.trim();
-    const plan = document.getElementById('mPlan').value;
-    const days = (plan === 'custom') ? parseInt(document.getElementById('mDays').value) : null;
-    const notes = document.getElementById('mNotes').value.trim();
-
-    if (!hwid) {
-        showToast('يرجى إدخال بصمة الجهاز HWID');
-        return;
-    }
-
-    try {
-        const res = await fetch('/api/admin/clients', {
-            method: 'POST',
-            headers: { 'Authorization': 'Bearer ' + adminToken, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ hwid, name, company, phone, plan, days, notes })
-        });
-        const data = await res.json();
-        if (data.success) {
-            closeModal('clientModal');
-            showToast('✅ تم حفظ بيانات العميل وإصدار الترخيص بنجاح!');
-            loadStats();
-            loadClients();
-        } else {
-            showToast(data.error || 'حدث خطأ أثناء الحفظ');
+        async function resetHWID(username) {
+            if (!confirm(`هل تريد فك ارتباط جهاز العميل @${username} لتمكينه من الدخول من كمبيوتر جديد؟`)) return;
+            const res = await fetch('/api/admin/reset-hwid', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-admin-pin': adminPin },
+                body: JSON.stringify({ username })
+            });
+            const data = await res.json();
+            alert(data.message || data.error);
+            if (data.success) fetchData();
         }
-    } catch (e) {
-        showToast('فشل الاتصال بالسيرفر');
-    }
-}
 
-async function deleteClient(hwid) {
-    if (!confirm('هل أنت متأكد من حذف هذا العميل من قاعدة البيانات؟')) return;
-    try {
-        const res = await fetch('/api/admin/clients/' + hwid, {
-            method: 'DELETE',
-            headers: { 'Authorization': 'Bearer ' + adminToken }
-        });
-        const data = await res.json();
-        if (data.success) {
-            showToast('تم حذف العميل بنجاح');
-            loadStats();
-            loadClients();
+        function openRenewModal(username, currentPlan) {
+            document.getElementById('renewUsername').value = username;
+            document.getElementById('renewPlanSelect').value = currentPlan || 'lifetime';
+            document.getElementById('renewModal').style.display = 'flex';
         }
-    } catch (e) {
-        showToast('حدث خطأ أثناء الحذف');
-    }
-}
 
-async function openBroadcastModal() {
-    try {
-        const res = await fetch('/api/admin/stats', { headers: { 'Authorization': 'Bearer ' + adminToken } });
-        const data = await res.json();
-        if (data.broadcast) {
-            document.getElementById('bcEnabled').value = data.broadcast.enabled ? 'true' : 'false';
-            document.getElementById('bcType').value = data.broadcast.type || 'info';
-            document.getElementById('bcText').value = data.broadcast.text || '';
+        async function submitRenew() {
+            const username = document.getElementById('renewUsername').value;
+            const plan = document.getElementById('renewPlanSelect').value;
+            const res = await fetch('/api/admin/renew', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-admin-pin': adminPin },
+                body: JSON.stringify({ username, plan })
+            });
+            const data = await res.json();
+            if (data.success) {
+                closeModal('renewModal');
+                fetchData();
+            } else {
+                alert(data.error);
+            }
         }
-    } catch (_) {}
-    openModal('broadcastModal');
-}
 
-async function saveBroadcast() {
-    const enabled = document.getElementById('bcEnabled').value === 'true';
-    const type = document.getElementById('bcType').value;
-    const text = document.getElementById('bcText').value.trim();
-
-    try {
-        const res = await fetch('/api/admin/broadcast', {
-            method: 'POST',
-            headers: { 'Authorization': 'Bearer ' + adminToken, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ enabled, type, text })
-        });
-        const data = await res.json();
-        if (data.success) {
-            closeModal('broadcastModal');
-            showToast('📢 تم تحديث وبث التنبيه لجميع برامج المشتركين!');
+        function openDirectMsgModal(username) {
+            document.getElementById('msgUsername').value = username;
+            document.getElementById('msgTextInput').value = '';
+            document.getElementById('directMsgModal').style.display = 'flex';
         }
-    } catch (e) {
-        showToast('فشل حفظ التنبيه');
-    }
-}
 
-function openChangePasswordModal() {
-    document.getElementById('newPin').value = '';
-    openModal('passwordModal');
-}
-
-async function saveNewPassword() {
-    const newPin = document.getElementById('newPin').value.trim();
-    if (!newPin || newPin.length < 4) {
-        showToast('يجب أن يكون الرمز 4 خانات على الأقل');
-        return;
-    }
-    try {
-        const res = await fetch('/api/admin/change-password', {
-            method: 'POST',
-            headers: { 'Authorization': 'Bearer ' + adminToken, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ newPin })
-        });
-        const data = await res.json();
-        if (data.success) {
-            adminToken = newPin;
-            localStorage.setItem('flow_admin_token', newPin);
-            closeModal('passwordModal');
-            showToast('🔒 تم تغيير رمز مرور الأدمن بنجاح!');
+        async function submitDirectMsg() {
+            const username = document.getElementById('msgUsername').value;
+            const text = document.getElementById('msgTextInput').value.trim();
+            if (!text) return alert('يرجى كتابة نص التنبيه');
+            const res = await fetch('/api/admin/send-user-message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-admin-pin': adminPin },
+                body: JSON.stringify({ username, text })
+            });
+            const data = await res.json();
+            alert(data.message || data.error);
+            if (data.success) closeModal('directMsgModal');
         }
-    } catch (e) {
-        showToast('فشل تغيير الرمز');
-    }
-}
 
-function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function openBroadcastModal() {
+            document.getElementById('broadcastModal').style.display = 'flex';
+        }
 
-function copyText(text, msg = 'تم النسخ') {
-    if (!text) return;
-    navigator.clipboard.writeText(text);
-    showToast(msg);
-}
+        async function submitBroadcast() {
+            const text = document.getElementById('broadcastTextInput').value.trim();
+            const enabled = document.getElementById('broadcastActiveCheck').checked;
+            const res = await fetch('/api/admin/broadcast', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-admin-pin': adminPin },
+                body: JSON.stringify({ text, enabled })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('تم نشر التنبيه العام بنجاح!');
+                closeModal('broadcastModal');
+            }
+        }
 
-function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.innerText = msg;
-    t.style.display = 'block';
-    setTimeout(() => { t.style.display = 'none'; }, 3200);
-}
-
-function escapeHtml(str) {
-    if (!str) return '';
-    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-</script>
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+    </script>
 </body>
 </html>

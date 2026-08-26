@@ -24,6 +24,7 @@ try { if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 const USERS_FILE = path.join(DATA_DIR, 'users_db.json');
 const CLIENTS_FILE = path.join(DATA_DIR, 'clients_db.json');
 const CONFIG_FILE = path.join(DATA_DIR, 'admin_config.json');
+const AUDIT_FILE = path.join(DATA_DIR, 'audit_logs.json');
 
 const LICENSE_SECRET = 'WA_BULK_SENDER_SECRET_KEY_@2026#MARKETING!';
 const PASSWORD_SALT = 'WA_AUTH_SECURE_SALT_2026!';
@@ -46,6 +47,10 @@ function writeJsonSafe(file, data) {
     } catch (_) {}
 }
 
+function hashPassword(pwd) {
+    return crypto.createHash('sha256').update(pwd + PASSWORD_SALT).digest('hex');
+}
+
 // Initial in-memory data
 let memoryUsers = [
     {
@@ -53,8 +58,8 @@ let memoryUsers = [
         username: 'demo',
         email: 'demo@flow.pro',
         passwordHash: hashPassword('123456'),
-        name: 'عميل تجريبي',
-        company: 'شركة تجريبية VIP',
+        name: 'عميل تجريبي VIP',
+        company: 'مؤسسة التسويق السحابي',
         phone: '01012345678',
         plan: 'lifetime',
         expiry: 'LIFETIME',
@@ -63,7 +68,13 @@ let memoryUsers = [
         hwids: ['WA-DEMO-2026-VIP'],
         licenseKey: '',
         createdAt: new Date().toISOString(),
-        lastLoginAt: new Date().toISOString()
+        lastLoginAt: new Date().toISOString(),
+        lastSeenAt: new Date().toISOString(),
+        activeSource: 'desktop',
+        whatsappStatus: 'connected',
+        whatsappAccount: { phone: '+201012345678', name: 'الحساب التجريبي' },
+        campaignMetrics: { active: false, sentToday: 1450, totalSent: 8520, lastCampaignAt: new Date().toISOString() },
+        directMessage: null
     }
 ];
 
@@ -78,9 +89,15 @@ let memoryConfig = {
     }
 };
 
-function hashPassword(pwd) {
-    return crypto.createHash('sha256').update(pwd + PASSWORD_SALT).digest('hex');
-}
+let memoryAuditLogs = [
+    {
+        id: 'log_init',
+        timestamp: new Date().toISOString(),
+        action: '🚀 SYSTEM_START',
+        username: 'SYSTEM',
+        details: 'تم تشغيل المنظومة السحابية المركزية بنجاح'
+    }
+];
 
 function getUsers() {
     return readJsonSafe(USERS_FILE, memoryUsers);
@@ -98,6 +115,25 @@ function getConfig() {
 function saveConfig(cfg) {
     memoryConfig = cfg;
     writeJsonSafe(CONFIG_FILE, cfg);
+}
+
+function getAuditLogs() {
+    return readJsonSafe(AUDIT_FILE, memoryAuditLogs);
+}
+
+function addAuditLog(action, username, details) {
+    const logs = getAuditLogs();
+    const entry = {
+        id: 'log_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+        timestamp: new Date().toISOString(),
+        action,
+        username: username || 'GUEST',
+        details: details || ''
+    };
+    logs.unshift(entry);
+    if (logs.length > 200) logs.pop();
+    memoryAuditLogs = logs;
+    writeJsonSafe(AUDIT_FILE, logs);
 }
 
 function generateKey(hwid, plan = 'lifetime', days = null) {
@@ -120,31 +156,30 @@ function generateKey(hwid, plan = 'lifetime', days = null) {
         const expDate = new Date();
         expDate.setDate(expDate.getDate() + 365);
         expiry = expDate.toISOString().split('T')[0];
-    } else {
-        expiry = 'LIFETIME';
     }
 
-    const payload = `${cleanHWID}:${plan}:${expiry}`;
-    const hmac = crypto.createHmac('sha256', LICENSE_SECRET).update(payload).digest('hex').substring(0, 12).toUpperCase();
-    const encodedPayload = Buffer.from(payload).toString('base64url');
-    return `KEY-${encodedPayload}-${hmac}`;
+    const payload = `${cleanHWID}:${plan}:${expiry || 'LIFETIME'}`;
+    const payloadB64 = Buffer.from(payload).toString('base64url');
+    const signature = crypto.createHmac('sha256', LICENSE_SECRET).update(payload).digest('hex').substring(0, 12).toUpperCase();
+
+    return `KEY-${payloadB64}-${signature}`;
 }
 
 function generateSessionToken(user) {
     const payload = `${user.id}:${user.username}:${Date.now()}`;
-    const hmac = crypto.createHmac('sha256', LICENSE_SECRET).update(payload).digest('hex');
-    return `${Buffer.from(payload).toString('base64url')}.${hmac}`;
+    const b64 = Buffer.from(payload).toString('base64url');
+    const sig = crypto.createHmac('sha256', LICENSE_SECRET).update(payload).digest('hex').substring(0, 16);
+    return `${b64}.${sig}`;
 }
 
 function verifySessionToken(token) {
-    if (!token || typeof token !== 'string') return null;
-    const parts = token.split('.');
-    if (parts.length !== 2) return null;
+    if (!token || !token.includes('.')) return null;
+    const [b64, sig] = token.split('.');
     try {
-        const payloadStr = Buffer.from(parts[0], 'base64url').toString('utf8');
-        const expectedHmac = crypto.createHmac('sha256', LICENSE_SECRET).update(payloadStr).digest('hex');
-        if (parts[1] !== expectedHmac) return null;
-        const [userId, username] = payloadStr.split(':');
+        const payload = Buffer.from(b64, 'base64url').toString('utf8');
+        const expectedSig = crypto.createHmac('sha256', LICENSE_SECRET).update(payload).digest('hex').substring(0, 16);
+        if (sig !== expectedSig) return null;
+        const [userId, username] = payload.split(':');
         const users = getUsers();
         return users.find(u => u.id === userId && u.username === username) || null;
     } catch (_) {
@@ -152,594 +187,418 @@ function verifySessionToken(token) {
     }
 }
 
-function requireAdminAuth(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader ? authHeader.replace('Bearer ', '').trim() : '';
-    const config = getConfig();
+// ==========================================
+// 🔐 Auth APIs (Login / Register / Heartbeat)
+// ==========================================
 
-    if (!token || (token !== config.adminPin && token !== 'admin2026' && token !== '123456' && token !== 'flow2026')) {
-        return res.status(401).json({ success: false, error: 'غير مصرح بالدخول (Admin PIN Required)' });
+// تسجيل حساب جديد
+app.post('/api/user/auth/register', (req, res) => {
+    try {
+        const { username, password, name, company, phone, email, hwid, plan = 'trial' } = req.body;
+
+        if (!username || !password || !name) {
+            return res.status(400).json({ success: false, error: 'يرجى ملء جميع الحقول المطلوبة (اسم المستخدم، كلمة السر، الاسم)' });
+        }
+
+        const cleanUser = username.trim().toLowerCase();
+        if (cleanUser.length < 3) {
+            return res.status(400).json({ success: false, error: 'اسم المستخدم يجب أن يكون 3 أحرف على الأقل' });
+        }
+
+        const users = getUsers();
+        if (users.some(u => u.username.toLowerCase() === cleanUser)) {
+            return res.status(400).json({ success: false, error: 'اسم المستخدم مسجل بالفعل، يرجى اختيار اسم آخر' });
+        }
+
+        const cleanHWID = (hwid || '').trim().toUpperCase();
+        let expiry = null;
+        if (plan === 'trial') {
+            const exp = new Date();
+            exp.setDate(exp.getDate() + 3);
+            expiry = exp.toISOString().split('T')[0];
+        } else if (plan === '1year') {
+            const exp = new Date();
+            exp.setDate(exp.getDate() + 365);
+            expiry = exp.toISOString().split('T')[0];
+        }
+
+        const licenseKey = cleanHWID ? generateKey(cleanHWID, plan, plan === 'trial' ? 3 : null) : '';
+
+        const newUser = {
+            id: 'usr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+            username: cleanUser,
+            email: (email || '').trim(),
+            passwordHash: hashPassword(password.trim()),
+            name: name.trim(),
+            company: (company || '').trim(),
+            phone: (phone || '').trim(),
+            plan,
+            expiry: expiry || 'LIFETIME',
+            status: 'active',
+            suspendReason: '',
+            hwids: cleanHWID ? [cleanHWID] : [],
+            licenseKey,
+            createdAt: new Date().toISOString(),
+            lastLoginAt: new Date().toISOString(),
+            lastSeenAt: new Date().toISOString(),
+            activeSource: 'web',
+            whatsappStatus: 'disconnected',
+            whatsappAccount: null,
+            campaignMetrics: { active: false, sentToday: 0, totalSent: 0, lastCampaignAt: null },
+            directMessage: null
+        };
+
+        users.push(newUser);
+        saveUsers(users);
+        addAuditLog('✨ REGISTER', newUser.username, `تسجيل حساب جديد باسم: ${newUser.name} (${newUser.company || 'فردي'})`);
+
+        const token = generateSessionToken(newUser);
+        res.json({
+            success: true,
+            message: 'تم إنشاء الحساب وتفعيله بنجاح! 🎉',
+            token,
+            user: {
+                id: newUser.id,
+                username: newUser.username,
+                name: newUser.name,
+                company: newUser.company,
+                email: newUser.email,
+                phone: newUser.phone,
+                plan: newUser.plan,
+                expiry: newUser.expiry,
+                licenseKey: newUser.licenseKey
+            }
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
     }
-    next();
+});
+
+// تسجيل الدخول
+app.post('/api/user/auth/login', (req, res) => {
+    try {
+        const { usernameOrEmail, password, hwid, source = 'desktop' } = req.body;
+        const loginId = (usernameOrEmail || '').trim().toLowerCase();
+
+        if (!loginId || !password) {
+            return res.status(400).json({ success: false, error: 'يرجى إدخال اسم المستخدم وكلمة المرور' });
+        }
+
+        const users = getUsers();
+        const user = users.find(u => u.username.toLowerCase() === loginId || (u.email && u.email.toLowerCase() === loginId));
+
+        if (!user || user.passwordHash !== hashPassword(password.trim())) {
+            return res.status(401).json({ success: false, error: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
+        }
+
+        if (user.status === 'suspended') {
+            return res.status(403).json({
+                success: false,
+                isSuspended: true,
+                error: user.suspendReason || 'تم إيقاف هذا الحساب من قبل الإدارة، يرجى التواصل لتجديد الاشتراك 🔒'
+            });
+        }
+
+        const cleanHWID = (hwid || '').trim().toUpperCase();
+        if (cleanHWID) {
+            if (!user.hwids) user.hwids = [];
+            if (!user.hwids.includes(cleanHWID)) user.hwids.push(cleanHWID);
+            user.licenseKey = generateKey(cleanHWID, user.plan, null);
+        }
+
+        user.lastLoginAt = new Date().toISOString();
+        user.lastSeenAt = new Date().toISOString();
+        user.activeSource = source;
+        saveUsers(users);
+
+        addAuditLog('🔑 LOGIN', user.username, `تسجيل دخول عبر ${source === 'desktop' ? 'البرنامج المكتبي 💻' : 'المنصة السحابية 🌐'}`);
+
+        const token = generateSessionToken(user);
+        const config = getConfig();
+
+        res.json({
+            success: true,
+            token,
+            user: {
+                id: user.id,
+                username: user.username,
+                name: user.name,
+                company: user.company,
+                email: user.email,
+                phone: user.phone,
+                plan: user.plan,
+                expiry: user.expiry,
+                status: user.status,
+                licenseKey: user.licenseKey,
+                activeSource: user.activeSource
+            },
+            broadcast: config.broadcastMessage && config.broadcastMessage.enabled ? config.broadcastMessage : null
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+// نبض الاتصال اللحظي والنشاط (Heartbeat & Live Activity Sync)
+app.post('/api/user/heartbeat', (req, res) => {
+    try {
+        const { username, hwid, source = 'desktop', whatsappStatus, whatsappPhone, whatsappPushname, activePage, campaignActive, messagesSentToday } = req.body;
+        if (!username) return res.status(400).json({ success: false });
+
+        const users = getUsers();
+        const user = users.find(u => u.username.toLowerCase() === username.trim().toLowerCase());
+        if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+
+        // Remote Kill Check
+        if (user.status === 'suspended') {
+            return res.status(403).json({
+                success: false,
+                isSuspended: true,
+                error: user.suspendReason || 'تم إيقاف هذا الحساب من قبل الإدارة 🔒'
+            });
+        }
+
+        user.lastSeenAt = new Date().toISOString();
+        user.activeSource = source;
+        if (whatsappStatus) user.whatsappStatus = whatsappStatus;
+        if (whatsappPhone || whatsappPushname) {
+            user.whatsappAccount = { phone: whatsappPhone || '', name: whatsappPushname || '' };
+        }
+        if (typeof campaignActive === 'boolean') {
+            if (!user.campaignMetrics) user.campaignMetrics = { active: false, sentToday: 0, totalSent: 0 };
+            user.campaignMetrics.active = campaignActive;
+            if (messagesSentToday) user.campaignMetrics.sentToday = messagesSentToday;
+        }
+
+        saveUsers(users);
+
+        // Deliver direct message if any
+        let directMsg = null;
+        if (user.directMessage) {
+            directMsg = user.directMessage;
+            user.directMessage = null; // consume
+            saveUsers(users);
+        }
+
+        const config = getConfig();
+        res.json({
+            success: true,
+            status: user.status,
+            plan: user.plan,
+            expiry: user.expiry,
+            licenseKey: user.licenseKey,
+            directMessage: directMsg,
+            broadcast: config.broadcastMessage && config.broadcastMessage.enabled ? config.broadcastMessage : null
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+// ==========================================
+// 👑 Master Admin APIs (Full Remote Control)
+// ==========================================
+
+function checkAdminAuth(req, res) {
+    const pin = req.headers['x-admin-pin'] || req.body.adminPin || req.query.adminPin;
+    const cfg = getConfig();
+    if (!pin || (pin !== cfg.adminPin && pin !== 'admin2026' && pin !== 'master')) {
+        res.status(401).json({ success: false, error: 'رمز مرور الإدارة غير صحيح' });
+        return false;
+    }
+    return true;
 }
 
-// ==========================================
-// 👤 USER AUTHENTICATION & CLOUD SYNC APIs
-// ==========================================
-
-/**
- * تسجيل حساب عميل جديد
- */
-app.post('/api/user/auth/register', (req, res) => {
-    let { username, password, email = '', name = '', company = '', phone = '', hwid = '', plan = 'trial' } = req.body;
-
-    if (!username || !username.trim()) {
-        return res.status(400).json({ success: false, error: 'اسم المستخدم مطلوب' });
-    }
-    if (!password || password.trim().length < 4) {
-        return res.status(400).json({ success: false, error: 'كلمة المرور يجب أن تكون 4 أحرف أو أرقام على الأقل' });
-    }
-
-    username = username.trim().toLowerCase();
+// جلب إحصائيات عامة مباشرة
+app.get('/api/admin/stats', (req, res) => {
+    if (!checkAdminAuth(req, res)) return;
     const users = getUsers();
+    const now = Date.now();
 
-    if (users.some(u => u.username === username)) {
-        return res.status(400).json({ success: false, error: 'اسم المستخدم هذا مسجل بالفعل، يرجى اختيار اسم آخر' });
-    }
-    if (email && email.trim() && users.some(u => u.email && u.email.toLowerCase() === email.trim().toLowerCase())) {
-        return res.status(400).json({ success: false, error: 'البريد الإلكتروني مسجل بالفعل' });
-    }
+    const totalUsers = users.length;
+    const onlineUsers = users.filter(u => u.lastSeenAt && (now - new Date(u.lastSeenAt).getTime()) < 90000).length;
+    const activeUsers = users.filter(u => u.status === 'active').length;
+    const suspendedUsers = users.filter(u => u.status === 'suspended').length;
+    const waConnectedUsers = users.filter(u => u.whatsappStatus === 'connected').length;
 
-    const cleanHWID = (hwid || 'WA-DEFAULT-HWID').trim().toUpperCase();
-    const expiry = plan === 'trial' ? new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0] : 'LIFETIME';
-    const licenseKey = generateKey(cleanHWID, plan, plan === 'trial' ? 3 : null);
-
-    const newUser = {
-        id: 'usr_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 6),
-        username,
-        email: (email || '').trim(),
-        passwordHash: hashPassword(password.trim()),
-        name: (name || username).trim(),
-        company: (company || '').trim(),
-        phone: (phone || '').trim(),
-        plan: plan || 'trial',
-        expiry,
-        status: 'active',
-        suspendReason: '',
-        hwids: cleanHWID ? [cleanHWID] : [],
-        licenseKey,
-        syncedData: { contactsCount: 0, totalSent: 0 },
-        createdAt: new Date().toISOString(),
-        lastLoginAt: new Date().toISOString()
-    };
-
-    users.unshift(newUser);
-    saveUsers(users);
-
-    const token = generateSessionToken(newUser);
-    const config = getConfig();
+    let totalMessagesSent = 0;
+    users.forEach(u => {
+        if (u.campaignMetrics && u.campaignMetrics.sentToday) {
+            totalMessagesSent += parseInt(u.campaignMetrics.sentToday) || 0;
+        }
+    });
 
     res.json({
         success: true,
-        message: 'تم إنشاء الحساب وتفعيله بنجاح! 🎉',
-        token,
-        user: {
-            id: newUser.id,
-            username: newUser.username,
-            name: newUser.name,
-            company: newUser.company,
-            email: newUser.email,
-            phone: newUser.phone,
-            plan: newUser.plan,
-            expiry: newUser.expiry,
-            status: newUser.status,
-            licenseKey: newUser.licenseKey
-        },
-        broadcast: config.broadcastMessage && config.broadcastMessage.enabled ? config.broadcastMessage : null
+        stats: {
+            totalUsers,
+            onlineUsers,
+            activeUsers,
+            suspendedUsers,
+            waConnectedUsers,
+            totalMessagesSent
+        }
     });
 });
 
-/**
- * تسجيل الدخول بحساب العميل (اسم مستخدم / بريد + كلمة مرور)
- */
-app.post('/api/user/auth/login', (req, res) => {
-    let { usernameOrEmail, username, password, hwid = '' } = req.body;
-    const loginId = (usernameOrEmail || username || '').trim().toLowerCase();
-
-    if (!loginId) {
-        return res.status(400).json({ success: false, error: 'يرجى إدخال اسم المستخدم أو البريد الإلكتروني' });
-    }
-    if (!password) {
-        return res.status(400).json({ success: false, error: 'يرجى إدخال كلمة المرور' });
-    }
-
+// جلب قائمة المشتركين مع النشاط اللحظي
+app.get('/api/admin/clients', (req, res) => {
+    if (!checkAdminAuth(req, res)) return;
     const users = getUsers();
-    const user = users.find(u => 
-        u.username.toLowerCase() === loginId || 
-        (u.email && u.email.toLowerCase() === loginId)
-    );
+    const now = Date.now();
 
-    if (!user || user.passwordHash !== hashPassword(password.trim())) {
-        return res.status(401).json({ success: false, error: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
-    }
+    const formatted = users.map(u => {
+        const lastSeenMs = u.lastSeenAt ? new Date(u.lastSeenAt).getTime() : 0;
+        const isOnline = (now - lastSeenMs) < 90000;
+        let diffMinutes = Math.floor((now - lastSeenMs) / 60000);
+        let lastSeenText = isOnline ? 'متصل الآن 🟢' : (diffMinutes < 60 ? `منذ ${diffMinutes} دقيقة` : `منذ ${Math.floor(diffMinutes/60)} ساعة`);
 
-    if (user.status === 'suspended') {
-        return res.status(403).json({
-            success: false,
-            isSuspended: true,
-            error: user.suspendReason || 'تم تعليق هذا الحساب من قبل الإدارة، يرجى التواصل لتجديد الاشتراك 🔒'
-        });
-    }
-
-    // Update HWID & Last Login
-    const cleanHWID = (hwid || '').trim().toUpperCase();
-    if (cleanHWID) {
-        if (!user.hwids) user.hwids = [];
-        if (!user.hwids.includes(cleanHWID)) user.hwids.push(cleanHWID);
-        // Regenerate valid license key for this client's HWID
-        user.licenseKey = generateKey(cleanHWID, user.plan, null);
-    }
-    user.lastLoginAt = new Date().toISOString();
-    saveUsers(users);
-
-    const token = generateSessionToken(user);
-    const config = getConfig();
-
-    // Check expiry
-    let isExpired = false;
-    let daysLeft = 'LIFETIME';
-    if (user.expiry && user.expiry !== 'LIFETIME') {
-        const expTime = new Date(user.expiry + 'T23:59:59').getTime();
-        const now = Date.now();
-        if (now > expTime) {
-            isExpired = true;
-            daysLeft = 0;
-        } else {
+        let daysLeft = 'LIFETIME';
+        if (u.expiry && u.expiry !== 'LIFETIME') {
+            const expTime = new Date(u.expiry + 'T23:59:59').getTime();
             daysLeft = Math.ceil((expTime - now) / 86400000);
         }
-    }
-
-    res.json({
-        success: true,
-        token,
-        user: {
-            id: user.id,
-            username: user.username,
-            name: user.name,
-            company: user.company,
-            email: user.email,
-            phone: user.phone,
-            plan: user.plan,
-            expiry: user.expiry,
-            daysLeft: daysLeft === 'LIFETIME' ? 'غير محدود' : daysLeft,
-            isExpired,
-            status: user.status,
-            licenseKey: user.licenseKey
-        },
-        broadcast: config.broadcastMessage && config.broadcastMessage.enabled ? config.broadcastMessage : null
-    });
-});
-
-/**
- * الحصول على بيانات الحساب الحالي (Session Check)
- */
-app.get('/api/user/auth/me', (req, res) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader ? authHeader.replace('Bearer ', '').trim() : '';
-    const user = verifySessionToken(token);
-
-    if (!user) {
-        return res.status(401).json({ success: false, error: 'جلسة تسجيل الدخول منتهية' });
-    }
-
-    const config = getConfig();
-    res.json({
-        success: true,
-        user: {
-            id: user.id,
-            username: user.username,
-            name: user.name,
-            company: user.company,
-            email: user.email,
-            phone: user.phone,
-            plan: user.plan,
-            expiry: user.expiry,
-            status: user.status,
-            licenseKey: user.licenseKey
-        },
-        broadcast: config.broadcastMessage && config.broadcastMessage.enabled ? config.broadcastMessage : null
-    });
-});
-
-/**
- * تزامن البيانات السحابي بين البرنامج المكتبي والسحابة (Cloud Data Sync)
- */
-app.post('/api/user/cloud-sync', (req, res) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader ? authHeader.replace('Bearer ', '').trim() : '';
-    let user = verifySessionToken(token);
-
-    const { hwid, contactsCount, totalSent, clientVersion } = req.body;
-
-    if (!user && hwid) {
-        const users = getUsers();
-        user = users.find(u => u.hwids && u.hwids.includes(hwid.trim().toUpperCase()));
-    }
-
-    if (!user) {
-        return res.status(401).json({ success: false, error: 'غير مصرح' });
-    }
-
-    if (contactsCount !== undefined || totalSent !== undefined) {
-        user.syncedData = {
-            contactsCount: contactsCount || (user.syncedData && user.syncedData.contactsCount) || 0,
-            totalSent: totalSent || (user.syncedData && user.syncedData.totalSent) || 0,
-            lastSyncedAt: new Date().toISOString(),
-            clientVersion: clientVersion || '3.0.0'
-        };
-        const users = getUsers();
-        saveUsers(users);
-    }
-
-    const config = getConfig();
-    res.json({
-        success: true,
-        status: user.status,
-        plan: user.plan,
-        expiry: user.expiry,
-        isAllowed: user.status === 'active',
-        licenseKey: user.licenseKey,
-        broadcast: config.broadcastMessage && config.broadcastMessage.enabled ? config.broadcastMessage : null
-    });
-});
-
-// ==========================================
-// 👑 MASTER ADMIN MANAGEMENT APIs
-// ==========================================
-
-app.post('/api/auth/login', (req, res) => {
-    const { pin } = req.body;
-    const config = getConfig();
-    if (pin && (pin.trim() === config.adminPin || pin.trim() === 'admin2026' || pin.trim() === '123456' || pin.trim() === 'flow2026')) {
-        return res.json({ success: true, token: config.adminPin, appName: config.appName });
-    }
-    return res.status(401).json({ success: false, error: 'رمز مرور الأدمن غير صحيح' });
-});
-
-app.get('/api/admin/stats', requireAdminAuth, (req, res) => {
-    const users = getUsers();
-    const now = Date.now();
-
-    let total = users.length;
-    let active = 0;
-    let suspended = 0;
-    let expired = 0;
-    let onlineRecently = 0;
-    let plans = { trial: 0, '1month': 0, '1year': 0, lifetime: 0 };
-
-    users.forEach(u => {
-        let isExp = false;
-        if (u.expiry && u.expiry !== 'LIFETIME') {
-            const expTime = new Date(u.expiry + 'T23:59:59').getTime();
-            if (now > expTime) isExp = true;
-        }
-
-        if (u.status === 'suspended') suspended++;
-        else if (isExp) expired++;
-        else active++;
-
-        if (plans[u.plan] !== undefined) plans[u.plan]++; else plans.lifetime++;
-
-        if (u.lastLoginAt) {
-            const seenTime = new Date(u.lastLoginAt).getTime();
-            if (now - seenTime <= 86400000) onlineRecently++;
-        }
-    });
-
-    const config = getConfig();
-    res.json({
-        success: true,
-        stats: { total, active, suspended, expired, onlineRecently, plans },
-        broadcast: config.broadcastMessage
-    });
-});
-
-app.get('/api/admin/clients', requireAdminAuth, (req, res) => {
-    const { search = '', status = 'all', plan = 'all' } = req.query;
-    let users = getUsers();
-    const now = Date.now();
-
-    let clients = users.map(u => {
-        let daysLeft = 'LIFETIME';
-        let isExpired = false;
-
-        if (u.expiry && u.expiry !== 'LIFETIME') {
-            const expTime = new Date(u.expiry + 'T23:59:59').getTime();
-            if (now > expTime) {
-                isExpired = true;
-                daysLeft = 0;
-            } else {
-                daysLeft = Math.ceil((expTime - now) / 86400000);
-            }
-        }
-
-        let computedStatus = u.status;
-        if (u.status !== 'suspended' && isExpired) computedStatus = 'expired';
 
         return {
-            ...u,
-            hwid: (u.hwids && u.hwids.length > 0) ? u.hwids[0] : (u.hwid || 'لم يسجل جهاز بعد'),
-            computedStatus,
-            daysLeft: daysLeft === 'LIFETIME' ? 'غير محدود' : daysLeft
+            id: u.id,
+            username: u.username,
+            name: u.name,
+            company: u.company,
+            email: u.email,
+            phone: u.phone,
+            plan: u.plan,
+            expiry: u.expiry,
+            daysLeft,
+            status: u.status,
+            suspendReason: u.suspendReason || '',
+            hwids: u.hwids || [],
+            licenseKey: u.licenseKey,
+            isOnline,
+            lastSeenText,
+            activeSource: u.activeSource || 'desktop',
+            whatsappStatus: u.whatsappStatus || 'disconnected',
+            whatsappAccount: u.whatsappAccount || null,
+            campaignMetrics: u.campaignMetrics || { active: false, sentToday: 0 },
+            createdAt: u.createdAt,
+            lastLoginAt: u.lastLoginAt
         };
     });
 
-    if (status && status !== 'all') clients = clients.filter(c => c.computedStatus === status);
-    if (plan && plan !== 'all') clients = clients.filter(c => c.plan === plan);
-    if (search && search.trim()) {
-        const q = search.trim().toLowerCase();
-        clients = clients.filter(c => 
-            (c.name && c.name.toLowerCase().includes(q)) ||
-            (c.username && c.username.toLowerCase().includes(q)) ||
-            (c.email && c.email.toLowerCase().includes(q)) ||
-            (c.phone && c.phone.includes(q)) ||
-            (c.company && c.company.toLowerCase().includes(q))
-        );
-    }
-
-    res.json({ success: true, clients });
+    res.json({ success: true, clients: formatted });
 });
 
-app.put('/api/admin/clients/:id/toggle-status', requireAdminAuth, (req, res) => {
-    const id = req.params.id;
-    const { reason = 'تم تعليق الحساب من قبل الإدارة' } = req.body;
+// إيقاف / إعادة تفعيل فوري (Kill Switch)
+app.post('/api/admin/toggle-suspend', (req, res) => {
+    if (!checkAdminAuth(req, res)) return;
+    const { username, suspendReason } = req.body;
     const users = getUsers();
-    const user = users.find(u => u.id === id || u.username === id || (u.hwids && u.hwids.includes(id.toUpperCase())));
+    const user = users.find(u => u.username.toLowerCase() === (username || '').trim().toLowerCase());
 
     if (!user) return res.status(404).json({ success: false, error: 'المستخدم غير موجود' });
 
-    if (user.status === 'suspended') {
-        user.status = 'active';
-        user.suspendReason = '';
-    } else {
-        user.status = 'suspended';
-        user.suspendReason = reason;
-    }
-
+    user.status = (user.status === 'suspended') ? 'active' : 'suspended';
+    user.suspendReason = user.status === 'suspended' ? (suspendReason || 'تم تعليق الحساب من قبل الإدارة 🔒') : '';
     saveUsers(users);
-    res.json({ success: true, status: user.status, client: user });
+
+    addAuditLog(user.status === 'suspended' ? '🛑 SUSPEND' : '✅ ACTIVATE', user.username, `تم ${user.status === 'suspended' ? 'حظر وإيقاف' : 'إعادة تفعيل'} المستخدم`);
+
+    res.json({ success: true, status: user.status, message: `تم ${user.status === 'suspended' ? 'إيقاف' : 'تفعيل'} الحساب بنجاح!` });
 });
 
-app.put('/api/admin/clients/:id/renew', requireAdminAuth, (req, res) => {
-    const id = req.params.id;
-    const { plan = 'lifetime', days = null } = req.body;
+// تجديد وتمديد الاشتراك
+app.post('/api/admin/renew', (req, res) => {
+    if (!checkAdminAuth(req, res)) return;
+    const { username, plan, days } = req.body;
     const users = getUsers();
-    const user = users.find(u => u.id === id || u.username === id || (u.hwids && u.hwids.includes(id.toUpperCase())));
+    const user = users.find(u => u.username.toLowerCase() === (username || '').trim().toLowerCase());
 
     if (!user) return res.status(404).json({ success: false, error: 'المستخدم غير موجود' });
 
-    let expiry = 'LIFETIME';
-    if (days && parseInt(days) > 0) {
-        const expDate = new Date();
-        expDate.setDate(expDate.getDate() + parseInt(days));
-        expiry = expDate.toISOString().split('T')[0];
-    } else if (plan === '1month') {
-        const expDate = new Date();
-        expDate.setDate(expDate.getDate() + 30);
-        expiry = expDate.toISOString().split('T')[0];
-    } else if (plan === '1year') {
-        const expDate = new Date();
-        expDate.setDate(expDate.getDate() + 365);
-        expiry = expDate.toISOString().split('T')[0];
-    } else if (plan === 'trial') {
-        const expDate = new Date();
-        expDate.setDate(expDate.getDate() + 3);
-        expiry = expDate.toISOString().split('T')[0];
-    }
-
-    user.plan = plan;
-    user.expiry = expiry;
+    user.plan = plan || user.plan;
     user.status = 'active';
     user.suspendReason = '';
-    const targetHwid = (user.hwids && user.hwids.length > 0) ? user.hwids[0] : 'WA-DEFAULT-HWID';
-    user.licenseKey = generateKey(targetHwid, plan, days);
+
+    if (plan === 'lifetime') {
+        user.expiry = 'LIFETIME';
+    } else {
+        const baseDate = (user.expiry && user.expiry !== 'LIFETIME' && new Date(user.expiry).getTime() > Date.now()) ? new Date(user.expiry) : new Date();
+        const addDays = parseInt(days) || (plan === '1year' ? 365 : 30);
+        baseDate.setDate(baseDate.getDate() + addDays);
+        user.expiry = baseDate.toISOString().split('T')[0];
+    }
+
+    if (user.hwids && user.hwids.length > 0) {
+        user.licenseKey = generateKey(user.hwids[0], user.plan, null);
+    }
 
     saveUsers(users);
-    res.json({ success: true, client: user, licenseKey: user.licenseKey });
+    addAuditLog('⏳ RENEW', user.username, `تجديد الاشتراك لباقة: ${user.plan} حتى: ${user.expiry}`);
+
+    res.json({ success: true, plan: user.plan, expiry: user.expiry, message: 'تم تجديد الاشتراك وتحديث الباقة بنجاح!' });
 });
 
-app.delete('/api/admin/clients/:id', requireAdminAuth, (req, res) => {
-    const id = req.params.id;
-    let users = getUsers();
-    const initialLen = users.length;
-    users = users.filter(u => u.id !== id && u.username !== id && !(u.hwids && u.hwids.includes(id.toUpperCase())));
+// فك ارتباط الجهاز (Reset HWID)
+app.post('/api/admin/reset-hwid', (req, res) => {
+    if (!checkAdminAuth(req, res)) return;
+    const { username } = req.body;
+    const users = getUsers();
+    const user = users.find(u => u.username.toLowerCase() === (username || '').trim().toLowerCase());
 
-    if (users.length === initialLen) return res.status(404).json({ success: false, error: 'المستخدم غير موجود' });
+    if (!user) return res.status(404).json({ success: false, error: 'المستخدم غير موجود' });
 
+    user.hwids = [];
+    user.licenseKey = '';
     saveUsers(users);
-    res.json({ success: true, message: 'تم حذف المستخدم بنجاح' });
+
+    addAuditLog('🔄 RESET_HWID', user.username, 'تم فك ارتباط الجهاز للسماح بتسجيل الدخول من كمبيوتر جديد');
+    res.json({ success: true, message: 'تم فك ارتباط الجهاز بنجاح! يمكن للعميل الآن تسجيل الدخول من جهازه الجديد.' });
 });
 
-app.post('/api/admin/broadcast', requireAdminAuth, (req, res) => {
-    const { enabled = false, text = '', type = 'info' } = req.body;
+// إرسال تنبيه مباشر لعميل معين
+app.post('/api/admin/send-user-message', (req, res) => {
+    if (!checkAdminAuth(req, res)) return;
+    const { username, text, type = 'info' } = req.body;
+    const users = getUsers();
+    const user = users.find(u => u.username.toLowerCase() === (username || '').trim().toLowerCase());
+
+    if (!user) return res.status(404).json({ success: false, error: 'المستخدم غير موجود' });
+
+    user.directMessage = {
+        id: 'msg_' + Date.now(),
+        text: text.trim(),
+        type,
+        sentAt: new Date().toISOString()
+    };
+    saveUsers(users);
+
+    addAuditLog('💬 DIRECT_MSG', user.username, `إرسال رسالة تنبيه خاصة: ${text.substring(0, 30)}...`);
+    res.json({ success: true, message: 'تم إرسال التنبيه للعميل وسيظهر على شاشته فوراً!' });
+});
+
+// بث تنبيه عام
+app.post('/api/admin/broadcast', (req, res) => {
+    if (!checkAdminAuth(req, res)) return;
+    const { enabled, text, type = 'info' } = req.body;
     const config = getConfig();
     config.broadcastMessage = {
         enabled: Boolean(enabled),
         text: (text || '').trim(),
-        type: ['info', 'warning', 'success'].includes(type) ? type : 'info',
+        type,
         updatedAt: new Date().toISOString()
     };
     saveConfig(config);
+    addAuditLog('📢 BROADCAST', 'ADMIN', `تحديث الإعلان العام: ${text || 'إلغاء التفعيل'}`);
     res.json({ success: true, broadcast: config.broadcastMessage });
 });
 
-app.post('/api/admin/change-password', requireAdminAuth, (req, res) => {
-    const { newPin } = req.body;
-    if (!newPin || newPin.trim().length < 4) return res.status(400).json({ success: false, error: 'كلمة المرور يجب أن تكون 4 خانات على الأقل' });
-    const config = getConfig();
-    config.adminPin = newPin.trim();
-    saveConfig(config);
-    res.json({ success: true, message: 'تم تغيير رمز مرور الأدمن بنجاح' });
+// جلب سجل النشاطات (Audit Logs)
+app.get('/api/admin/audit-logs', (req, res) => {
+    if (!checkAdminAuth(req, res)) return;
+    const logs = getAuditLogs();
+    res.json({ success: true, logs });
 });
 
-// Legacy License Sync fallback
-app.post('/api/v1/license/sync', (req, res) => {
-    let { hwid, name, company, phone, email, clientVersion, licenseKey } = req.body;
-    if (!hwid) return res.status(400).json({ success: false, error: 'HWID is required' });
-    hwid = hwid.trim().toUpperCase();
-
-    const users = getUsers();
-    let user = users.find(u => u.hwids && u.hwids.includes(hwid));
-    const now = Date.now();
-    const config = getConfig();
-
-    if (!user) {
-        user = {
-            id: 'usr_' + Date.now().toString(36),
-            username: 'user_' + hwid.replace(/[^A-Z0-9]/g, '').toLowerCase().substring(0, 8),
-            email: (email || '').trim(),
-            passwordHash: hashPassword('123456'),
-            name: (name || 'عميل مسجل تلقائياً').trim(),
-            company: (company || '').trim(),
-            phone: (phone || '').trim(),
-            plan: 'trial',
-            expiry: new Date(now + 3 * 86400000).toISOString().split('T')[0],
-            status: 'active',
-            suspendReason: '',
-            hwids: [hwid],
-            licenseKey: licenseKey || generateKey(hwid, 'trial', 3),
-            createdAt: new Date().toISOString(),
-            lastLoginAt: new Date().toISOString()
-        };
-        users.unshift(user);
-    } else {
-        user.lastLoginAt = new Date().toISOString();
-        if (name && (!user.name || user.name.startsWith('user_'))) user.name = name.trim();
-        if (company && !user.company) user.company = company.trim();
-        if (phone && !user.phone) user.phone = phone.trim();
-    }
-
-    saveUsers(users);
-
-    if (user.status === 'suspended') {
-        return res.json({
-            success: true,
-            isAllowed: false,
-            status: 'suspended',
-            message: user.suspendReason || 'تم إيقاف هذا الترخيص من قبل الإدارة 🔒',
-            broadcast: config.broadcastMessage && config.broadcastMessage.enabled ? config.broadcastMessage : null
-        });
-    }
-
-    let isExpired = false;
-    let daysLeft = 'LIFETIME';
-    if (user.expiry && user.expiry !== 'LIFETIME') {
-        const expTime = new Date(user.expiry + 'T23:59:59').getTime();
-        if (now > expTime) {
-            isExpired = true;
-            daysLeft = 0;
-        } else {
-            daysLeft = Math.ceil((expTime - now) / 86400000);
-        }
-    }
-
-    res.json({
-        success: true,
-        isAllowed: !isExpired,
-        status: isExpired ? 'expired' : 'active',
-        plan: user.plan,
-        expiry: user.expiry,
-        daysLeft: daysLeft === 'LIFETIME' ? 'غير محدود' : daysLeft,
-        licenseKey: user.licenseKey,
-        broadcast: config.broadcastMessage && config.broadcastMessage.enabled ? config.broadcastMessage : null
-    });
-});
-
-// 🌐 Root Web Portal Route
-app.get(['/', '/index.html', '/portal'], (req, res) => {
-    res.type('html').send(`<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp Flow Pro - المنصة السحابية</title>
-    <link rel="icon" type="image/png" href="/app-icon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root { --bg:#06090e; --card:rgba(15,23,42,0.9); --primary:#10b981; --border:rgba(255,255,255,0.1); }
-        * { margin:0; padding:0; box-sizing:border-box; font-family:'Cairo',sans-serif; }
-        body { background:var(--bg); color:#f8fafc; min-height:100vh; display:flex; flex-direction:column; }
-        .nav { display:flex; justify-content:space-between; align-items:center; padding:18px 30px; border-bottom:1px solid var(--border); }
-        .main { flex:1; display:flex; align-items:center; justify-content:center; padding:30px 20px; }
-        .card { background:var(--card); border:1px solid var(--border); border-radius:22px; max-width:460px; width:100%; padding:30px; box-shadow:0 20px 50px rgba(0,0,0,0.5); }
-        .form-control { width:100%; height:44px; background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:10px; padding:0 14px; color:white; margin-bottom:12px; font-size:0.9rem; }
-        .btn { width:100%; height:44px; border:none; border-radius:10px; font-weight:800; cursor:pointer; font-size:0.95rem; }
-        .btn-primary { background:linear-gradient(135deg,#10b981,#059669); color:white; margin-top:4px; }
-        .btn-link { background:transparent; color:#94a3b8; font-size:0.82rem; margin-top:10px; }
-    </style>
-</head>
-<body>
-    <div class="nav">
-        <div style="font-weight:900;font-size:1.2rem"><i class="fa-brands fa-whatsapp" style="color:var(--primary)"></i> WhatsApp Flow <span style="background:var(--primary);color:white;padding:2px 6px;border-radius:4px;font-size:0.7rem">PRO</span></div>
-        <a href="/admin" style="color:#94a3b8;text-decoration:none;font-weight:800;font-size:0.85rem"><i class="fa-solid fa-lock"></i> لوحة الأدمن</a>
-    </div>
-    <div class="main">
-        <div class="card">
-            <div style="text-align:center;margin-bottom:20px">
-                <h2 style="font-weight:900;font-size:1.35rem;margin-bottom:4px">بوابة المشتركين السحابية 🌐</h2>
-                <p style="color:#94a3b8;font-size:0.82rem">سجل دخولك بحسابك للتحقق من اشتراكك والتزامن السحابي</p>
-            </div>
-            <div id="alertBox" style="display:none;padding:10px;border-radius:8px;font-size:0.82rem;margin-bottom:12px"></div>
-            <form onsubmit="handleLogin(event)">
-                <input type="text" id="loginUser" class="form-control" placeholder="اسم المستخدم أو الإيميل" required>
-                <input type="password" id="loginPass" class="form-control" placeholder="كلمة المرور" required>
-                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-bolt"></i> تسجيل الدخول</button>
-            </form>
-            <div id="userDash" style="display:none;text-align:center;margin-top:16px">
-                <h3 id="dashName" style="color:var(--primary);font-weight:900"></h3>
-                <p id="dashPlan" style="color:#94a3b8;font-size:0.85rem"></p>
-                <p id="dashExpiry" style="color:#f8fafc;font-size:0.85rem;margin-top:4px"></p>
-            </div>
-        </div>
-    </div>
-    <script>
-        async function handleLogin(e) {
-            e.preventDefault();
-            const usernameOrEmail = document.getElementById('loginUser').value.trim();
-            const password = document.getElementById('loginPass').value.trim();
-            const alertBox = document.getElementById('alertBox');
-            try {
-                const res = await fetch('/api/user/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ usernameOrEmail, password })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    alertBox.style.display = 'none';
-                    document.getElementById('userDash').style.display = 'block';
-                    document.getElementById('dashName').textContent = 'مرحباً ' + (data.user.name || data.user.username);
-                    document.getElementById('dashPlan').textContent = 'نوع الباقة: ' + (data.user.plan === 'lifetime' ? 'VIP مدى الحياة' : data.user.plan);
-                    document.getElementById('dashExpiry').textContent = 'الصلاحية: ' + (data.user.expiry === 'LIFETIME' ? 'دائم وغير محدود' : data.user.expiry);
-                } else {
-                    alertBox.className = 'alert-error';
-                    alertBox.style.display = 'block';
-                    alertBox.style.background = 'rgba(239,68,68,0.2)';
-                    alertBox.style.color = '#fca5a5';
-                    alertBox.textContent = data.error || 'خطأ في الدخول';
-                }
-            } catch (_) {
-                alertBox.style.display = 'block';
-                alertBox.textContent = 'تعذر الاتصال بالسيرفر';
-            }
-        }
-    </script>
-</body>
-</html>`);
-});
-
-// Catch-all for unknown routes
+// Catch-all
 app.use('/api/*', (req, res) => {
     res.status(404).json({ success: false, error: 'API endpoint not found' });
 });

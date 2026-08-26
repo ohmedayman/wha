@@ -1762,6 +1762,57 @@ app.post('/api/user/logout', (req, res) => {
 });
 
 // ==========================================
+// 💓 Real-time Cloud Heartbeat Worker (Desktop to Cloud Hub)
+// ==========================================
+setInterval(async () => {
+    try {
+        if (!fs.existsSync(USER_PROFILE_FILE)) return;
+        const prof = fs.readJsonSync(USER_PROFILE_FILE);
+        if (!prof || !prof.registered || !prof.username) return;
+
+        const hwid = getHWID();
+        const waStatus = isReady ? 'connected' : (qrDataUrl ? 'scanning_qr' : 'disconnected');
+        let waPhone = '';
+        let waName = '';
+        try {
+            if (isReady && client && client.info) {
+                waPhone = client.info.wid ? client.info.wid.user : '';
+                waName = client.info.pushname || '';
+            }
+        } catch (_) {}
+
+        let sentToday = 0;
+        try {
+            if (fs.existsSync(STATS_FILE)) {
+                const st = fs.readJsonSync(STATS_FILE);
+                sentToday = st.sent || 0;
+            }
+        } catch (_) {}
+
+        for (const cloudUrl of CLOUD_SERVERS) {
+            try {
+                const res = await axios.post(`${cloudUrl}/api/user/heartbeat`, {
+                    username: prof.username,
+                    hwid,
+                    source: 'desktop',
+                    whatsappStatus: waStatus,
+                    whatsappPhone: waPhone,
+                    whatsappPushname: waName,
+                    campaignActive: Boolean(campaignRunning),
+                    messagesSentToday: sentToday
+                }, { timeout: 4500 });
+
+                if (res.data && res.data.isSuspended) {
+                    console.log('[Remote Security] 🔒 Account has been suspended remotely by Master Admin.');
+                    try { fs.removeSync(path.join(BASE_DATA_DIR, 'license.json')); } catch (_) {}
+                }
+                break;
+            } catch (_) {}
+        }
+    } catch (_) {}
+}, 25000);
+
+// ==========================================
 // 📱 Status & Engine Control
 // ==========================================
 
