@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WhatsApp Flow Pro - المنصة السحابية لإدارة وتسويق واتساب</title>
     <link rel="icon" type="image/png" href="/app-icon.png">
+    <link rel="shortcut icon" href="/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -16,15 +17,16 @@
             --border-color: rgba(255, 255, 255, 0.1);
             --primary: #10b981;
             --primary-hover: #059669;
+            --primary-glow: rgba(16, 185, 129, 0.35);
+            --accent: #3b82f6;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            --accent: #3b82f6;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
         body {
             background: var(--bg-color);
-            background-image: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.15) 0px, transparent 50%),
-                              radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.12) 0px, transparent 50%);
+            background-image: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.18) 0px, transparent 50%),
+                              radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.15) 0px, transparent 50%);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
@@ -34,9 +36,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 18px 40px;
+            padding: 16px 36px;
             border-bottom: 1px solid var(--border-color);
-            backdrop-filter: blur(10px);
+            background: rgba(6, 9, 14, 0.7);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
         .brand {
             display: flex;
@@ -45,14 +51,49 @@
             text-decoration: none;
             color: white;
         }
-        .brand img { width: 42px; height: 42px; object-fit: contain; }
-        .brand-text { font-size: 1.2rem; font-weight: 900; }
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: white;
+            box-shadow: 0 4px 14px rgba(16,185,129,0.4);
+        }
+        .brand-text { font-size: 1.25rem; font-weight: 900; }
         .brand-badge {
             background: linear-gradient(135deg, #10b981, #059669);
             padding: 2px 8px;
             border-radius: 6px;
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             font-weight: 800;
+            margin-right: 6px;
+        }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .admin-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            transition: 0.2s;
+        }
+        .admin-link:hover {
+            color: white;
+            border-color: var(--primary);
+            background: rgba(16,185,129,0.1);
         }
         .main-container {
             flex: 1;
@@ -66,9 +107,9 @@
             border: 1px solid var(--border-color);
             border-radius: 24px;
             width: 100%;
-            max-width: 480px;
-            padding: 32px 36px;
-            box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+            max-width: 520px;
+            padding: 36px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.6);
             backdrop-filter: blur(16px);
         }
         .tabs {
@@ -84,45 +125,46 @@
             border: none;
             background: transparent;
             color: var(--text-muted);
-            padding: 9px 0;
+            padding: 10px 0;
             border-radius: 9px;
             font-weight: 800;
-            font-size: 0.85rem;
+            font-size: 0.88rem;
             cursor: pointer;
             transition: 0.2s;
         }
         .tab-btn.active {
             background: var(--primary);
             color: white;
+            box-shadow: 0 4px 12px rgba(16,185,129,0.35);
         }
-        .form-group { margin-bottom: 14px; }
+        .form-group { margin-bottom: 16px; }
         .form-group label {
             display: block;
-            font-size: 0.82rem;
+            font-size: 0.84rem;
             font-weight: 800;
             margin-bottom: 6px;
             color: var(--text-main);
         }
         .form-control {
             width: 100%;
-            height: 44px;
+            height: 46px;
             background: rgba(255,255,255,0.06);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
+            border-radius: 11px;
             padding: 0 14px;
             color: white;
-            font-size: 0.9rem;
+            font-size: 0.92rem;
             outline: none;
             transition: 0.2s;
         }
-        .form-control:focus { border-color: var(--primary); }
+        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(16,185,129,0.15); }
         .btn {
             width: 100%;
-            height: 46px;
+            height: 48px;
             border: none;
             border-radius: 12px;
             font-weight: 800;
-            font-size: 0.95rem;
+            font-size: 0.96rem;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -139,14 +181,21 @@
         .btn-secondary {
             background: rgba(255,255,255,0.08);
             color: white;
-            margin-top: 10px;
+            margin-top: 12px;
             border: 1px solid var(--border-color);
         }
         .btn-secondary:hover { background: rgba(255,255,255,0.12); }
+        .btn-download {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            text-decoration: none;
+            box-shadow: 0 6px 20px rgba(59,130,246,0.35);
+            margin-top: 14px;
+        }
         .alert {
             padding: 12px 14px;
             border-radius: 10px;
-            font-size: 0.84rem;
+            font-size: 0.86rem;
             margin-bottom: 16px;
             display: none;
         }
@@ -154,8 +203,8 @@
         .alert-success { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #86efac; }
         .footer {
             text-align: center;
-            padding: 16px;
-            font-size: 0.8rem;
+            padding: 18px;
+            font-size: 0.82rem;
             color: var(--text-muted);
             border-top: 1px solid var(--border-color);
         }
@@ -164,26 +213,24 @@
 <body>
     <header class="navbar">
         <a href="/" class="brand">
-            <img src="/app-icon.png" alt="Logo" onerror="this.style.display='none'">
+            <div class="brand-icon"><i class="fa-brands fa-whatsapp"></i></div>
             <div class="brand-text">WhatsApp Flow <span class="brand-badge">PRO</span></div>
         </a>
-        <div>
-            <a href="/admin" style="color:var(--text-muted);text-decoration:none;font-size:0.85rem;font-weight:800;display:flex;align-items:center;gap:6px">
-                <i class="fa-solid fa-lock"></i> لوحة الأدمن
-            </a>
+        <div class="nav-links">
+            <a href="/admin" class="admin-link"><i class="fa-solid fa-shield-halved"></i> لوحة تحكم الأدمن</a>
         </div>
     </header>
 
     <main class="main-container">
         <div class="portal-card">
-            <div style="text-align:center;margin-bottom:20px">
-                <h2 style="font-size:1.4rem;font-weight:900;margin-bottom:6px">بوابة المشتركين السحابية 🌐</h2>
-                <p style="font-size:0.84rem;color:var(--text-muted)">تسجيل الدخول وإدارة اشتراكك في منظومة WhatsApp Flow Pro</p>
+            <div style="text-align:center;margin-bottom:24px">
+                <h2 style="font-size:1.5rem;font-weight:900;margin-bottom:6px">بوابة المشتركين السحابية 🌐</h2>
+                <p style="font-size:0.86rem;color:var(--text-muted)">المنظومة السحابية الموحدة لإدارة التراخيص والتسويق عبر واتساب</p>
             </div>
 
             <div id="alertBox" class="alert"></div>
 
-            <div class="tabs">
+            <div class="tabs" id="authTabs">
                 <button type="button" class="tab-btn active" id="tabLogin" onclick="switchTab('login')"><i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول</button>
                 <button type="button" class="tab-btn" id="tabRegister" onclick="switchTab('register')"><i class="fa-solid fa-user-plus"></i> حساب جديد</button>
             </div>
@@ -223,25 +270,29 @@
                     <label><i class="fa-solid fa-phone" style="color:var(--primary)"></i> رقم الهاتف:</label>
                     <input type="tel" id="regPhone" class="form-control" style="direction:ltr;text-align:right" placeholder="01012345678">
                 </div>
-                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> إنشاء الحساب فوراً</button>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> إنشاء الحساب وتفعيل التجربة</button>
             </form>
 
-            <!-- User Dashboard State (Shown after login) -->
+            <!-- Logged-in User Dashboard -->
             <div id="userProfileSection" style="display:none;text-align:center">
-                <div style="width:60px;height:60px;border-radius:50%;background:rgba(16,185,129,0.2);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin:0 auto 12px">
+                <div style="width:64px;height:64px;border-radius:50%;background:rgba(16,185,129,0.2);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 14px;border:1px solid rgba(16,185,129,0.4)">
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
-                <h3 id="profName" style="font-weight:900;margin-bottom:4px">مرحباً بك</h3>
-                <p id="profCompany" style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px"></p>
+                <h3 id="profName" style="font-weight:900;font-size:1.3rem;margin-bottom:4px">مرحباً بك</h3>
+                <p id="profCompany" style="color:var(--text-muted);font-size:0.88rem;margin-bottom:18px"></p>
                 
-                <div style="background:rgba(255,255,255,0.05);padding:14px;border-radius:12px;margin-bottom:16px;text-align:right;font-size:0.85rem">
-                    <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                <div style="background:rgba(255,255,255,0.05);padding:16px;border-radius:14px;margin-bottom:18px;text-align:right;font-size:0.88rem;border:1px solid var(--border-color)">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:10px">
                         <span style="color:var(--text-muted)">نوع الاشتراك:</span>
                         <strong id="profPlan" style="color:var(--primary)"></strong>
                     </div>
-                    <div style="display:flex;justify-content:space-between">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:10px">
                         <span style="color:var(--text-muted)">الصلاحية:</span>
                         <strong id="profExpiry"></strong>
+                    </div>
+                    <div style="display:flex;justify-content:space-between">
+                        <span style="color:var(--text-muted)">حالة المزامنة السحابية:</span>
+                        <strong style="color:#10b981"><i class="fa-solid fa-link"></i> متزامن ونشط 🟢</strong>
                     </div>
                 </div>
 
@@ -255,6 +306,9 @@
     </footer>
 
     <script>
+        let currentUser = null;
+        let heartbeatTimer = null;
+
         function switchTab(tab) {
             document.getElementById('alertBox').style.display = 'none';
             if (tab === 'login') {
@@ -285,11 +339,14 @@
                 const res = await fetch('/api/user/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ usernameOrEmail, password })
+                    body: JSON.stringify({ usernameOrEmail, password, source: 'web' })
                 });
                 const data = await res.json();
                 if (data.success) {
-                    showProfile(data.user);
+                    currentUser = data.user;
+                    localStorage.setItem('flow_user', JSON.stringify(currentUser));
+                    showProfile(currentUser);
+                    startHeartbeat();
                 } else {
                     showAlert(data.error || 'فشل تسجيل الدخول');
                 }
@@ -309,12 +366,17 @@
                 const res = await fetch('/api/user/auth/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password, name, company, phone })
+                    body: JSON.stringify({ username, password, name, company, phone, plan: 'trial' })
                 });
                 const data = await res.json();
                 if (data.success) {
                     showAlert('تم إنشاء الحساب بنجاح! جاري تسجيل دخولك...', true);
-                    setTimeout(() => showProfile(data.user), 1000);
+                    currentUser = data.user;
+                    localStorage.setItem('flow_user', JSON.stringify(currentUser));
+                    setTimeout(() => {
+                        showProfile(currentUser);
+                        startHeartbeat();
+                    }, 1000);
                 } else {
                     showAlert(data.error || 'فشل إنشاء الحساب');
                 }
@@ -326,21 +388,56 @@
         function showProfile(user) {
             document.getElementById('loginForm').style.display = 'none';
             document.getElementById('registerForm').style.display = 'none';
-            document.querySelector('.tabs').style.display = 'none';
+            document.getElementById('authTabs').style.display = 'none';
             document.getElementById('alertBox').style.display = 'none';
             document.getElementById('userProfileSection').style.display = 'block';
 
             document.getElementById('profName').textContent = 'مرحباً ' + (user.name || user.username);
-            document.getElementById('profCompany').textContent = user.company || 'مؤسسة تجارية';
+            document.getElementById('profCompany').textContent = user.company ? `(${user.company})` : 'مؤسسة تجارية';
             document.getElementById('profPlan').textContent = user.plan === 'lifetime' ? 'باقة VIP الدائمة' : (user.plan === 'trial' ? 'تجربة مجانية' : 'اشتراك سنوي');
             document.getElementById('profExpiry').textContent = user.expiry === 'LIFETIME' ? 'غير محدود' : user.expiry;
         }
 
+        function startHeartbeat() {
+            if (heartbeatTimer) clearInterval(heartbeatTimer);
+            sendPing();
+            heartbeatTimer = setInterval(sendPing, 30000);
+        }
+
+        async function sendPing() {
+            if (!currentUser) return;
+            try {
+                const res = await fetch('/api/user/heartbeat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: currentUser.username, source: 'web' })
+                });
+                const data = await res.json();
+                if (data.isSuspended) {
+                    alert('تم تعليق حسابك من قبل الإدارة: ' + data.error);
+                    logoutUser();
+                }
+            } catch (_) {}
+        }
+
         function logoutUser() {
+            currentUser = null;
+            localStorage.removeItem('flow_user');
+            if (heartbeatTimer) clearInterval(heartbeatTimer);
             document.getElementById('userProfileSection').style.display = 'none';
-            document.querySelector('.tabs').style.display = 'flex';
+            document.getElementById('authTabs').style.display = 'flex';
             switchTab('login');
         }
+
+        // Auto restore session
+        try {
+            const saved = localStorage.getItem('flow_user');
+            if (saved) {
+                currentUser = JSON.parse(saved);
+                showProfile(currentUser);
+                startHeartbeat();
+            }
+        } catch (_) {}
     </script>
 </body>
 </html>

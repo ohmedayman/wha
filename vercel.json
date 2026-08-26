@@ -10,8 +10,12 @@
       "destination": "/admin.html"
     },
     {
+      "source": "/portal",
+      "destination": "/portal.html"
+    },
+    {
       "source": "/",
-      "destination": "/index.html"
+      "destination": "/portal.html"
     }
   ]
 }
