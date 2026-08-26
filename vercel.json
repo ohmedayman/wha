@@ -1,5 +1,12 @@
 {
   "version": 2,
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/admin",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -7,10 +14,6 @@
     },
     {
       "source": "/admin",
-      "destination": "/admin.html"
-    },
-    {
-      "source": "/",
       "destination": "/admin.html"
     }
   ]
