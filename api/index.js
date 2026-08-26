@@ -188,9 +188,25 @@ module.exports = (req, res) => {
         }
 
         if (pathname === '/user/profile' && method === 'GET') {
-            const users = getUsers();
-            const user = (users && users.length > 0) ? users[users.length - 1] : null;
+            const authHeader = req.headers['authorization'] || '';
+            const token = authHeader.replace('Bearer ', '').trim();
+            const user = verifySessionToken(token);
+
             if (user) {
+                let daysLeft = 'LIFETIME';
+                let isExpired = false;
+                if (user.expiry && user.expiry !== 'LIFETIME') {
+                    const expTime = new Date(user.expiry + 'T23:59:59').getTime();
+                    const now = Date.now();
+                    if (now > expTime) {
+                        isExpired = true;
+                        daysLeft = 0;
+                    } else {
+                        daysLeft = Math.ceil((expTime - now) / 86400000);
+                    }
+                }
+                const isActivated = Boolean(user.licenseKey || user.plan === 'lifetime' || (!isExpired && user.plan));
+
                 return sendJson(200, {
                     success: true,
                     profile: {
@@ -202,15 +218,20 @@ module.exports = (req, res) => {
                         phone: user.phone
                     },
                     license: {
-                        isActivated: true,
-                        plan: user.plan,
-                        daysLeft: user.expiry === 'LIFETIME' ? 'LIFETIME' : 30,
+                        isActivated: isActivated && !isExpired && user.status !== 'suspended',
+                        isExpired,
+                        plan: user.plan || 'trial',
+                        expiry: user.expiry || 'LIFETIME',
+                        daysLeft,
                         isSuspended: user.status === 'suspended',
+                        suspendReason: user.suspendReason || '',
                         broadcast: getConfig().broadcastMessage
                     },
                     hwid: (user.hwids && user.hwids[0]) || 'WEB-CLOUD-2026'
                 });
             }
+
+            // No active session token -> Return unauthenticated state so frontend displays login / activation gate!
             return sendJson(200, {
                 success: true,
                 profile: { registered: false },

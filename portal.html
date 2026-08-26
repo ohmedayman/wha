@@ -4051,8 +4051,12 @@ async function manualCheckNetwork() {
 async function api(url, options = {}) {
     try {
         const opts = { ...options };
+        opts.headers = opts.headers || {};
+        const token = localStorage.getItem('cloud_token');
+        if (token && !opts.headers['Authorization']) {
+            opts.headers['Authorization'] = 'Bearer ' + token;
+        }
         if (opts.body && typeof opts.body === 'string') {
-            opts.headers = opts.headers || {};
             if (!opts.headers['Content-Type']) {
                 opts.headers['Content-Type'] = 'application/json';
             }
@@ -7981,9 +7985,11 @@ async function performAppLogout() {
     
     sessionStorage.clear();
     localStorage.removeItem('app_unlocked');
+    localStorage.removeItem('cloud_token');
+    localStorage.removeItem('flow_user');
     
     showToast('🚪 جاري تسجيل الخروج', 'جاري تسجيل الخروج من البرنامج...', 'info', 2000);
-    await api('/api/user/logout', { method: 'POST' });
+    try { await api('/api/user/logout', { method: 'POST' }); } catch (_) {}
     
     // Hide all active modals
     document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
