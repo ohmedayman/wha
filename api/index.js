@@ -1,41 +1,15 @@
-const path = require('path');
 const crypto = require('crypto');
 const fs = require('fs');
-
-// Storage Directories (Uses /tmp on Vercel)
-const DATA_DIR = process.env.VERCEL ? path.join('/tmp', 'data') : path.join(__dirname, '..', 'data');
-try { if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true }); } catch (_) {}
-
-const USERS_FILE = path.join(DATA_DIR, 'users_db.json');
-const CONFIG_FILE = path.join(DATA_DIR, 'admin_config.json');
-const AUDIT_FILE = path.join(DATA_DIR, 'audit_logs.json');
+const path = require('path');
 
 const LICENSE_SECRET = 'WA_BULK_SENDER_SECRET_KEY_@2026#MARKETING!';
 const PASSWORD_SALT = 'WA_AUTH_SECURE_SALT_2026!';
-
-function readJsonSafe(file, defaultVal) {
-    try {
-        if (fs.existsSync(file)) {
-            const content = fs.readFileSync(file, 'utf8');
-            return JSON.parse(content);
-        }
-    } catch (_) {}
-    return defaultVal;
-}
-
-function writeJsonSafe(file, data) {
-    try {
-        const dir = path.dirname(file);
-        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-        fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
-    } catch (_) {}
-}
 
 function hashPassword(pwd) {
     return crypto.createHash('sha256').update(pwd + PASSWORD_SALT).digest('hex');
 }
 
-// Initial in-memory data
+// In-memory store (Preserved across warm lambda invocations)
 let memoryUsers = [
     {
         id: 'usr_admin_demo',
@@ -84,29 +58,26 @@ let memoryAuditLogs = [
 ];
 
 function getUsers() {
-    return readJsonSafe(USERS_FILE, memoryUsers);
+    return memoryUsers;
 }
 
 function saveUsers(users) {
     memoryUsers = users;
-    writeJsonSafe(USERS_FILE, users);
 }
 
 function getConfig() {
-    return readJsonSafe(CONFIG_FILE, memoryConfig);
+    return memoryConfig;
 }
 
 function saveConfig(cfg) {
     memoryConfig = cfg;
-    writeJsonSafe(CONFIG_FILE, cfg);
 }
 
 function getAuditLogs() {
-    return readJsonSafe(AUDIT_FILE, memoryAuditLogs);
+    return memoryAuditLogs;
 }
 
 function addAuditLog(action, username, details) {
-    const logs = getAuditLogs();
     const entry = {
         id: 'log_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
         timestamp: new Date().toISOString(),
@@ -114,10 +85,8 @@ function addAuditLog(action, username, details) {
         username: username || 'GUEST',
         details: details || ''
     };
-    logs.unshift(entry);
-    if (logs.length > 200) logs.pop();
-    memoryAuditLogs = logs;
-    writeJsonSafe(AUDIT_FILE, logs);
+    memoryAuditLogs.unshift(entry);
+    if (memoryAuditLogs.length > 200) memoryAuditLogs.pop();
 }
 
 function generateKey(hwid, plan = 'lifetime', days = null) {
@@ -156,9 +125,9 @@ function generateSessionToken(user) {
     return `${b64}.${sig}`;
 }
 
-// Master Serverless Handler
-module.exports = async (req, res) => {
-    // 1. CORS headers
+// Master Serverless Export
+module.exports = (req, res) => {
+    // 1. CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-pin');
@@ -168,30 +137,18 @@ module.exports = async (req, res) => {
         return res.end();
     }
 
-    // 2. Parse Body safely
-    let body = req.body;
-    if (!body && (req.method === 'POST' || req.method === 'PUT')) {
-        body = await new Promise((resolve) => {
-            let data = '';
-            req.on('data', chunk => data += chunk);
-            req.on('end', () => {
-                try { resolve(JSON.parse(data)); } catch (_) { resolve({}); }
-            });
-            req.on('error', () => resolve({}));
-        });
-    }
+    // 2. Body parsing (Vercel provides pre-parsed body)
+    let body = req.body || {};
     if (typeof body === 'string') {
         try { body = JSON.parse(body); } catch (_) { body = {}; }
     }
-    body = body || {};
 
-    // 3. Normalize Path
-    const host = req.headers.host || 'localhost';
-    const parsedUrl = new URL(req.url, `https://${host}`);
-    let pathname = parsedUrl.pathname.replace(/^\/api/, ''); // Strip /api prefix if present
+    // 3. Path resolution
+    const rawUrl = req.url || '';
+    let pathname = rawUrl.split('?')[0].replace(/^\/api/, '');
     if (!pathname.startsWith('/')) pathname = '/' + pathname;
 
-    const method = req.method.toUpperCase();
+    const method = (req.method || 'GET').toUpperCase();
 
     const sendJson = (status, data) => {
         res.statusCode = status;
@@ -200,7 +157,7 @@ module.exports = async (req, res) => {
     };
 
     const getAdminPin = () => {
-        return req.headers['x-admin-pin'] || body.adminPin || parsedUrl.searchParams.get('adminPin');
+        return req.headers['x-admin-pin'] || body.adminPin || (req.query && req.query.adminPin);
     };
 
     const checkAdminAuth = () => {
@@ -214,11 +171,16 @@ module.exports = async (req, res) => {
     };
 
     try {
+        // Ping
+        if (pathname === '/ping' || pathname === '') {
+            return sendJson(200, { success: true, status: 'online', time: new Date().toISOString() });
+        }
+
         // ==========================================
         // 🔐 User Authentication & Lifecycle APIs
         // ==========================================
 
-        // POST /api/user/auth/register
+        // Register
         if (pathname === '/user/auth/register' && method === 'POST') {
             const { username, password, name, company, phone, email, hwid, plan = 'trial' } = body;
 
@@ -297,7 +259,7 @@ module.exports = async (req, res) => {
             });
         }
 
-        // POST /api/user/auth/login
+        // Login
         if (pathname === '/user/auth/login' && method === 'POST') {
             const { usernameOrEmail, password, hwid, source = 'desktop' } = body;
             const loginId = (usernameOrEmail || '').trim().toLowerCase();
@@ -358,7 +320,7 @@ module.exports = async (req, res) => {
             });
         }
 
-        // POST /api/user/heartbeat
+        // Heartbeat
         if (pathname === '/user/heartbeat' && method === 'POST') {
             const { username, hwid, source = 'desktop', whatsappStatus, whatsappPhone, whatsappPushname, campaignActive, messagesSentToday } = body;
             if (!username) return sendJson(400, { success: false });
@@ -412,7 +374,7 @@ module.exports = async (req, res) => {
         // 👑 Master Admin APIs
         // ==========================================
 
-        // GET /api/admin/stats
+        // Stats
         if (pathname === '/admin/stats' && method === 'GET') {
             if (!checkAdminAuth()) return;
             const users = getUsers();
@@ -444,7 +406,7 @@ module.exports = async (req, res) => {
             });
         }
 
-        // GET /api/admin/clients
+        // Clients
         if (pathname === '/admin/clients' && method === 'GET') {
             if (!checkAdminAuth()) return;
             const users = getUsers();
@@ -490,7 +452,7 @@ module.exports = async (req, res) => {
             return sendJson(200, { success: true, clients: formatted });
         }
 
-        // POST /api/admin/toggle-suspend
+        // Toggle Suspend
         if (pathname === '/admin/toggle-suspend' && method === 'POST') {
             if (!checkAdminAuth()) return;
             const { username, suspendReason } = body;
@@ -507,7 +469,7 @@ module.exports = async (req, res) => {
             return sendJson(200, { success: true, status: user.status, message: `تم ${user.status === 'suspended' ? 'إيقاف' : 'تفعيل'} الحساب بنجاح!` });
         }
 
-        // POST /api/admin/renew
+        // Renew
         if (pathname === '/admin/renew' && method === 'POST') {
             if (!checkAdminAuth()) return;
             const { username, plan, days } = body;
@@ -538,7 +500,7 @@ module.exports = async (req, res) => {
             return sendJson(200, { success: true, plan: user.plan, expiry: user.expiry, message: 'تم تجديد الاشتراك وتحديث الباقة بنجاح!' });
         }
 
-        // POST /api/admin/reset-hwid
+        // Reset HWID
         if (pathname === '/admin/reset-hwid' && method === 'POST') {
             if (!checkAdminAuth()) return;
             const { username } = body;
@@ -555,7 +517,7 @@ module.exports = async (req, res) => {
             return sendJson(200, { success: true, message: 'تم فك ارتباط الجهاز بنجاح! يمكن للعميل الآن تسجيل الدخول من جهازه الجديد.' });
         }
 
-        // POST /api/admin/send-user-message
+        // Send User Message
         if (pathname === '/admin/send-user-message' && method === 'POST') {
             if (!checkAdminAuth()) return;
             const { username, text, type = 'info' } = body;
@@ -576,7 +538,7 @@ module.exports = async (req, res) => {
             return sendJson(200, { success: true, message: 'تم إرسال التنبيه للعميل وسيظهر على شاشته فوراً!' });
         }
 
-        // POST /api/admin/broadcast
+        // Broadcast
         if (pathname === '/admin/broadcast' && method === 'POST') {
             if (!checkAdminAuth()) return;
             const { enabled, text, type = 'info' } = body;
@@ -592,18 +554,16 @@ module.exports = async (req, res) => {
             return sendJson(200, { success: true, broadcast: config.broadcastMessage });
         }
 
-        // GET /api/admin/audit-logs
+        // Audit Logs
         if (pathname === '/admin/audit-logs' && method === 'GET') {
             if (!checkAdminAuth()) return;
             const logs = getAuditLogs();
             return sendJson(200, { success: true, logs });
         }
 
-        // 404 for unknown API
-        return sendJson(404, { success: false, error: `API endpoint not found: ${method} ${pathname}` });
-
+        return sendJson(404, { success: false, error: `Endpoint not found: ${method} ${pathname}` });
     } catch (err) {
-        console.error('API Error:', err);
+        console.error('API execution error:', err);
         return sendJson(500, { success: false, error: err.message || 'Internal Server Error' });
     }
 };
