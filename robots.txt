@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Allow: /agent
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://wf.vexonet.online/sitemap.xml
