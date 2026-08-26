@@ -11,32 +11,35 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// Database File Paths (supports Vercel serverless /tmp or local data)
+// Storage Directories
 const DATA_DIR = process.env.VERCEL ? path.join('/tmp', 'data') : path.join(__dirname, '..', 'data');
 fs.ensureDirSync(DATA_DIR);
 
-const DB_FILE = path.join(DATA_DIR, 'clients_db.json');
+const USERS_FILE = path.join(DATA_DIR, 'users_db.json');
+const CLIENTS_FILE = path.join(DATA_DIR, 'clients_db.json');
 const CONFIG_FILE = path.join(DATA_DIR, 'admin_config.json');
 
-// Master License Secret Key
 const LICENSE_SECRET = 'WA_BULK_SENDER_SECRET_KEY_@2026#MARKETING!';
+const PASSWORD_SALT = 'WA_AUTH_SECURE_SALT_2026!';
 
-let memoryClients = [
+// Initial in-memory data
+let memoryUsers = [
     {
-        hwid: 'WA-DEMO-2026-VIP',
+        id: 'usr_admin_demo',
+        username: 'demo',
+        email: 'demo@flow.pro',
+        passwordHash: hashPassword('123456'),
         name: 'عميل تجريبي',
-        company: 'شركة تجريبية',
+        company: 'شركة تجريبية VIP',
         phone: '01012345678',
-        email: '',
         plan: 'lifetime',
         expiry: 'LIFETIME',
         status: 'active',
         suspendReason: '',
-        licenseKey: 'KEY-V0EtREVNTy0yMDI2LVZJUDpsaWZldGltZTpMSUZFVElNRQ-87D43981B2AA',
-        notes: 'حساب تجريبي افتراضي',
+        hwids: ['WA-DEMO-2026-VIP'],
+        licenseKey: '',
         createdAt: new Date().toISOString(),
-        lastSeenAt: new Date().toISOString(),
-        clientVersion: '3.0.0'
+        lastLoginAt: new Date().toISOString()
     }
 ];
 
@@ -51,25 +54,21 @@ let memoryConfig = {
     }
 };
 
-if (!fs.existsSync(CONFIG_FILE)) {
-    try { fs.writeJsonSync(CONFIG_FILE, memoryConfig, { spaces: 2 }); } catch (_) {}
+function hashPassword(pwd) {
+    return crypto.createHash('sha256').update(pwd + PASSWORD_SALT).digest('hex');
 }
 
-if (!fs.existsSync(DB_FILE)) {
-    try { fs.writeJsonSync(DB_FILE, memoryClients, { spaces: 2 }); } catch (_) {}
-}
-
-function getClients() {
+function getUsers() {
     try {
-        if (fs.existsSync(DB_FILE)) return fs.readJsonSync(DB_FILE);
+        if (fs.existsSync(USERS_FILE)) return fs.readJsonSync(USERS_FILE);
     } catch (_) {}
-    return memoryClients;
+    return memoryUsers;
 }
 
-function saveClients(clients) {
-    memoryClients = clients;
+function saveUsers(users) {
+    memoryUsers = users;
     try {
-        fs.writeJsonSync(DB_FILE, clients, { spaces: 2 });
+        fs.writeJsonSync(USERS_FILE, users, { spaces: 2 });
     } catch (_) {}
 }
 
@@ -117,56 +116,308 @@ function generateKey(hwid, plan = 'lifetime', days = null) {
     return `KEY-${encodedPayload}-${hmac}`;
 }
 
+function generateSessionToken(user) {
+    const payload = `${user.id}:${user.username}:${Date.now()}`;
+    const hmac = crypto.createHmac('sha256', LICENSE_SECRET).update(payload).digest('hex');
+    return `${Buffer.from(payload).toString('base64url')}.${hmac}`;
+}
+
+function verifySessionToken(token) {
+    if (!token || typeof token !== 'string') return null;
+    const parts = token.split('.');
+    if (parts.length !== 2) return null;
+    try {
+        const payloadStr = Buffer.from(parts[0], 'base64url').toString('utf8');
+        const expectedHmac = crypto.createHmac('sha256', LICENSE_SECRET).update(payloadStr).digest('hex');
+        if (parts[1] !== expectedHmac) return null;
+        const [userId, username] = payloadStr.split(':');
+        const users = getUsers();
+        return users.find(u => u.id === userId && u.username === username) || null;
+    } catch (_) {
+        return null;
+    }
+}
+
 function requireAdminAuth(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader ? authHeader.replace('Bearer ', '').trim() : '';
     const config = getConfig();
 
     if (!token || (token !== config.adminPin && token !== 'admin2026' && token !== '123456' && token !== 'flow2026')) {
-        return res.status(401).json({ success: false, error: 'غير مصرح بالدخول' });
+        return res.status(401).json({ success: false, error: 'غير مصرح بالدخول (Admin PIN Required)' });
     }
     next();
 }
+
+// ==========================================
+// 👤 USER AUTHENTICATION & CLOUD SYNC APIs
+// ==========================================
+
+/**
+ * تسجيل حساب عميل جديد
+ */
+app.post('/api/user/auth/register', (req, res) => {
+    let { username, password, email = '', name = '', company = '', phone = '', hwid = '', plan = 'trial' } = req.body;
+
+    if (!username || !username.trim()) {
+        return res.status(400).json({ success: false, error: 'اسم المستخدم مطلوب' });
+    }
+    if (!password || password.trim().length < 4) {
+        return res.status(400).json({ success: false, error: 'كلمة المرور يجب أن تكون 4 أحرف أو أرقام على الأقل' });
+    }
+
+    username = username.trim().toLowerCase();
+    const users = getUsers();
+
+    if (users.some(u => u.username === username)) {
+        return res.status(400).json({ success: false, error: 'اسم المستخدم هذا مسجل بالفعل، يرجى اختيار اسم آخر' });
+    }
+    if (email && email.trim() && users.some(u => u.email && u.email.toLowerCase() === email.trim().toLowerCase())) {
+        return res.status(400).json({ success: false, error: 'البريد الإلكتروني مسجل بالفعل' });
+    }
+
+    const cleanHWID = (hwid || 'WA-DEFAULT-HWID').trim().toUpperCase();
+    const expiry = plan === 'trial' ? new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0] : 'LIFETIME';
+    const licenseKey = generateKey(cleanHWID, plan, plan === 'trial' ? 3 : null);
+
+    const newUser = {
+        id: 'usr_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 6),
+        username,
+        email: (email || '').trim(),
+        passwordHash: hashPassword(password.trim()),
+        name: (name || username).trim(),
+        company: (company || '').trim(),
+        phone: (phone || '').trim(),
+        plan: plan || 'trial',
+        expiry,
+        status: 'active',
+        suspendReason: '',
+        hwids: cleanHWID ? [cleanHWID] : [],
+        licenseKey,
+        syncedData: { contactsCount: 0, totalSent: 0 },
+        createdAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString()
+    };
+
+    users.unshift(newUser);
+    saveUsers(users);
+
+    const token = generateSessionToken(newUser);
+    const config = getConfig();
+
+    res.json({
+        success: true,
+        message: 'تم إنشاء الحساب وتفعيله بنجاح! 🎉',
+        token,
+        user: {
+            id: newUser.id,
+            username: newUser.username,
+            name: newUser.name,
+            company: newUser.company,
+            email: newUser.email,
+            phone: newUser.phone,
+            plan: newUser.plan,
+            expiry: newUser.expiry,
+            status: newUser.status,
+            licenseKey: newUser.licenseKey
+        },
+        broadcast: config.broadcastMessage && config.broadcastMessage.enabled ? config.broadcastMessage : null
+    });
+});
+
+/**
+ * تسجيل الدخول بحساب العميل (اسم مستخدم / بريد + كلمة مرور)
+ */
+app.post('/api/user/auth/login', (req, res) => {
+    let { usernameOrEmail, username, password, hwid = '' } = req.body;
+    const loginId = (usernameOrEmail || username || '').trim().toLowerCase();
+
+    if (!loginId) {
+        return res.status(400).json({ success: false, error: 'يرجى إدخال اسم المستخدم أو البريد الإلكتروني' });
+    }
+    if (!password) {
+        return res.status(400).json({ success: false, error: 'يرجى إدخال كلمة المرور' });
+    }
+
+    const users = getUsers();
+    const user = users.find(u => 
+        u.username.toLowerCase() === loginId || 
+        (u.email && u.email.toLowerCase() === loginId)
+    );
+
+    if (!user || user.passwordHash !== hashPassword(password.trim())) {
+        return res.status(401).json({ success: false, error: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
+    }
+
+    if (user.status === 'suspended') {
+        return res.status(403).json({
+            success: false,
+            isSuspended: true,
+            error: user.suspendReason || 'تم تعليق هذا الحساب من قبل الإدارة، يرجى التواصل لتجديد الاشتراك 🔒'
+        });
+    }
+
+    // Update HWID & Last Login
+    const cleanHWID = (hwid || '').trim().toUpperCase();
+    if (cleanHWID) {
+        if (!user.hwids) user.hwids = [];
+        if (!user.hwids.includes(cleanHWID)) user.hwids.push(cleanHWID);
+        // Regenerate valid license key for this client's HWID
+        user.licenseKey = generateKey(cleanHWID, user.plan, null);
+    }
+    user.lastLoginAt = new Date().toISOString();
+    saveUsers(users);
+
+    const token = generateSessionToken(user);
+    const config = getConfig();
+
+    // Check expiry
+    let isExpired = false;
+    let daysLeft = 'LIFETIME';
+    if (user.expiry && user.expiry !== 'LIFETIME') {
+        const expTime = new Date(user.expiry + 'T23:59:59').getTime();
+        const now = Date.now();
+        if (now > expTime) {
+            isExpired = true;
+            daysLeft = 0;
+        } else {
+            daysLeft = Math.ceil((expTime - now) / 86400000);
+        }
+    }
+
+    res.json({
+        success: true,
+        token,
+        user: {
+            id: user.id,
+            username: user.username,
+            name: user.name,
+            company: user.company,
+            email: user.email,
+            phone: user.phone,
+            plan: user.plan,
+            expiry: user.expiry,
+            daysLeft: daysLeft === 'LIFETIME' ? 'غير محدود' : daysLeft,
+            isExpired,
+            status: user.status,
+            licenseKey: user.licenseKey
+        },
+        broadcast: config.broadcastMessage && config.broadcastMessage.enabled ? config.broadcastMessage : null
+    });
+});
+
+/**
+ * الحصول على بيانات الحساب الحالي (Session Check)
+ */
+app.get('/api/user/auth/me', (req, res) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader ? authHeader.replace('Bearer ', '').trim() : '';
+    const user = verifySessionToken(token);
+
+    if (!user) {
+        return res.status(401).json({ success: false, error: 'جلسة تسجيل الدخول منتهية' });
+    }
+
+    const config = getConfig();
+    res.json({
+        success: true,
+        user: {
+            id: user.id,
+            username: user.username,
+            name: user.name,
+            company: user.company,
+            email: user.email,
+            phone: user.phone,
+            plan: user.plan,
+            expiry: user.expiry,
+            status: user.status,
+            licenseKey: user.licenseKey
+        },
+        broadcast: config.broadcastMessage && config.broadcastMessage.enabled ? config.broadcastMessage : null
+    });
+});
+
+/**
+ * تزامن البيانات السحابي بين البرنامج المكتبي والسحابة (Cloud Data Sync)
+ */
+app.post('/api/user/cloud-sync', (req, res) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader ? authHeader.replace('Bearer ', '').trim() : '';
+    let user = verifySessionToken(token);
+
+    const { hwid, contactsCount, totalSent, clientVersion } = req.body;
+
+    if (!user && hwid) {
+        const users = getUsers();
+        user = users.find(u => u.hwids && u.hwids.includes(hwid.trim().toUpperCase()));
+    }
+
+    if (!user) {
+        return res.status(401).json({ success: false, error: 'غير مصرح' });
+    }
+
+    if (contactsCount !== undefined || totalSent !== undefined) {
+        user.syncedData = {
+            contactsCount: contactsCount || (user.syncedData && user.syncedData.contactsCount) || 0,
+            totalSent: totalSent || (user.syncedData && user.syncedData.totalSent) || 0,
+            lastSyncedAt: new Date().toISOString(),
+            clientVersion: clientVersion || '3.0.0'
+        };
+        const users = getUsers();
+        saveUsers(users);
+    }
+
+    const config = getConfig();
+    res.json({
+        success: true,
+        status: user.status,
+        plan: user.plan,
+        expiry: user.expiry,
+        isAllowed: user.status === 'active',
+        licenseKey: user.licenseKey,
+        broadcast: config.broadcastMessage && config.broadcastMessage.enabled ? config.broadcastMessage : null
+    });
+});
+
+// ==========================================
+// 👑 MASTER ADMIN MANAGEMENT APIs
+// ==========================================
 
 app.post('/api/auth/login', (req, res) => {
     const { pin } = req.body;
     const config = getConfig();
     if (pin && (pin.trim() === config.adminPin || pin.trim() === 'admin2026' || pin.trim() === '123456' || pin.trim() === 'flow2026')) {
-        return res.json({
-            success: true,
-            token: config.adminPin,
-            appName: config.appName
-        });
+        return res.json({ success: true, token: config.adminPin, appName: config.appName });
     }
     return res.status(401).json({ success: false, error: 'رمز مرور الأدمن غير صحيح' });
 });
 
 app.get('/api/admin/stats', requireAdminAuth, (req, res) => {
-    const clients = getClients();
-    const now = new Date().getTime();
+    const users = getUsers();
+    const now = Date.now();
 
-    let total = clients.length;
+    let total = users.length;
     let active = 0;
     let suspended = 0;
     let expired = 0;
     let onlineRecently = 0;
     let plans = { trial: 0, '1month': 0, '1year': 0, lifetime: 0 };
 
-    clients.forEach(c => {
+    users.forEach(u => {
         let isExp = false;
-        if (c.expiry && c.expiry !== 'LIFETIME') {
-            const expTime = new Date(c.expiry + 'T23:59:59').getTime();
+        if (u.expiry && u.expiry !== 'LIFETIME') {
+            const expTime = new Date(u.expiry + 'T23:59:59').getTime();
             if (now > expTime) isExp = true;
         }
 
-        if (c.status === 'suspended') suspended++;
+        if (u.status === 'suspended') suspended++;
         else if (isExp) expired++;
         else active++;
 
-        if (plans[c.plan] !== undefined) plans[c.plan]++; else plans.lifetime++;
+        if (plans[u.plan] !== undefined) plans[u.plan]++; else plans.lifetime++;
 
-        if (c.lastSeenAt) {
-            const seenTime = new Date(c.lastSeenAt).getTime();
+        if (u.lastLoginAt) {
+            const seenTime = new Date(u.lastLoginAt).getTime();
             if (now - seenTime <= 86400000) onlineRecently++;
         }
     });
@@ -181,15 +432,15 @@ app.get('/api/admin/stats', requireAdminAuth, (req, res) => {
 
 app.get('/api/admin/clients', requireAdminAuth, (req, res) => {
     const { search = '', status = 'all', plan = 'all' } = req.query;
-    let clients = getClients();
-    const now = new Date().getTime();
+    let users = getUsers();
+    const now = Date.now();
 
-    clients = clients.map(c => {
+    let clients = users.map(u => {
         let daysLeft = 'LIFETIME';
         let isExpired = false;
 
-        if (c.expiry && c.expiry !== 'LIFETIME') {
-            const expTime = new Date(c.expiry + 'T23:59:59').getTime();
+        if (u.expiry && u.expiry !== 'LIFETIME') {
+            const expTime = new Date(u.expiry + 'T23:59:59').getTime();
             if (now > expTime) {
                 isExpired = true;
                 daysLeft = 0;
@@ -198,13 +449,12 @@ app.get('/api/admin/clients', requireAdminAuth, (req, res) => {
             }
         }
 
-        let computedStatus = c.status;
-        if (c.status !== 'suspended' && isExpired) {
-            computedStatus = 'expired';
-        }
+        let computedStatus = u.status;
+        if (u.status !== 'suspended' && isExpired) computedStatus = 'expired';
 
         return {
-            ...c,
+            ...u,
+            hwid: (u.hwids && u.hwids.length > 0) ? u.hwids[0] : (u.hwid || 'لم يسجل جهاز بعد'),
             computedStatus,
             daysLeft: daysLeft === 'LIFETIME' ? 'غير محدود' : daysLeft
         };
@@ -216,7 +466,8 @@ app.get('/api/admin/clients', requireAdminAuth, (req, res) => {
         const q = search.trim().toLowerCase();
         clients = clients.filter(c => 
             (c.name && c.name.toLowerCase().includes(q)) ||
-            (c.hwid && c.hwid.toLowerCase().includes(q)) ||
+            (c.username && c.username.toLowerCase().includes(q)) ||
+            (c.email && c.email.toLowerCase().includes(q)) ||
             (c.phone && c.phone.includes(q)) ||
             (c.company && c.company.toLowerCase().includes(q))
         );
@@ -225,102 +476,33 @@ app.get('/api/admin/clients', requireAdminAuth, (req, res) => {
     res.json({ success: true, clients });
 });
 
-app.post('/api/admin/clients', requireAdminAuth, (req, res) => {
-    let { hwid, name, company, phone, email, plan = 'lifetime', days = null, notes = '' } = req.body;
-    if (!hwid || !hwid.trim()) {
-        return res.status(400).json({ success: false, error: 'بصمة الجهاز HWID مطلوبة' });
-    }
-    hwid = hwid.trim().toUpperCase();
-
-    const clients = getClients();
-    let client = clients.find(c => c.hwid === hwid);
-
-    let expiry = 'LIFETIME';
-    if (days && parseInt(days) > 0) {
-        const expDate = new Date();
-        expDate.setDate(expDate.getDate() + parseInt(days));
-        expiry = expDate.toISOString().split('T')[0];
-    } else if (plan === 'trial') {
-        const expDate = new Date();
-        expDate.setDate(expDate.getDate() + 3);
-        expiry = expDate.toISOString().split('T')[0];
-    } else if (plan === '1month') {
-        const expDate = new Date();
-        expDate.setDate(expDate.getDate() + 30);
-        expiry = expDate.toISOString().split('T')[0];
-    } else if (plan === '1year') {
-        const expDate = new Date();
-        expDate.setDate(expDate.getDate() + 365);
-        expiry = expDate.toISOString().split('T')[0];
-    }
-
-    const licenseKey = generateKey(hwid, plan, days);
-
-    if (client) {
-        client.name = (name || client.name || '').trim();
-        client.company = (company || client.company || '').trim();
-        client.phone = (phone || client.phone || '').trim();
-        client.email = (email || client.email || '').trim();
-        client.plan = plan;
-        client.expiry = expiry;
-        client.status = 'active';
-        client.licenseKey = licenseKey;
-        client.notes = notes || client.notes || '';
-    } else {
-        client = {
-            hwid,
-            name: (name || 'عميل جديد').trim(),
-            company: (company || '').trim(),
-            phone: (phone || '').trim(),
-            email: (email || '').trim(),
-            plan,
-            expiry,
-            status: 'active',
-            suspendReason: '',
-            licenseKey,
-            notes: notes || '',
-            createdAt: new Date().toISOString(),
-            lastSeenAt: null,
-            clientVersion: '3.0.0'
-        };
-        clients.unshift(client);
-    }
-
-    saveClients(clients);
-    res.json({ success: true, client, licenseKey });
-});
-
-app.put('/api/admin/clients/:hwid/toggle-status', requireAdminAuth, (req, res) => {
-    const hwid = (req.params.hwid || '').trim().toUpperCase();
+app.put('/api/admin/clients/:id/toggle-status', requireAdminAuth, (req, res) => {
+    const id = req.params.id;
     const { reason = 'تم تعليق الحساب من قبل الإدارة' } = req.body;
-    const clients = getClients();
-    const client = clients.find(c => c.hwid === hwid);
+    const users = getUsers();
+    const user = users.find(u => u.id === id || u.username === id || (u.hwids && u.hwids.includes(id.toUpperCase())));
 
-    if (!client) {
-        return res.status(404).json({ success: false, error: 'العميل غير موجود' });
-    }
+    if (!user) return res.status(404).json({ success: false, error: 'المستخدم غير موجود' });
 
-    if (client.status === 'suspended') {
-        client.status = 'active';
-        client.suspendReason = '';
+    if (user.status === 'suspended') {
+        user.status = 'active';
+        user.suspendReason = '';
     } else {
-        client.status = 'suspended';
-        client.suspendReason = reason;
+        user.status = 'suspended';
+        user.suspendReason = reason;
     }
 
-    saveClients(clients);
-    res.json({ success: true, status: client.status, client });
+    saveUsers(users);
+    res.json({ success: true, status: user.status, client: user });
 });
 
-app.put('/api/admin/clients/:hwid/renew', requireAdminAuth, (req, res) => {
-    const hwid = (req.params.hwid || '').trim().toUpperCase();
+app.put('/api/admin/clients/:id/renew', requireAdminAuth, (req, res) => {
+    const id = req.params.id;
     const { plan = 'lifetime', days = null } = req.body;
-    const clients = getClients();
-    const client = clients.find(c => c.hwid === hwid);
+    const users = getUsers();
+    const user = users.find(u => u.id === id || u.username === id || (u.hwids && u.hwids.includes(id.toUpperCase())));
 
-    if (!client) {
-        return res.status(404).json({ success: false, error: 'العميل غير موجود' });
-    }
+    if (!user) return res.status(404).json({ success: false, error: 'المستخدم غير موجود' });
 
     let expiry = 'LIFETIME';
     if (days && parseInt(days) > 0) {
@@ -341,44 +523,27 @@ app.put('/api/admin/clients/:hwid/renew', requireAdminAuth, (req, res) => {
         expiry = expDate.toISOString().split('T')[0];
     }
 
-    client.plan = plan;
-    client.expiry = expiry;
-    client.status = 'active';
-    client.suspendReason = '';
-    client.licenseKey = generateKey(hwid, plan, days);
+    user.plan = plan;
+    user.expiry = expiry;
+    user.status = 'active';
+    user.suspendReason = '';
+    const targetHwid = (user.hwids && user.hwids.length > 0) ? user.hwids[0] : 'WA-DEFAULT-HWID';
+    user.licenseKey = generateKey(targetHwid, plan, days);
 
-    saveClients(clients);
-    res.json({ success: true, client, licenseKey: client.licenseKey });
+    saveUsers(users);
+    res.json({ success: true, client: user, licenseKey: user.licenseKey });
 });
 
-app.put('/api/admin/clients/:hwid/edit', requireAdminAuth, (req, res) => {
-    const hwid = (req.params.hwid || '').trim().toUpperCase();
-    const { name, company, phone, email, notes } = req.body;
-    const clients = getClients();
-    const client = clients.find(c => c.hwid === hwid);
+app.delete('/api/admin/clients/:id', requireAdminAuth, (req, res) => {
+    const id = req.params.id;
+    let users = getUsers();
+    const initialLen = users.length;
+    users = users.filter(u => u.id !== id && u.username !== id && !(u.hwids && u.hwids.includes(id.toUpperCase())));
 
-    if (!client) return res.status(404).json({ success: false, error: 'العميل غير موجود' });
+    if (users.length === initialLen) return res.status(404).json({ success: false, error: 'المستخدم غير موجود' });
 
-    if (name !== undefined) client.name = (name || '').trim();
-    if (company !== undefined) client.company = (company || '').trim();
-    if (phone !== undefined) client.phone = (phone || '').trim();
-    if (email !== undefined) client.email = (email || '').trim();
-    if (notes !== undefined) client.notes = (notes || '').trim();
-
-    saveClients(clients);
-    res.json({ success: true, client });
-});
-
-app.delete('/api/admin/clients/:hwid', requireAdminAuth, (req, res) => {
-    const hwid = (req.params.hwid || '').trim().toUpperCase();
-    let clients = getClients();
-    const initialLen = clients.length;
-    clients = clients.filter(c => c.hwid !== hwid);
-
-    if (clients.length === initialLen) return res.status(404).json({ success: false, error: 'العميل غير موجود' });
-
-    saveClients(clients);
-    res.json({ success: true, message: 'تم حذف العميل بنجاح' });
+    saveUsers(users);
+    res.json({ success: true, message: 'تم حذف المستخدم بنجاح' });
 });
 
 app.post('/api/admin/broadcast', requireAdminAuth, (req, res) => {
@@ -403,63 +568,59 @@ app.post('/api/admin/change-password', requireAdminAuth, (req, res) => {
     res.json({ success: true, message: 'تم تغيير رمز مرور الأدمن بنجاح' });
 });
 
-// 🌐 Public Client Heartbeat & Sync Endpoint
+// Legacy License Sync fallback
 app.post('/api/v1/license/sync', (req, res) => {
     let { hwid, name, company, phone, email, clientVersion, licenseKey } = req.body;
-    if (!hwid || typeof hwid !== 'string') {
-        return res.status(400).json({ success: false, error: 'HWID is required' });
-    }
+    if (!hwid) return res.status(400).json({ success: false, error: 'HWID is required' });
     hwid = hwid.trim().toUpperCase();
 
-    const clients = getClients();
-    let client = clients.find(c => c.hwid === hwid);
-    const now = new Date().getTime();
+    const users = getUsers();
+    let user = users.find(u => u.hwids && u.hwids.includes(hwid));
+    const now = Date.now();
     const config = getConfig();
 
-    if (!client) {
-        client = {
-            hwid,
+    if (!user) {
+        user = {
+            id: 'usr_' + Date.now().toString(36),
+            username: 'user_' + hwid.replace(/[^A-Z0-9]/g, '').toLowerCase().substring(0, 8),
+            email: (email || '').trim(),
+            passwordHash: hashPassword('123456'),
             name: (name || 'عميل مسجل تلقائياً').trim(),
             company: (company || '').trim(),
             phone: (phone || '').trim(),
-            email: (email || '').trim(),
             plan: 'trial',
             expiry: new Date(now + 3 * 86400000).toISOString().split('T')[0],
             status: 'active',
             suspendReason: '',
+            hwids: [hwid],
             licenseKey: licenseKey || generateKey(hwid, 'trial', 3),
-            notes: 'تم التسجيل تلقائياً عند أول تشغيل',
             createdAt: new Date().toISOString(),
-            lastSeenAt: new Date().toISOString(),
-            clientVersion: clientVersion || '3.0.0'
+            lastLoginAt: new Date().toISOString()
         };
-        clients.unshift(client);
+        users.unshift(user);
     } else {
-        client.lastSeenAt = new Date().toISOString();
-        if (clientVersion) client.clientVersion = clientVersion;
-        if (name && (!client.name || client.name === 'عميل جديد')) client.name = name.trim();
-        if (company && !client.company) client.company = company.trim();
-        if (phone && !client.phone) client.phone = phone.trim();
-        if (email && !client.email) client.email = email.trim();
-        if (licenseKey && (!client.licenseKey || client.licenseKey !== licenseKey)) client.licenseKey = licenseKey;
+        user.lastLoginAt = new Date().toISOString();
+        if (name && (!user.name || user.name.startsWith('user_'))) user.name = name.trim();
+        if (company && !user.company) user.company = company.trim();
+        if (phone && !user.phone) user.phone = phone.trim();
     }
 
-    saveClients(clients);
+    saveUsers(users);
 
-    if (client.status === 'suspended') {
+    if (user.status === 'suspended') {
         return res.json({
             success: true,
             isAllowed: false,
             status: 'suspended',
-            message: client.suspendReason || 'تم إيقاف هذا الترخيص من قبل الإدارة، يرجى التواصل لتجديد اشتراكك 🔒',
+            message: user.suspendReason || 'تم إيقاف هذا الترخيص من قبل الإدارة 🔒',
             broadcast: config.broadcastMessage && config.broadcastMessage.enabled ? config.broadcastMessage : null
         });
     }
 
     let isExpired = false;
     let daysLeft = 'LIFETIME';
-    if (client.expiry && client.expiry !== 'LIFETIME') {
-        const expTime = new Date(client.expiry + 'T23:59:59').getTime();
+    if (user.expiry && user.expiry !== 'LIFETIME') {
+        const expTime = new Date(user.expiry + 'T23:59:59').getTime();
         if (now > expTime) {
             isExpired = true;
             daysLeft = 0;
@@ -468,38 +629,27 @@ app.post('/api/v1/license/sync', (req, res) => {
         }
     }
 
-    if (isExpired) {
-        return res.json({
-            success: true,
-            isAllowed: false,
-            status: 'expired',
-            message: 'انتهت صلاحية اشتراكك في البرنامج، يرجى التواصل مع الإدارة للتجديد ⌛',
-            plan: client.plan,
-            expiry: client.expiry,
-            daysLeft: 0,
-            broadcast: config.broadcastMessage && config.broadcastMessage.enabled ? config.broadcastMessage : null
-        });
-    }
-
     res.json({
         success: true,
-        isAllowed: true,
-        status: 'active',
-        plan: client.plan,
-        expiry: client.expiry,
+        isAllowed: !isExpired,
+        status: isExpired ? 'expired' : 'active',
+        plan: user.plan,
+        expiry: user.expiry,
         daysLeft: daysLeft === 'LIFETIME' ? 'غير محدود' : daysLeft,
-        licenseKey: client.licenseKey,
-        broadcast: config.broadcastMessage && config.broadcastMessage.enabled ? config.broadcastMessage : null,
-        serverTime: new Date().toISOString()
+        licenseKey: user.licenseKey,
+        broadcast: config.broadcastMessage && config.broadcastMessage.enabled ? config.broadcastMessage : null
     });
 });
 
 // Admin Dashboard UI Route
-app.get(['/', '/admin', '/dashboard'], (req, res) => {
+app.get(['/admin', '/admin.html'], (req, res) => {
     const adminHtml = path.join(__dirname, '..', 'لوحة_تحكم_الادمن_المركزية_Cloud', 'public', 'index.html');
-    if (fs.existsSync(adminHtml)) {
-        return res.sendFile(adminHtml);
-    }
+    if (fs.existsSync(adminHtml)) return res.sendFile(adminHtml);
+    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+});
+
+// Web Platform Home / Client Portal
+app.get(['/', '/login', '/register', '/dashboard'], (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 

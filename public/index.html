@@ -3667,63 +3667,120 @@
         </div>
 
         <!-- 📝 Right Form Column (Registration & Activation) -->
-        <div class="auth-form-side" style="padding:32px 36px">
-            <div style="margin-bottom:16px">
-                <div style="display:flex;align-items:center;justify-content:space-between">
-                    <h3 style="font-size:1.3rem;font-weight:900;margin:0;color:var(--text-primary)"><i class="fa-solid fa-key" style="color:var(--primary)"></i> تفعيل وتنشيط البرنامج</h3>
-                    <span class="badge" style="background:rgba(16,185,129,0.15);color:var(--primary);font-size:0.75rem;padding:4px 12px;border-radius:12px;font-weight:800"><i class="fa-solid fa-circle-check"></i> ترخيص معتمد</span>
-                </div>
-                <p style="font-size:0.84rem;color:var(--text-muted);margin:4px 0 0">أدخل بياناتك وكود التفعيل الخاص بك لتنشيط نسختك فوراً:</p>
+        <!-- 📝 Right Form Column (Unified Login & Registration) -->
+        <div class="auth-form-side" style="padding:28px 32px">
+            <!-- Header Tabs -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+                <h3 style="font-size:1.25rem;font-weight:900;margin:0;color:var(--text-primary)"><i class="fa-solid fa-user-shield" style="color:var(--primary)"></i> بوابة الدخول والتفعيل</h3>
+                <span class="badge" style="background:rgba(16,185,129,0.15);color:var(--primary);font-size:0.75rem;padding:4px 10px;border-radius:10px;font-weight:800"><i class="fa-solid fa-cloud"></i> متصل بالسحابة</span>
             </div>
 
-            <!-- HWID Box -->
-            <div style="background:var(--bg-main);border:1.5px solid var(--card-border);border-radius:14px;padding:10px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:10px">
-                <div style="flex:1">
-                    <div style="font-size:0.75rem;font-weight:800;color:var(--text-muted);margin-bottom:3px">بصمة جهازك الفريدة (Hardware ID):</div>
-                    <input type="text" id="regHwidVal" readonly class="form-control" style="font-family:'Consolas',monospace;font-size:0.95rem;font-weight:900;color:var(--primary);background:var(--card-bg);height:38px;text-align:center;direction:ltr;letter-spacing:1px">
-                </div>
-                <button class="btn btn-secondary btn-sm" type="button" onclick="copyRegHwid()" style="margin-top:16px;height:38px;padding:0 14px;font-weight:800"><i class="fa-solid fa-copy"></i> نسخ البصمة</button>
+            <!-- Tab Switcher -->
+            <div style="display:flex;background:var(--bg-main);border-radius:12px;padding:4px;margin-bottom:18px;border:1px solid var(--card-border)">
+                <button type="button" id="tabBtnLogin" onclick="switchAuthTab('login')" style="flex:1;border:none;background:var(--primary);color:white;padding:8px 0;border-radius:9px;font-weight:800;font-size:0.84rem;cursor:pointer;transition:0.2s">
+                    <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول
+                </button>
+                <button type="button" id="tabBtnRegister" onclick="switchAuthTab('register')" style="flex:1;border:none;background:transparent;color:var(--text-muted);padding:8px 0;border-radius:9px;font-weight:800;font-size:0.84rem;cursor:pointer;transition:0.2s">
+                    <i class="fa-solid fa-user-plus"></i> حساب جديد
+                </button>
+                <button type="button" id="tabBtnKey" onclick="switchAuthTab('key')" style="flex:1;border:none;background:transparent;color:var(--text-muted);padding:8px 0;border-radius:9px;font-weight:800;font-size:0.84rem;cursor:pointer;transition:0.2s">
+                    <i class="fa-solid fa-key"></i> كود تفعيل
+                </button>
             </div>
 
-            <!-- Form Fields -->
-            <div class="grid-2" style="margin-bottom:10px">
-                <div class="form-group" style="margin-bottom:0">
-                    <label style="font-size:0.82rem;font-weight:800"><i class="fa-solid fa-user" style="color:var(--primary)"></i> اسم العميل / المسؤول: <span style="color:var(--danger)">*</span></label>
-                    <input type="text" id="regName" class="form-control" style="height:42px;font-size:0.9rem" placeholder="اكتب اسمك هنا">
+            <!-- 1️⃣ TAB 1: USERNAME & PASSWORD LOGIN -->
+            <div id="authSectionLogin">
+                <p style="font-size:0.82rem;color:var(--text-muted);margin:0 0 14px">سجل دخولك بحسابك الموحد لمزامنة اشتراكك وبياناتك فوراً:</p>
+
+                <div class="form-group" style="margin-bottom:12px">
+                    <label style="font-size:0.82rem;font-weight:800"><i class="fa-solid fa-user" style="color:var(--primary)"></i> اسم المستخدم أو البريد الإلكتروني: <span style="color:var(--danger)">*</span></label>
+                    <input type="text" id="loginUsernameOrEmail" class="form-control" style="height:44px;font-size:0.92rem;direction:ltr;text-align:right" placeholder="أدخل اسم المستخدم أو الإيميل" onkeydown="if(event.key==='Enter') submitUserLogin()">
                 </div>
-                <div class="form-group" style="margin-bottom:0">
-                    <label style="font-size:0.82rem;font-weight:800"><i class="fa-solid fa-building" style="color:var(--primary)"></i> اسم الشركة أو النشاط: <span style="color:var(--danger)">*</span></label>
-                    <input type="text" id="regCompany" class="form-control" style="height:42px;font-size:0.9rem" placeholder="مثال: متجر النخبة">
+
+                <div class="form-group" style="margin-bottom:16px">
+                    <label style="font-size:0.82rem;font-weight:800"><i class="fa-solid fa-lock" style="color:var(--primary)"></i> كلمة المرور: <span style="color:var(--danger)">*</span></label>
+                    <input type="password" id="loginPassword" class="form-control" style="height:44px;font-size:0.92rem" placeholder="••••••••" onkeydown="if(event.key==='Enter') submitUserLogin()">
+                </div>
+
+                <button class="btn btn-primary btn-lg" style="width:100%;font-size:1rem;height:46px;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 20px rgba(16,185,129,0.35)" type="button" onclick="submitUserLogin()">
+                    <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول وفتح البرنامج
+                </button>
+
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.78rem;color:var(--text-muted);margin-top:8px">
+                    <span>ليس لديك حساب؟ <a href="javascript:void(0)" onclick="switchAuthTab('register')" style="color:var(--primary);font-weight:800;text-decoration:none">أنشئ حساباً مجاناً</a></span>
+                    <a href="javascript:void(0)" onclick="switchAuthTab('key')" style="color:var(--text-muted);text-decoration:none">تفعيل بكود أوفلاين</a>
                 </div>
             </div>
 
-            <div class="grid-2" style="margin-bottom:10px">
-                <div class="form-group" style="margin-bottom:0">
-                    <label style="font-size:0.82rem;font-weight:800"><i class="fa-solid fa-phone" style="color:var(--primary)"></i> رقم واتساب للتواصل: <span style="color:var(--danger)">*</span></label>
-                    <input type="tel" id="regPhone" class="form-control" style="height:42px;font-size:0.9rem;direction:ltr;text-align:right" placeholder="01012345678">
+            <!-- 2️⃣ TAB 2: REGISTER NEW ACCOUNT -->
+            <div id="authSectionRegister" style="display:none">
+                <p style="font-size:0.82rem;color:var(--text-muted);margin:0 0 12px">أنشئ حسابك الجديد للتفعيل الفوري والاستفادة من المنظومة السحابية:</p>
+
+                <div class="grid-2" style="margin-bottom:8px">
+                    <div class="form-group" style="margin-bottom:0">
+                        <label style="font-size:0.8rem;font-weight:800"><i class="fa-solid fa-id-card" style="color:var(--primary)"></i> اسم المستخدم: <span style="color:var(--danger)">*</span></label>
+                        <input type="text" id="regUsername" class="form-control" style="height:40px;font-size:0.88rem;direction:ltr;text-align:right" placeholder="مثال: ahmed2026">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0">
+                        <label style="font-size:0.8rem;font-weight:800"><i class="fa-solid fa-lock" style="color:var(--primary)"></i> كلمة المرور: <span style="color:var(--danger)">*</span></label>
+                        <input type="password" id="regUserPassword" class="form-control" style="height:40px;font-size:0.88rem" placeholder="4 خانات على الأقل">
+                    </div>
                 </div>
-                <div class="form-group" style="margin-bottom:0">
-                    <label style="font-size:0.82rem;font-weight:800"><i class="fa-solid fa-envelope" style="color:var(--primary)"></i> البريد الإلكتروني (اختياري):</label>
-                    <input type="email" id="regEmail" class="form-control" style="height:42px;font-size:0.9rem;direction:ltr;text-align:right" placeholder="user@company.com">
+
+                <div class="grid-2" style="margin-bottom:8px">
+                    <div class="form-group" style="margin-bottom:0">
+                        <label style="font-size:0.8rem;font-weight:800"><i class="fa-solid fa-user" style="color:var(--primary)"></i> اسم العميل: <span style="color:var(--danger)">*</span></label>
+                        <input type="text" id="regName" class="form-control" style="height:40px;font-size:0.88rem" placeholder="اسمك الكامل">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0">
+                        <label style="font-size:0.8rem;font-weight:800"><i class="fa-solid fa-building" style="color:var(--primary)"></i> اسم النشاط/الشركة: <span style="color:var(--danger)">*</span></label>
+                        <input type="text" id="regCompany" class="form-control" style="height:40px;font-size:0.88rem" placeholder="مثال: متجر النخبة">
+                    </div>
+                </div>
+
+                <div class="grid-2" style="margin-bottom:12px">
+                    <div class="form-group" style="margin-bottom:0">
+                        <label style="font-size:0.8rem;font-weight:800"><i class="fa-solid fa-phone" style="color:var(--primary)"></i> رقم الهاتف للتواصل: <span style="color:var(--danger)">*</span></label>
+                        <input type="tel" id="regPhone" class="form-control" style="height:40px;font-size:0.88rem;direction:ltr;text-align:right" placeholder="01012345678">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0">
+                        <label style="font-size:0.8rem;font-weight:800"><i class="fa-solid fa-envelope" style="color:var(--primary)"></i> البريد (اختياري):</label>
+                        <input type="email" id="regEmail" class="form-control" style="height:40px;font-size:0.88rem;direction:ltr;text-align:right" placeholder="user@domain.com">
+                    </div>
+                </div>
+
+                <button class="btn btn-primary btn-lg" style="width:100%;font-size:0.98rem;height:44px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px" type="button" onclick="submitCloudRegistration()">
+                    <i class="fa-solid fa-user-plus"></i> إنشاء وتفعيل الحساب فوراً
+                </button>
+
+                <div style="text-align:center;font-size:0.78rem;color:var(--text-muted)">
+                    لديك حساب بالفعل؟ <a href="javascript:void(0)" onclick="switchAuthTab('login')" style="color:var(--primary);font-weight:800;text-decoration:none">تسجيل الدخول هنا</a>
                 </div>
             </div>
 
-            <div class="form-group" style="margin-bottom:10px">
-                <label style="font-size:0.82rem;font-weight:800"><i class="fa-solid fa-key" style="color:var(--accent)"></i> كود التفعيل (License Key): <span style="color:var(--danger)">*</span></label>
-                <input type="text" id="regLicenseKey" class="form-control" style="height:44px;font-family:'Consolas',monospace;font-size:0.9rem;font-weight:800;direction:ltr;text-align:left;color:var(--primary)" placeholder="KEY-..." oninput="this.value = this.value.replace(/[`'()\[\]{}]/g, '').trim()">
-            </div>
+            <!-- 3️⃣ TAB 3: OFFLINE LICENSE KEY / HWID -->
+            <div id="authSectionKey" style="display:none">
+                <!-- HWID Box -->
+                <div style="background:var(--bg-main);border:1.5px solid var(--card-border);border-radius:12px;padding:8px 12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px">
+                    <div style="flex:1">
+                        <div style="font-size:0.72rem;font-weight:800;color:var(--text-muted);margin-bottom:2px">بصمة جهازك (HWID):</div>
+                        <input type="text" id="regHwidVal" readonly class="form-control" style="font-family:'Consolas',monospace;font-size:0.88rem;font-weight:900;color:var(--primary);background:var(--card-bg);height:34px;text-align:center;direction:ltr">
+                    </div>
+                    <button class="btn btn-secondary btn-sm" type="button" onclick="copyRegHwid()" style="margin-top:14px;height:34px;padding:0 10px;font-weight:800"><i class="fa-solid fa-copy"></i> نسخ</button>
+                </div>
 
-            <div class="form-group" style="margin-bottom:14px">
-                <label style="font-size:0.82rem;font-weight:800"><i class="fa-solid fa-lock" style="color:var(--primary)"></i> كلمة مرور لفتح البرنامج (اختياري):</label>
-                <input type="password" id="regPassword" class="form-control" style="height:42px;font-size:0.9rem" placeholder="اتركه فارغاً إذا كنت لا ترغب بقفل البرنامج">
-            </div>
+                <div class="form-group" style="margin-bottom:10px">
+                    <label style="font-size:0.8rem;font-weight:800"><i class="fa-solid fa-key" style="color:var(--accent)"></i> كود التفعيل المباشر (License Key): <span style="color:var(--danger)">*</span></label>
+                    <input type="text" id="regLicenseKey" class="form-control" style="height:40px;font-family:'Consolas',monospace;font-size:0.86rem;font-weight:800;direction:ltr;text-align:left;color:var(--primary)" placeholder="KEY-..." oninput="this.value = this.value.replace(/[`'()\[\]{}]/g, '').trim()">
+                </div>
 
-            <button class="btn btn-primary btn-lg" style="width:100%;font-size:1.02rem;height:46px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 20px rgba(16,185,129,0.35)" onclick="submitRegistration()"><i class="fa-solid fa-bolt"></i> ⚡ تفعيل الحساب والبدء فوراً</button>
+                <button class="btn btn-primary" style="width:100%;font-size:0.95rem;height:42px;margin-bottom:8px" type="button" onclick="submitRegistration()">
+                    <i class="fa-solid fa-bolt"></i> تفعيل بالكود
+                </button>
 
-            <button class="btn btn-secondary" style="width:100%;font-size:0.86rem;border:1px dashed var(--primary);color:var(--primary);height:40px;margin-bottom:6px" type="button" onclick="quickActivateTrial()"><i class="fa-solid fa-gift"></i> 🎁 تفعيل تجربة مجانية 3 أيام بنقرة واحدة (Free Trial)</button>
-            
-            <div style="text-align:center;font-size:0.74rem;color:var(--text-muted)">
-                هل تحتاج كود تفعيل؟ انسخ بصمة جهازك بالأعلى وأرسلها للبائع لتفعيل نسختك فوراً.
+                <button class="btn btn-secondary" style="width:100%;font-size:0.82rem;border:1px dashed var(--primary);color:var(--primary);height:38px" type="button" onclick="quickActivateTrial()">
+                    <i class="fa-solid fa-gift"></i> 🎁 تفعيل تجربة مجانية 3 أيام (Free Trial)
+                </button>
             </div>
         </div>
     </div>
@@ -7956,6 +8013,108 @@ function testOnboardingScreen() {
     document.getElementById('appLockGate').style.display = 'none';
     hideUserProfileDropdown();
     showToast('👁️ معاينة شاشة التفعيل', 'هذه هي شاشة التفعيل والتسجيل التي ستظهر للعميل الجديد أول مرة', 'info', 4000);
+}
+
+function switchAuthTab(tab) {
+    const btnLogin = document.getElementById('tabBtnLogin');
+    const btnRegister = document.getElementById('tabBtnRegister');
+    const btnKey = document.getElementById('tabBtnKey');
+
+    const secLogin = document.getElementById('authSectionLogin');
+    const secRegister = document.getElementById('authSectionRegister');
+    const secKey = document.getElementById('authSectionKey');
+
+    if (!btnLogin || !btnRegister || !btnKey) return;
+
+    btnLogin.style.background = 'transparent'; btnLogin.style.color = 'var(--text-muted)';
+    btnRegister.style.background = 'transparent'; btnRegister.style.color = 'var(--text-muted)';
+    btnKey.style.background = 'transparent'; btnKey.style.color = 'var(--text-muted)';
+
+    secLogin.style.display = 'none';
+    secRegister.style.display = 'none';
+    secKey.style.display = 'none';
+
+    if (tab === 'login') {
+        btnLogin.style.background = 'var(--primary)'; btnLogin.style.color = 'white';
+        secLogin.style.display = 'block';
+    } else if (tab === 'register') {
+        btnRegister.style.background = 'var(--primary)'; btnRegister.style.color = 'white';
+        secRegister.style.display = 'block';
+    } else {
+        btnKey.style.background = 'var(--primary)'; btnKey.style.color = 'white';
+        secKey.style.display = 'block';
+    }
+}
+
+async function submitUserLogin() {
+    const loginInput = document.getElementById('loginUsernameOrEmail');
+    const pwdInput = document.getElementById('loginPassword');
+    const usernameOrEmail = loginInput ? loginInput.value.trim() : '';
+    const password = pwdInput ? pwdInput.value.trim() : '';
+    const hwid = document.getElementById('regHwidVal') ? document.getElementById('regHwidVal').value.trim() : '';
+
+    if (!usernameOrEmail || !password) {
+        return showToast('⚠️ تنبيه', 'يرجى إدخال اسم المستخدم أو البريد الإلكتروني وكلمة المرور', 'warning');
+    }
+
+    showToast('⏳ جاري تسجيل الدخول', 'جاري التحقق من الحساب والاشتراك السحابي...', 'info', 2500);
+
+    const res = await api('/api/user/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usernameOrEmail, password, hwid })
+    });
+
+    if (res && res.success) {
+        showToast('🎉 مرحباً بك', `تم تسجيل الدخول بنجاح! مرحباً ${res.user ? res.user.name : ''}`, 'success', 3500);
+        playChime('pop');
+        document.getElementById('onboardingGate').style.display = 'none';
+        sessionStorage.setItem('app_unlocked', 'true');
+        localStorage.setItem('app_unlocked', 'true');
+        if (res.token) localStorage.setItem('cloud_token', res.token);
+        loadUserProfile();
+        checkStatus();
+    } else {
+        showToast('❌ فشل تسجيل الدخول', (res && res.error) ? res.error : 'اسم المستخدم أو كلمة المرور غير صحيحة', 'error', 4500);
+    }
+}
+
+async function submitCloudRegistration() {
+    const username = document.getElementById('regUsername') ? document.getElementById('regUsername').value.trim() : '';
+    const password = document.getElementById('regUserPassword') ? document.getElementById('regUserPassword').value.trim() : '';
+    const name = document.getElementById('regName') ? document.getElementById('regName').value.trim() : '';
+    const company = document.getElementById('regCompany') ? document.getElementById('regCompany').value.trim() : '';
+    const phone = document.getElementById('regPhone') ? document.getElementById('regPhone').value.trim() : '';
+    const email = document.getElementById('regEmail') ? document.getElementById('regEmail').value.trim() : '';
+    const hwid = document.getElementById('regHwidVal') ? document.getElementById('regHwidVal').value.trim() : '';
+
+    if (!username || !password || !name) {
+        return showToast('⚠️ تنبيه', 'يرجى إدخال اسم المستخدم، كلمة المرور، واسم العميل', 'warning');
+    }
+    if (password.length < 4) {
+        return showToast('⚠️ تنبيه', 'كلمة المرور يجب أن تكون 4 خانات على الأقل', 'warning');
+    }
+
+    showToast('⏳ جاري إنشاء الحساب', 'جاري تسجيل حسابك وتفعيله سحابياً...', 'info', 2500);
+
+    const res = await api('/api/user/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, name, company, phone, email, hwid })
+    });
+
+    if (res && res.success) {
+        showToast('🎉 مرحباً بك', res.message || 'تم إنشاء الحساب بنجاح!', 'success', 3500);
+        playChime('pop');
+        document.getElementById('onboardingGate').style.display = 'none';
+        sessionStorage.setItem('app_unlocked', 'true');
+        localStorage.setItem('app_unlocked', 'true');
+        if (res.token) localStorage.setItem('cloud_token', res.token);
+        loadUserProfile();
+        checkStatus();
+    } else {
+        showToast('❌ خطأ في التسجيل', (res && res.error) ? res.error : 'فشل إنشاء الحساب', 'error', 4500);
+    }
 }
 
 function copyRegHwid() {

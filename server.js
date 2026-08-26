@@ -1502,6 +1502,165 @@ app.post('/api/user/quick-activate-trial', (req, res) => {
     }
 });
 
+const CLOUD_SERVERS = [
+    process.env.LICENSE_SERVER_URL,
+    'https://wf.vexonet.online',
+    'https://wha-beige.vercel.app',
+    'http://localhost:5000'
+].filter(Boolean);
+
+// 🔐 تسجيل الدخول بالحساب السحابي (Cloud Account Login)
+app.post('/api/user/auth/login', async (req, res) => {
+    try {
+        const { usernameOrEmail, username, password } = req.body;
+        const loginId = (usernameOrEmail || username || '').trim();
+        const hwid = getHWID();
+
+        if (!loginId || !password) {
+            return res.status(400).json({ success: false, error: 'يرجى إدخال اسم المستخدم وكلمة المرور' });
+        }
+
+        // 1. محاولة تسجيل الدخول عبر السيرفرات السحابية
+        for (const cloudUrl of CLOUD_SERVERS) {
+            try {
+                const cloudRes = await axios.post(`${cloudUrl}/api/user/auth/login`, {
+                    usernameOrEmail: loginId,
+                    password: password.trim(),
+                    hwid
+                }, { timeout: 6500 });
+
+                if (cloudRes.data && cloudRes.data.success) {
+                    const cloudData = cloudRes.data;
+
+                    // تفعيل الترخيص محلياً بناءً على استجابة السيرفر
+                    if (cloudData.user && cloudData.user.licenseKey) {
+                        activate(cloudData.user.licenseKey, BASE_DATA_DIR);
+                    } else if (cloudData.user && cloudData.user.plan) {
+                        const generated = generateKey(hwid, cloudData.user.plan, null);
+                        activate(generated, BASE_DATA_DIR);
+                    }
+
+                    // حفظ بيانات الملف الشخصي والتوكن محلياً
+                    const profileData = {
+                        registered: true,
+                        cloudUserId: cloudData.user.id,
+                        username: cloudData.user.username,
+                        name: cloudData.user.name,
+                        company: cloudData.user.company,
+                        email: cloudData.user.email,
+                        phone: cloudData.user.phone,
+                        password: password.trim(),
+                        cloudToken: cloudData.token,
+                        lastCloudSync: new Date().toISOString()
+                    };
+                    fs.writeJsonSync(USER_PROFILE_FILE, profileData, { spaces: 2 });
+
+                    return res.json(cloudData);
+                } else if (cloudRes.data && cloudRes.data.isSuspended) {
+                    return res.status(403).json(cloudRes.data);
+                }
+            } catch (err) {
+                if (err.response && err.response.data && err.response.data.error) {
+                    return res.status(err.response.status || 400).json({ success: false, error: err.response.data.error });
+                }
+            }
+        }
+
+        // 2. التحقق أوفلاين إذا كان مسجلاً مسبقاً بنفس البيانات
+        if (fs.existsSync(USER_PROFILE_FILE)) {
+            try {
+                const localProf = fs.readJsonSync(USER_PROFILE_FILE);
+                if (localProf && localProf.registered && (localProf.username === loginId || localProf.email === loginId)) {
+                    if (localProf.password === password.trim()) {
+                        const lic = getLicenseStatus(BASE_DATA_DIR);
+                        return res.json({
+                            success: true,
+                            offlineMode: true,
+                            user: localProf,
+                            license: lic
+                        });
+                    }
+                }
+            } catch (_) {}
+        }
+
+        return res.status(401).json({ success: false, error: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+// 📝 تسجيل حساب عميل جديد (Cloud Account Register)
+app.post('/api/user/auth/register', async (req, res) => {
+    try {
+        const { username, password, name, company, phone, email } = req.body;
+        const hwid = getHWID();
+
+        if (!username || !password || !name) {
+            return res.status(400).json({ success: false, error: 'يرجى ملء جميع الحقول المطلوبة' });
+        }
+
+        // 1. إرسال التسجيل للسيرفر السحابي
+        for (const cloudUrl of CLOUD_SERVERS) {
+            try {
+                const cloudRes = await axios.post(`${cloudUrl}/api/user/auth/register`, {
+                    username: username.trim(),
+                    password: password.trim(),
+                    name: name.trim(),
+                    company: (company || '').trim(),
+                    phone: (phone || '').trim(),
+                    email: (email || '').trim(),
+                    hwid,
+                    plan: 'trial'
+                }, { timeout: 6500 });
+
+                if (cloudRes.data && cloudRes.data.success) {
+                    const cloudData = cloudRes.data;
+                    if (cloudData.user && cloudData.user.licenseKey) {
+                        activate(cloudData.user.licenseKey, BASE_DATA_DIR);
+                    }
+                    const profileData = {
+                        registered: true,
+                        cloudUserId: cloudData.user.id,
+                        username: cloudData.user.username,
+                        name: cloudData.user.name,
+                        company: cloudData.user.company,
+                        email: cloudData.user.email,
+                        phone: cloudData.user.phone,
+                        password: password.trim(),
+                        cloudToken: cloudData.token,
+                        lastCloudSync: new Date().toISOString()
+                    };
+                    fs.writeJsonSync(USER_PROFILE_FILE, profileData, { spaces: 2 });
+                    return res.json(cloudData);
+                }
+            } catch (err) {
+                if (err.response && err.response.data && err.response.data.error) {
+                    return res.status(400).json({ success: false, error: err.response.data.error });
+                }
+            }
+        }
+
+        // 2. تفعيل تجربة محلي في حال انقطاع النت
+        const trialKey = generateKey(hwid, 'trial', 3);
+        activate(trialKey, BASE_DATA_DIR);
+        const profileData = {
+            registered: true,
+            username: username.trim(),
+            name: name.trim(),
+            company: (company || '').trim(),
+            email: (email || '').trim(),
+            phone: (phone || '').trim(),
+            password: password.trim(),
+            registeredAt: new Date().toISOString()
+        };
+        fs.writeJsonSync(USER_PROFILE_FILE, profileData, { spaces: 2 });
+        return res.json({ success: true, message: 'تم إنشاء وتفعيل الحساب بنجاح! 🎉', user: profileData });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
 app.post('/api/user/register', (req, res) => {
     try {
         let { name, company, email, phone, password, licenseKey } = req.body;
