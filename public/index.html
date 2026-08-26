@@ -5258,10 +5258,43 @@ function renderQrModalState(data) {
         scanState.style.display = 'block';
         loadingState.style.display = 'none';
         if (qrImg) qrImg.src = data.qrCode;
+    } else if (data && data.isCloudPlatform && !window.location.host.includes('localhost') && !window.location.host.includes('127.0.0.1')) {
+        // Cloud Web view
+        connectedState.style.display = 'none';
+        scanState.style.display = 'none';
+        loadingState.style.display = 'block';
+        loadingState.innerHTML = `
+            <div style="width:68px;height:68px;border-radius:50%;background:rgba(16,185,129,0.12);color:var(--primary);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:2.2rem">
+                <i class="fa-brands fa-whatsapp"></i>
+            </div>
+            <h4 style="font-size:1.15rem;color:var(--text-primary);margin-bottom:8px;font-weight:900">ربط وتوصيل واتساب (WhatsApp Engine)</h4>
+            <p style="font-size:0.88rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.6">
+                للحفاظ على خصوصية أرقامك وسرعة الإرسال، يعمل محرك مسح باركود واتساب عبر <b>برنامج الكمبيوتر المكتبي (Desktop App)</b>.<br>
+                قم بتشغيل البرنامج على جهازك لمسح الباركود وبدء الإرسال فوراً.
+            </p>
+            <div style="display:flex;flex-direction:column;gap:10px;align-items:center">
+                <a href="https://github.com/ohmedayman/wha/raw/master/WhatsApp-Flow-Pro.zip" download class="btn btn-primary" style="padding:10px 22px;font-weight:800;text-decoration:none;font-size:0.95rem"><i class="fa-solid fa-download"></i> 📥 تحميل برنامج الديسكتوب (Windows)</a>
+                <button class="btn btn-secondary btn-sm" onclick="checkLocalEngineBridge()"><i class="fa-solid fa-rotate"></i> ⚡ فحص الربط التلقائي مع البرنامج</button>
+            </div>
+        `;
     } else {
         connectedState.style.display = 'none';
         scanState.style.display = 'none';
         loadingState.style.display = 'block';
+    }
+}
+
+async function checkLocalEngineBridge() {
+    showToast('⏳ جاري الفحص', 'جاري البحث عن برنامج WhatsApp Flow Pro على جهازك...', 'info', 2000);
+    try {
+        const res = await fetch('http://localhost:3000/api/status', { mode: 'cors' });
+        const data = await res.json();
+        if (data) {
+            renderQrModalState(data);
+            showToast('✅ متصل بمحرك الديسكتوب', 'تم العثور على البرنامج وجلب الباركود بنجاح!', 'success');
+        }
+    } catch (_) {
+        showToast('ℹ️ ملاحظة', 'يرجى تشغيل ملف WhatsApp Flow Pro.exe على جهازك أولاً ثم الضغط هنا', 'info', 4000);
     }
 }
 
