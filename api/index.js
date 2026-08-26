@@ -892,7 +892,101 @@ module.exports = (req, res) => {
             });
         }
 
-        // Client User Login
+                // ==========================================
+        // 👤 CLIENT USER REGISTRATION & AUTH
+        // ==========================================
+
+        // Client User Registration
+        if (pathname === '/user/auth/register' && method === 'POST') {
+            const { username, password, name, company, phone, email, hwid, plan = 'trial', licenseKey: inputKey, agentCode } = body;
+
+            if (!username || !password || !name) {
+                return sendJson(400, { success: false, error: 'يرجى إدخال اسم المستخدم، كلمة المرور، والاسم' });
+            }
+
+            const cleanUser = username.trim().toLowerCase();
+            if (cleanUser.length < 3) {
+                return sendJson(400, { success: false, error: 'اسم المستخدم يجب أن يكون 3 أحرف على الأقل' });
+            }
+
+            const users = getUsers();
+            if (users.some(u => u.username.toLowerCase() === cleanUser)) {
+                return sendJson(400, { success: false, error: 'اسم المستخدم مسجل بالفعل، يرجى اختيار اسم مستخدم آخر' });
+            }
+
+            const cleanHWID = (hwid || '').trim().toUpperCase() || 'DESKTOP-APP-USER';
+            let finalPlan = plan || 'trial';
+            let expiry = null;
+
+            let assignedAgent = null;
+            if (agentCode) {
+                const agents = getAgents();
+                assignedAgent = agents.find(a => a.username.toLowerCase() === agentCode.trim().toLowerCase() || a.id === agentCode.trim());
+            }
+
+            if (inputKey && inputKey.trim()) {
+                finalPlan = 'lifetime';
+            } else if (finalPlan === 'trial') {
+                const exp = new Date();
+                exp.setDate(exp.getDate() + 3);
+                expiry = exp.toISOString().split('T')[0];
+            } else if (finalPlan === '1year') {
+                const exp = new Date();
+                exp.setDate(exp.getDate() + 365);
+                expiry = exp.toISOString().split('T')[0];
+            }
+
+            const licenseKey = inputKey ? inputKey.trim() : generateKey(cleanHWID, finalPlan, finalPlan === 'trial' ? 3 : null);
+
+            const newUser = {
+                id: 'usr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+                username: cleanUser,
+                email: (email || '').trim(),
+                passwordHash: hashPassword(password.trim()),
+                name: name.trim(),
+                company: (company || '').trim(),
+                phone: (phone || '').trim(),
+                plan: finalPlan,
+                expiry: expiry || 'LIFETIME',
+                status: 'active',
+                suspendReason: '',
+                hwids: [cleanHWID],
+                licenseKey,
+                agentId: assignedAgent ? assignedAgent.id : null,
+                agentName: assignedAgent ? assignedAgent.name : '',
+                createdAt: new Date().toISOString(),
+                lastLoginAt: new Date().toISOString(),
+                lastSeenAt: new Date().toISOString(),
+                activeSource: 'desktop',
+                whatsappStatus: 'disconnected',
+                whatsappAccount: null,
+                campaignMetrics: { active: false, sentToday: 0, totalSent: 0, lastCampaignAt: null },
+                directMessage: null
+            };
+
+            users.push(newUser);
+            saveUsers(users);
+            addAuditLog('✨ REGISTER', newUser.username, `تسجيل مستخدم جديد: ${newUser.name} (${newUser.company || 'فردي'}) ${assignedAgent ? 'عبر وكيل: ' + assignedAgent.name : ''}`);
+
+            const token = generateSessionToken(newUser, 'user');
+            return sendJson(200, {
+                success: true,
+                message: 'تم إنشاء وتفعيل حسابك بنجاح! 🎉',
+                token,
+                user: {
+                    id: newUser.id,
+                    username: newUser.username,
+                    name: newUser.name,
+                    company: newUser.company,
+                    phone: newUser.phone,
+                    plan: newUser.plan,
+                    expiry: newUser.expiry,
+                    licenseKey: newUser.licenseKey
+                }
+            });
+        }
+
+// Client User Login
         if (pathname === '/user/auth/login' && method === 'POST') {
             const { usernameOrEmail, password, hwid, source = 'desktop' } = body;
             const loginId = (usernameOrEmail || '').trim().toLowerCase();
