@@ -9,11 +9,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // Storage Directories
 const DATA_DIR = process.env.VERCEL ? path.join('/tmp', 'data') : path.join(__dirname, '..', 'data');
-fs.ensureDirSync(DATA_DIR);
+try { fs.ensureDirSync(DATA_DIR); } catch (_) {}
 
 const USERS_FILE = path.join(DATA_DIR, 'users_db.json');
 const CLIENTS_FILE = path.join(DATA_DIR, 'clients_db.json');
@@ -641,16 +640,48 @@ app.post('/api/v1/license/sync', (req, res) => {
     });
 });
 
-// Admin Dashboard UI Route
+// Helper to safely load and serve HTML files from lambda bundle
+function serveHtmlFile(res, fileName, fallbackTitle) {
+    try {
+        const filePath = path.join(__dirname, fileName);
+        if (fs.existsSync(filePath)) {
+            const html = fs.readFileSync(filePath, 'utf8');
+            return res.type('html').send(html);
+        }
+        // Check parent public fallback
+        const parentPath = path.join(__dirname, '..', 'public', fileName);
+        if (fs.existsSync(parentPath)) {
+            const html = fs.readFileSync(parentPath, 'utf8');
+            return res.type('html').send(html);
+        }
+    } catch (_) {}
+    return res.type('html').send(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${fallbackTitle}</title></head><body><h1>${fallbackTitle}</h1><p>WhatsApp Flow Pro Cloud Service</p></body></html>`);
+}
+
+// 👑 Admin Dashboard UI Route
 app.get(['/admin', '/admin.html'], (req, res) => {
-    const adminHtml = path.join(__dirname, '..', 'لوحة_تحكم_الادمن_المركزية_Cloud', 'public', 'index.html');
-    if (fs.existsSync(adminHtml)) return res.sendFile(adminHtml);
-    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+    return serveHtmlFile(res, 'admin.html', 'WhatsApp Flow Pro - Admin Hub');
 });
 
-// Web Platform Home / Client Portal
+// 💻 Web Platform Home / Client Portal
 app.get(['/', '/login', '/register', '/dashboard'], (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+    return serveHtmlFile(res, 'client.html', 'WhatsApp Flow Pro');
+});
+
+// Static assets fallback
+app.get(['/app-icon.png', '/logo-full.png', '/favicon.ico'], (req, res) => {
+    const assetName = req.path.replace('/', '');
+    const assetPath = path.join(__dirname, '..', 'public', assetName);
+    if (fs.existsSync(assetPath)) return res.sendFile(assetPath);
+    res.status(404).end();
+});
+
+// Catch-all route
+app.use((req, res) => {
+    if (req.path.startsWith('/api')) {
+        return res.status(404).json({ success: false, error: 'Endpoint not found' });
+    }
+    return serveHtmlFile(res, 'client.html', 'WhatsApp Flow Pro');
 });
 
 module.exports = app;
