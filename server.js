@@ -1560,8 +1560,8 @@ app.post('/api/user/auth/login', async (req, res) => {
                     return res.status(403).json(cloudRes.data);
                 }
             } catch (err) {
-                if (err.response && err.response.data && err.response.data.error) {
-                    return res.status(err.response.status || 400).json({ success: false, error: err.response.data.error });
+                if (err.response && err.response.data && typeof err.response.data.error === 'string' && err.response.status < 500) {
+                    return res.status(err.response.status).json({ success: false, error: err.response.data.error });
                 }
             }
         }
@@ -1635,13 +1635,13 @@ app.post('/api/user/auth/register', async (req, res) => {
                     return res.json(cloudData);
                 }
             } catch (err) {
-                if (err.response && err.response.data && err.response.data.error) {
+                if (err.response && err.response.data && typeof err.response.data.error === 'string' && err.response.status < 500) {
                     return res.status(400).json({ success: false, error: err.response.data.error });
                 }
             }
         }
 
-        // 2. تفعيل تجربة محلي في حال انقطاع النت
+        // 2. تفعيل تجربة محلي في حال انقطاع النت أو تعذر الاتصال
         const trialKey = generateKey(hwid, 'trial', 3);
         activate(trialKey, BASE_DATA_DIR);
         const profileData = {
