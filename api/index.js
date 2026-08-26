@@ -655,40 +655,20 @@ app.post('/api/v1/license/sync', (req, res) => {
     });
 });
 
-// Helper to safely load and serve HTML files from lambda bundle
-function serveHtmlFile(res, fileName, fallbackTitle) {
-    try {
-        const filePath = path.join(__dirname, fileName);
-        if (fs.existsSync(filePath)) {
-            const html = fs.readFileSync(filePath, 'utf8');
-            return res.type('html').send(html);
-        }
-        // Check parent public fallback
-        const parentPath = path.join(__dirname, '..', 'public', fileName);
-        if (fs.existsSync(parentPath)) {
-            const html = fs.readFileSync(parentPath, 'utf8');
-            return res.type('html').send(html);
-        }
-    } catch (_) {}
-    return res.type('html').send(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${fallbackTitle}</title></head><body><h1>${fallbackTitle}</h1><p>WhatsApp Flow Pro Cloud Service</p></body></html>`);
-}
+// Bundled UI Views
+let adminHtml = '';
+let clientHtml = '';
+try { adminHtml = require('./admin_view'); } catch (_) { adminHtml = '<h1>WhatsApp Flow Pro Admin</h1>'; }
+try { clientHtml = require('./client_view'); } catch (_) { clientHtml = '<h1>WhatsApp Flow Pro</h1>'; }
 
 // 👑 Admin Dashboard UI Route
 app.get(['/admin', '/admin.html'], (req, res) => {
-    return serveHtmlFile(res, 'admin.html', 'WhatsApp Flow Pro - Admin Hub');
+    res.type('html').send(adminHtml);
 });
 
 // 💻 Web Platform Home / Client Portal
 app.get(['/', '/login', '/register', '/dashboard'], (req, res) => {
-    return serveHtmlFile(res, 'client.html', 'WhatsApp Flow Pro');
-});
-
-// Static assets fallback
-app.get(['/app-icon.png', '/logo-full.png', '/favicon.ico'], (req, res) => {
-    const assetName = req.path.replace('/', '');
-    const assetPath = path.join(__dirname, '..', 'public', assetName);
-    if (fs.existsSync(assetPath)) return res.sendFile(assetPath);
-    res.status(404).end();
+    res.type('html').send(clientHtml);
 });
 
 // Catch-all route
@@ -696,7 +676,7 @@ app.use((req, res) => {
     if (req.path.startsWith('/api')) {
         return res.status(404).json({ success: false, error: 'Endpoint not found' });
     }
-    return serveHtmlFile(res, 'client.html', 'WhatsApp Flow Pro');
+    return res.type('html').send(clientHtml);
 });
 
 module.exports = app;
