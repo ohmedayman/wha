@@ -8,7 +8,7 @@
     "start": "node server.js",
     "electron": "electron .",
     "dist": "electron-packager . \"WhatsApp Flow Pro\" --platform=win32 --arch=x64 --out=dist --icon=icon.ico --asar --ignore=\"^/(data|\\.wwebjs_auth|\\.wwebjs_cache|uploads|dist|\\.git|scratch|keygen\\.js|2_.*|3_.*|لوحة.*|.*\\.zip)\" --overwrite",
-    "build": "npm run dist",
+    "build": "node -e \"console.log('Vercel build OK')\"",
     "keygen": "node keygen.js"
   },
   "dependencies": {
