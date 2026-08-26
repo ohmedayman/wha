@@ -655,9 +655,96 @@ app.post('/api/v1/license/sync', (req, res) => {
     });
 });
 
-// Catch-all for unknown API routes
-app.use('/api/*', (req, res) => {
-    res.status(404).json({ success: false, error: 'API endpoint not found' });
+// 🌐 Root Web Portal Route
+app.get(['/', '/index.html', '/portal'], (req, res) => {
+    res.type('html').send(`<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Flow Pro - المنصة السحابية</title>
+    <link rel="icon" type="image/png" href="/app-icon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg:#06090e; --card:rgba(15,23,42,0.9); --primary:#10b981; --border:rgba(255,255,255,0.1); }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Cairo',sans-serif; }
+        body { background:var(--bg); color:#f8fafc; min-height:100vh; display:flex; flex-direction:column; }
+        .nav { display:flex; justify-content:space-between; align-items:center; padding:18px 30px; border-bottom:1px solid var(--border); }
+        .main { flex:1; display:flex; align-items:center; justify-content:center; padding:30px 20px; }
+        .card { background:var(--card); border:1px solid var(--border); border-radius:22px; max-width:460px; width:100%; padding:30px; box-shadow:0 20px 50px rgba(0,0,0,0.5); }
+        .form-control { width:100%; height:44px; background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:10px; padding:0 14px; color:white; margin-bottom:12px; font-size:0.9rem; }
+        .btn { width:100%; height:44px; border:none; border-radius:10px; font-weight:800; cursor:pointer; font-size:0.95rem; }
+        .btn-primary { background:linear-gradient(135deg,#10b981,#059669); color:white; margin-top:4px; }
+        .btn-link { background:transparent; color:#94a3b8; font-size:0.82rem; margin-top:10px; }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <div style="font-weight:900;font-size:1.2rem"><i class="fa-brands fa-whatsapp" style="color:var(--primary)"></i> WhatsApp Flow <span style="background:var(--primary);color:white;padding:2px 6px;border-radius:4px;font-size:0.7rem">PRO</span></div>
+        <a href="/admin" style="color:#94a3b8;text-decoration:none;font-weight:800;font-size:0.85rem"><i class="fa-solid fa-lock"></i> لوحة الأدمن</a>
+    </div>
+    <div class="main">
+        <div class="card">
+            <div style="text-align:center;margin-bottom:20px">
+                <h2 style="font-weight:900;font-size:1.35rem;margin-bottom:4px">بوابة المشتركين السحابية 🌐</h2>
+                <p style="color:#94a3b8;font-size:0.82rem">سجل دخولك بحسابك للتحقق من اشتراكك والتزامن السحابي</p>
+            </div>
+            <div id="alertBox" style="display:none;padding:10px;border-radius:8px;font-size:0.82rem;margin-bottom:12px"></div>
+            <form onsubmit="handleLogin(event)">
+                <input type="text" id="loginUser" class="form-control" placeholder="اسم المستخدم أو الإيميل" required>
+                <input type="password" id="loginPass" class="form-control" placeholder="كلمة المرور" required>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-bolt"></i> تسجيل الدخول</button>
+            </form>
+            <div id="userDash" style="display:none;text-align:center;margin-top:16px">
+                <h3 id="dashName" style="color:var(--primary);font-weight:900"></h3>
+                <p id="dashPlan" style="color:#94a3b8;font-size:0.85rem"></p>
+                <p id="dashExpiry" style="color:#f8fafc;font-size:0.85rem;margin-top:4px"></p>
+            </div>
+        </div>
+    </div>
+    <script>
+        async function handleLogin(e) {
+            e.preventDefault();
+            const usernameOrEmail = document.getElementById('loginUser').value.trim();
+            const password = document.getElementById('loginPass').value.trim();
+            const alertBox = document.getElementById('alertBox');
+            try {
+                const res = await fetch('/api/user/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usernameOrEmail, password })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alertBox.style.display = 'none';
+                    document.getElementById('userDash').style.display = 'block';
+                    document.getElementById('dashName').textContent = 'مرحباً ' + (data.user.name || data.user.username);
+                    document.getElementById('dashPlan').textContent = 'نوع الباقة: ' + (data.user.plan === 'lifetime' ? 'VIP مدى الحياة' : data.user.plan);
+                    document.getElementById('dashExpiry').textContent = 'الصلاحية: ' + (data.user.expiry === 'LIFETIME' ? 'دائم وغير محدود' : data.user.expiry);
+                } else {
+                    alertBox.className = 'alert-error';
+                    alertBox.style.display = 'block';
+                    alertBox.style.background = 'rgba(239,68,68,0.2)';
+                    alertBox.style.color = '#fca5a5';
+                    alertBox.textContent = data.error || 'خطأ في الدخول';
+                }
+            } catch (_) {
+                alertBox.style.display = 'block';
+                alertBox.textContent = 'تعذر الاتصال بالسيرفر';
+            }
+        }
+    </script>
+</body>
+</html>`);
+});
+
+// Catch-all for unknown routes
+app.use((req, res) => {
+    if (req.path.startsWith('/api')) {
+        return res.status(404).json({ success: false, error: 'API endpoint not found' });
+    }
+    res.redirect('/');
 });
 
 module.exports = app;
