@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Flow Pro - المنصة السحابية لإدارة وتسويق واتساب</title>
+    <link rel="icon" type="image/png" href="/app-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #06090e;
+            --card-bg: rgba(15, 23, 42, 0.85);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body {
+            background: var(--bg-color);
+            background-image: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.15) 0px, transparent 50%),
+                              radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.12) 0px, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 40px;
+            border-bottom: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: white;
+        }
+        .brand img { width: 42px; height: 42px; object-fit: contain; }
+        .brand-text { font-size: 1.2rem; font-weight: 900; }
+        .brand-badge {
+            background: linear-gradient(135deg, #10b981, #059669);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 800;
+        }
+        .main-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+        .portal-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 480px;
+            padding: 32px 36px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+            backdrop-filter: blur(16px);
+        }
+        .tabs {
+            display: flex;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+        }
+        .tab-btn {
+            flex: 1;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            padding: 9px 0;
+            border-radius: 9px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+        .form-group { margin-bottom: 14px; }
+        .form-group label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+            color: var(--text-main);
+        }
+        .form-control {
+            width: 100%;
+            height: 44px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0 14px;
+            color: white;
+            font-size: 0.9rem;
+            outline: none;
+            transition: 0.2s;
+        }
+        .form-control:focus { border-color: var(--primary); }
+        .btn {
+            width: 100%;
+            height: 46px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 6px 20px rgba(16,185,129,0.35);
+        }
+        .btn-primary:hover { opacity: 0.95; transform: translateY(-1px); }
+        .btn-secondary {
+            background: rgba(255,255,255,0.08);
+            color: white;
+            margin-top: 10px;
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.12); }
+        .alert {
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-size: 0.84rem;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .alert-error { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; }
+        .alert-success { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #86efac; }
+        .footer {
+            text-align: center;
+            padding: 16px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar">
+        <a href="/" class="brand">
+            <img src="/app-icon.png" alt="Logo" onerror="this.style.display='none'">
+            <div class="brand-text">WhatsApp Flow <span class="brand-badge">PRO</span></div>
+        </a>
+        <div>
+            <a href="/admin" style="color:var(--text-muted);text-decoration:none;font-size:0.85rem;font-weight:800;display:flex;align-items:center;gap:6px">
+                <i class="fa-solid fa-lock"></i> لوحة الأدمن
+            </a>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <div class="portal-card">
+            <div style="text-align:center;margin-bottom:20px">
+                <h2 style="font-size:1.4rem;font-weight:900;margin-bottom:6px">بوابة المشتركين السحابية 🌐</h2>
+                <p style="font-size:0.84rem;color:var(--text-muted)">تسجيل الدخول وإدارة اشتراكك في منظومة WhatsApp Flow Pro</p>
+            </div>
+
+            <div id="alertBox" class="alert"></div>
+
+            <div class="tabs">
+                <button type="button" class="tab-btn active" id="tabLogin" onclick="switchTab('login')"><i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول</button>
+                <button type="button" class="tab-btn" id="tabRegister" onclick="switchTab('register')"><i class="fa-solid fa-user-plus"></i> حساب جديد</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-user" style="color:var(--primary)"></i> اسم المستخدم أو البريد الإلكتروني:</label>
+                    <input type="text" id="loginUser" class="form-control" style="direction:ltr;text-align:right" required placeholder="أدخل اسم المستخدم أو الإيميل">
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-lock" style="color:var(--primary)"></i> كلمة المرور:</label>
+                    <input type="password" id="loginPass" class="form-control" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-bolt"></i> تسجيل الدخول</button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm" style="display:none" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-id-card" style="color:var(--primary)"></i> اسم المستخدم:</label>
+                    <input type="text" id="regUser" class="form-control" style="direction:ltr;text-align:right" required placeholder="مثال: user2026">
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-lock" style="color:var(--primary)"></i> كلمة المرور:</label>
+                    <input type="password" id="regPass" class="form-control" required placeholder="4 خانات على الأقل">
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-user" style="color:var(--primary)"></i> اسم العميل الكامل:</label>
+                    <input type="text" id="regName" class="form-control" required placeholder="اسمك الكريم">
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-building" style="color:var(--primary)"></i> اسم الشركة أو النشاط:</label>
+                    <input type="text" id="regCompany" class="form-control" placeholder="مثال: متجر النخبة">
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-phone" style="color:var(--primary)"></i> رقم الهاتف:</label>
+                    <input type="tel" id="regPhone" class="form-control" style="direction:ltr;text-align:right" placeholder="01012345678">
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> إنشاء الحساب فوراً</button>
+            </form>
+
+            <!-- User Dashboard State (Shown after login) -->
+            <div id="userProfileSection" style="display:none;text-align:center">
+                <div style="width:60px;height:60px;border-radius:50%;background:rgba(16,185,129,0.2);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin:0 auto 12px">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <h3 id="profName" style="font-weight:900;margin-bottom:4px">مرحباً بك</h3>
+                <p id="profCompany" style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px"></p>
+                
+                <div style="background:rgba(255,255,255,0.05);padding:14px;border-radius:12px;margin-bottom:16px;text-align:right;font-size:0.85rem">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                        <span style="color:var(--text-muted)">نوع الاشتراك:</span>
+                        <strong id="profPlan" style="color:var(--primary)"></strong>
+                    </div>
+                    <div style="display:flex;justify-content:space-between">
+                        <span style="color:var(--text-muted)">الصلاحية:</span>
+                        <strong id="profExpiry"></strong>
+                    </div>
+                </div>
+
+                <button class="btn btn-secondary" onclick="logoutUser()"><i class="fa-solid fa-arrow-right-from-bracket"></i> تسجيل الخروج</button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        جميع الحقوق محفوظة &copy; 2026 - WhatsApp Flow Pro | المنظومة الذكية للتسويق المتقدم
+    </footer>
+
+    <script>
+        function switchTab(tab) {
+            document.getElementById('alertBox').style.display = 'none';
+            if (tab === 'login') {
+                document.getElementById('tabLogin').classList.add('active');
+                document.getElementById('tabRegister').classList.remove('active');
+                document.getElementById('loginForm').style.display = 'block';
+                document.getElementById('registerForm').style.display = 'none';
+            } else {
+                document.getElementById('tabRegister').classList.add('active');
+                document.getElementById('tabLogin').classList.remove('active');
+                document.getElementById('registerForm').style.display = 'block';
+                document.getElementById('loginForm').style.display = 'none';
+            }
+        }
+
+        function showAlert(msg, isSuccess = false) {
+            const box = document.getElementById('alertBox');
+            box.className = isSuccess ? 'alert alert-success' : 'alert alert-error';
+            box.textContent = msg;
+            box.style.display = 'block';
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const usernameOrEmail = document.getElementById('loginUser').value.trim();
+            const password = document.getElementById('loginPass').value.trim();
+            try {
+                const res = await fetch('/api/user/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usernameOrEmail, password })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showProfile(data.user);
+                } else {
+                    showAlert(data.error || 'فشل تسجيل الدخول');
+                }
+            } catch (err) {
+                showAlert('تعذر الاتصال بالسيرفر السحابي');
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const username = document.getElementById('regUser').value.trim();
+            const password = document.getElementById('regPass').value.trim();
+            const name = document.getElementById('regName').value.trim();
+            const company = document.getElementById('regCompany').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+            try {
+                const res = await fetch('/api/user/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, name, company, phone })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showAlert('تم إنشاء الحساب بنجاح! جاري تسجيل دخولك...', true);
+                    setTimeout(() => showProfile(data.user), 1000);
+                } else {
+                    showAlert(data.error || 'فشل إنشاء الحساب');
+                }
+            } catch (err) {
+                showAlert('تعذر الاتصال بالسيرفر');
+            }
+        }
+
+        function showProfile(user) {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'none';
+            document.querySelector('.tabs').style.display = 'none';
+            document.getElementById('alertBox').style.display = 'none';
+            document.getElementById('userProfileSection').style.display = 'block';
+
+            document.getElementById('profName').textContent = 'مرحباً ' + (user.name || user.username);
+            document.getElementById('profCompany').textContent = user.company || 'مؤسسة تجارية';
+            document.getElementById('profPlan').textContent = user.plan === 'lifetime' ? 'باقة VIP الدائمة' : (user.plan === 'trial' ? 'تجربة مجانية' : 'اشتراك سنوي');
+            document.getElementById('profExpiry').textContent = user.expiry === 'LIFETIME' ? 'غير محدود' : user.expiry;
+        }
+
+        function logoutUser() {
+            document.getElementById('userProfileSection').style.display = 'none';
+            document.querySelector('.tabs').style.display = 'flex';
+            switchTab('login');
+        }
+    </script>
+</body>
+</html>
