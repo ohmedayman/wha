@@ -170,6 +170,7 @@ module.exports = (req, res) => {
         return true;
     };
 
+    try {
         // Ping & Status
         if (pathname === '/ping' || pathname === '') {
             return sendJson(200, { success: true, status: 'online', time: new Date().toISOString() });
