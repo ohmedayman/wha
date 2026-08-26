@@ -5,11 +5,37 @@ const path = require('path');
 const LICENSE_SECRET = 'WA_BULK_SENDER_SECRET_KEY_@2026#MARKETING!';
 const PASSWORD_SALT = 'WA_AUTH_SECURE_SALT_2026!';
 
+// Storage Directories (Uses /tmp on Vercel)
+const DATA_DIR = process.env.VERCEL ? path.join('/tmp', 'data') : path.join(__dirname, '..', 'data');
+try { if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true }); } catch (_) {}
+
+const USERS_FILE = path.join(DATA_DIR, 'users_db.json');
+const CONFIG_FILE = path.join(DATA_DIR, 'admin_config.json');
+const AUDIT_FILE = path.join(DATA_DIR, 'audit_logs.json');
+
+function readJsonSafe(file, defaultVal) {
+    try {
+        if (fs.existsSync(file)) {
+            const content = fs.readFileSync(file, 'utf8');
+            return JSON.parse(content);
+        }
+    } catch (_) {}
+    return defaultVal;
+}
+
+function writeJsonSafe(file, data) {
+    try {
+        const dir = path.dirname(file);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
+    } catch (_) {}
+}
+
 function hashPassword(pwd) {
     return crypto.createHash('sha256').update(pwd + PASSWORD_SALT).digest('hex');
 }
 
-// In-memory store (Preserved across warm lambda invocations)
+// Initial in-memory data
 let memoryUsers = [
     {
         id: 'usr_admin_demo',
@@ -58,26 +84,29 @@ let memoryAuditLogs = [
 ];
 
 function getUsers() {
-    return memoryUsers;
+    return readJsonSafe(USERS_FILE, memoryUsers);
 }
 
 function saveUsers(users) {
     memoryUsers = users;
+    writeJsonSafe(USERS_FILE, users);
 }
 
 function getConfig() {
-    return memoryConfig;
+    return readJsonSafe(CONFIG_FILE, memoryConfig);
 }
 
 function saveConfig(cfg) {
     memoryConfig = cfg;
+    writeJsonSafe(CONFIG_FILE, cfg);
 }
 
 function getAuditLogs() {
-    return memoryAuditLogs;
+    return readJsonSafe(AUDIT_FILE, memoryAuditLogs);
 }
 
 function addAuditLog(action, username, details) {
+    const logs = getAuditLogs();
     const entry = {
         id: 'log_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
         timestamp: new Date().toISOString(),
@@ -85,8 +114,10 @@ function addAuditLog(action, username, details) {
         username: username || 'GUEST',
         details: details || ''
     };
-    memoryAuditLogs.unshift(entry);
-    if (memoryAuditLogs.length > 200) memoryAuditLogs.pop();
+    logs.unshift(entry);
+    if (logs.length > 200) logs.pop();
+    memoryAuditLogs = logs;
+    writeJsonSafe(AUDIT_FILE, logs);
 }
 
 function generateKey(hwid, plan = 'lifetime', days = null) {
@@ -123,6 +154,21 @@ function generateSessionToken(user) {
     const b64 = Buffer.from(payload).toString('base64url');
     const sig = crypto.createHmac('sha256', LICENSE_SECRET).update(payload).digest('hex').substring(0, 16);
     return `${b64}.${sig}`;
+}
+
+function verifySessionToken(token) {
+    if (!token || !token.includes('.')) return null;
+    const [b64, sig] = token.split('.');
+    try {
+        const payload = Buffer.from(b64, 'base64url').toString('utf8');
+        const expectedSig = crypto.createHmac('sha256', LICENSE_SECRET).update(payload).digest('hex').substring(0, 16);
+        if (sig !== expectedSig) return null;
+        const [userId, username] = payload.split(':');
+        const users = getUsers();
+        return users.find(u => u.id === userId && u.username === username) || null;
+    } catch (_) {
+        return null;
+    }
 }
 
 // Master Serverless Export
@@ -187,6 +233,10 @@ module.exports = (req, res) => {
             });
         }
 
+        // ==========================================
+        // 👤 User Account & Profile APIs
+        // ==========================================
+
         if (pathname === '/user/profile' && method === 'GET') {
             const authHeader = req.headers['authorization'] || '';
             const token = authHeader.replace('Bearer ', '').trim();
@@ -231,7 +281,7 @@ module.exports = (req, res) => {
                 });
             }
 
-            // No active session token -> Return unauthenticated state so frontend displays login / activation gate!
+            // No active session token -> Return unauthenticated state
             return sendJson(200, {
                 success: true,
                 profile: { registered: false },
@@ -246,7 +296,7 @@ module.exports = (req, res) => {
 
         // Register
         if (pathname === '/user/auth/register' && method === 'POST') {
-            const { username, password, name, company, phone, email, hwid, plan = 'trial' } = body;
+            const { username, password, name, company, phone, email, hwid, plan = 'trial', licenseKey: inputKey } = body;
 
             if (!username || !password || !name) {
                 return sendJson(400, { success: false, error: 'يرجى ملء جميع الحقول المطلوبة (اسم المستخدم، كلمة السر، الاسم)' });
@@ -262,19 +312,23 @@ module.exports = (req, res) => {
                 return sendJson(400, { success: false, error: 'اسم المستخدم مسجل بالفعل، يرجى اختيار اسم آخر' });
             }
 
-            const cleanHWID = (hwid || '').trim().toUpperCase();
+            const cleanHWID = (hwid || '').trim().toUpperCase() || 'WEB-CLOUD-USER';
+            let finalPlan = plan || 'trial';
             let expiry = null;
-            if (plan === 'trial') {
+
+            if (inputKey && inputKey.trim()) {
+                finalPlan = 'lifetime';
+            } else if (finalPlan === 'trial') {
                 const exp = new Date();
                 exp.setDate(exp.getDate() + 3);
                 expiry = exp.toISOString().split('T')[0];
-            } else if (plan === '1year') {
+            } else if (finalPlan === '1year') {
                 const exp = new Date();
                 exp.setDate(exp.getDate() + 365);
                 expiry = exp.toISOString().split('T')[0];
             }
 
-            const licenseKey = cleanHWID ? generateKey(cleanHWID, plan, plan === 'trial' ? 3 : null) : '';
+            const licenseKey = inputKey ? inputKey.trim() : generateKey(cleanHWID, finalPlan, finalPlan === 'trial' ? 3 : null);
 
             const newUser = {
                 id: 'usr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
@@ -284,11 +338,11 @@ module.exports = (req, res) => {
                 name: name.trim(),
                 company: (company || '').trim(),
                 phone: (phone || '').trim(),
-                plan,
+                plan: finalPlan,
                 expiry: expiry || 'LIFETIME',
                 status: 'active',
                 suspendReason: '',
-                hwids: cleanHWID ? [cleanHWID] : [],
+                hwids: [cleanHWID],
                 licenseKey,
                 createdAt: new Date().toISOString(),
                 lastLoginAt: new Date().toISOString(),
