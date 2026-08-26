@@ -740,11 +740,10 @@ app.get(['/', '/index.html', '/portal'], (req, res) => {
 });
 
 // Catch-all for unknown routes
-app.use((req, res) => {
-    if (req.path.startsWith('/api')) {
-        return res.status(404).json({ success: false, error: 'API endpoint not found' });
-    }
-    return res.status(404).send('Not Found');
+app.use('/api/*', (req, res) => {
+    res.status(404).json({ success: false, error: 'API endpoint not found' });
 });
 
-module.exports = app;
+module.exports = (req, res) => {
+    return app(req, res);
+};

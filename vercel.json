@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -7,10 +7,6 @@
     },
     {
       "source": "/admin",
-      "destination": "/admin.html"
-    },
-    {
-      "source": "/",
       "destination": "/admin.html"
     }
   ]

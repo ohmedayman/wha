@@ -3,344 +3,838 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp Flow Pro - المنصة السحابية لإدارة وتسويق واتساب</title>
-    <link rel="icon" type="image/png" href="/app-icon.png">
+    <title>👑 WhatsApp Flow Pro - لوحة تحكم الأدمن المركزية</title>
+    <link rel="icon" type="image/png" href="app-icon.png">
+    <link rel="shortcut icon" href="favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg-color: #06090e;
-            --card-bg: rgba(15, 23, 42, 0.85);
-            --border-color: rgba(255, 255, 255, 0.1);
+            --bg-main: #090d16;
+            --card-bg: #111827;
+            --card-border: rgba(255, 255, 255, 0.08);
             --primary: #10b981;
-            --primary-hover: #059669;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent: #3b82f6;
+            --primary-glow: rgba(16, 185, 129, 0.35);
+            --accent: #d97706;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --radius-lg: 18px;
+            --radius-md: 12px;
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+
         body {
-            background: var(--bg-color);
-            background-image: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.15) 0px, transparent 50%),
-                              radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.12) 0px, transparent 50%);
+            background: radial-gradient(circle at top right, #064e3b 0%, #090d16 50%, #030712 100%);
             color: var(--text-main);
             min-height: 100vh;
+            padding: 24px 20px;
             display: flex;
-            flex-direction: column;
-        }
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 18px 40px;
-            border-bottom: 1px solid var(--border-color);
-            backdrop-filter: blur(10px);
-        }
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
-            color: white;
-        }
-        .brand img { width: 42px; height: 42px; object-fit: contain; }
-        .brand-text { font-size: 1.2rem; font-weight: 900; }
-        .brand-badge {
-            background: linear-gradient(135deg, #10b981, #059669);
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 0.7rem;
-            font-weight: 800;
-        }
-        .main-container {
-            flex: 1;
-            display: flex;
-            align-items: center;
             justify-content: center;
-            padding: 40px 20px;
         }
-        .portal-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
-            width: 100%;
-            max-width: 480px;
-            padding: 32px 36px;
-            box-shadow: 0 25px 60px rgba(0,0,0,0.5);
-            backdrop-filter: blur(16px);
+
+        .container { width: 100%; max-width: 1280px; display: flex; flex-direction: column; gap: 22px; }
+
+        .card {
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 22px 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
         }
-        .tabs {
-            display: flex;
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            padding: 4px;
-            margin-bottom: 24px;
-            border: 1px solid var(--border-color);
-        }
-        .tab-btn {
-            flex: 1;
-            border: none;
-            background: transparent;
-            color: var(--text-muted);
-            padding: 9px 0;
-            border-radius: 9px;
-            font-weight: 800;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .tab-btn.active {
-            background: var(--primary);
-            color: white;
-        }
-        .form-group { margin-bottom: 14px; }
-        .form-group label {
-            display: block;
-            font-size: 0.82rem;
-            font-weight: 800;
-            margin-bottom: 6px;
-            color: var(--text-main);
-        }
-        .form-control {
-            width: 100%;
-            height: 44px;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 0 14px;
-            color: white;
-            font-size: 0.9rem;
-            outline: none;
-            transition: 0.2s;
-        }
-        .form-control:focus { border-color: var(--primary); }
+
+        .header-card { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+        .brand-box { display: flex; align-items: center; gap: 16px; }
+        .brand-icon { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .brand-icon img { width: 48px; height: 48px; object-fit: contain; filter: drop-shadow(0 4px 14px rgba(16, 185, 129, 0.5)); }
+        .brand-title { font-size: 1.35rem; font-weight: 900; color: #fff; display: flex; align-items: center; gap: 8px; }
+        .badge-pro { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; }
+        .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
         .btn {
-            width: 100%;
-            height: 46px;
-            border: none;
-            border-radius: 12px;
-            font-weight: 800;
-            font-size: 0.95rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: 0.2s;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 9px 16px; border-radius: var(--radius-md); font-size: 0.88rem; font-weight: 700;
+            cursor: pointer; border: 1px solid transparent; transition: var(--transition); text-decoration: none; outline: none;
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            box-shadow: 0 6px 20px rgba(16,185,129,0.35);
+        .btn-primary { background: linear-gradient(135deg, #10b981, #059669); color: white; box-shadow: 0 4px 14px var(--primary-glow); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5); }
+        .btn-secondary { background: rgba(255, 255, 255, 0.06); color: var(--text-main); border-color: var(--card-border); }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+        .btn-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border-color: rgba(239, 68, 68, 0.3); }
+        .btn-danger:hover { background: #ef4444; color: white; }
+        .btn-warning { background: rgba(217, 119, 6, 0.15); color: #fbbf24; border-color: rgba(217, 119, 6, 0.3); }
+        .btn-warning:hover { background: #d97706; color: white; }
+        .btn-sm { padding: 5px 10px; font-size: 0.78rem; border-radius: 8px; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+        .stat-card {
+            background: rgba(17, 24, 39, 0.7); border: 1px solid var(--card-border);
+            border-radius: var(--radius-md); padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; transition: var(--transition);
         }
-        .btn-primary:hover { opacity: 0.95; transform: translateY(-1px); }
-        .btn-secondary {
-            background: rgba(255,255,255,0.08);
-            color: white;
-            margin-top: 10px;
-            border: 1px solid var(--border-color);
+        .stat-card:hover { border-color: rgba(16, 185, 129, 0.3); transform: translateY(-2px); }
+        .stat-info h4 { font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-bottom: 6px; }
+        .stat-info .stat-value { font-size: 1.7rem; font-weight: 900; color: white; line-height: 1.1; }
+        .stat-icon { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+
+        .controls-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .search-box {
+            display: flex; align-items: center; gap: 10px; background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 8px 14px; flex: 1; min-width: 260px; max-width: 450px;
         }
-        .btn-secondary:hover { background: rgba(255,255,255,0.12); }
-        .alert {
-            padding: 12px 14px;
-            border-radius: 10px;
-            font-size: 0.84rem;
-            margin-bottom: 16px;
-            display: none;
-        }
-        .alert-error { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; }
-        .alert-success { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #86efac; }
-        .footer {
-            text-align: center;
-            padding: 16px;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            border-top: 1px solid var(--border-color);
-        }
+        .search-box input { background: transparent; border: none; outline: none; color: white; font-size: 0.88rem; width: 100%; }
+        .filter-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        select { background: #1f2937; color: white; border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 8px 12px; font-size: 0.85rem; outline: none; cursor: pointer; }
+
+        .table-responsive { overflow-x: auto; border: 1px solid var(--card-border); border-radius: var(--radius-md); background: rgba(15, 23, 42, 0.6); }
+        table { width: 100%; border-collapse: collapse; text-align: right; font-size: 0.84rem; }
+        th { background: #111827; padding: 13px 14px; font-weight: 800; color: var(--text-muted); border-bottom: 1px solid var(--card-border); white-space: nowrap; }
+        td { padding: 13px 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); vertical-align: middle; }
+        tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+        .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; }
+        .badge-success { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-warning { background: rgba(217, 119, 6, 0.15); color: #fbbf24; border: 1px solid rgba(217, 119, 6, 0.3); }
+        .badge-info { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .badge-purple { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+
+        .client-name { font-weight: 800; color: #ffffff; font-size: 0.9rem; }
+        .client-sub { font-size: 0.75rem; color: var(--text-muted); }
+        .hwid-code { font-family: monospace; font-size: 0.8rem; background: rgba(0, 0, 0, 0.3); padding: 3px 6px; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.08); color: #a7f3d0; display: inline-flex; align-items: center; gap: 6px; }
+        .action-btns { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+        .modal-card { background: #111827; border: 1px solid var(--card-border); border-radius: var(--radius-lg); width: 100%; max-width: 520px; padding: 26px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); display: flex; flex-direction: column; gap: 18px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 14px; }
+        .modal-header h3 { font-size: 1.15rem; font-weight: 800; color: white; display: flex; align-items: center; gap: 10px; }
+        .modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; }
+        .modal-close:hover { color: white; }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 0.82rem; font-weight: 700; color: var(--text-muted); }
+        .form-control { background: #1f2937; border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 10px 14px; color: white; font-size: 0.88rem; outline: none; }
+        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
+
+        .login-gate { position: fixed; inset: 0; background: radial-gradient(circle at top, #064e3b 0%, #090d16 60%, #030712 100%); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
+        .login-card { background: rgba(17, 24, 39, 0.9); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 22px; width: 100%; max-width: 440px; padding: 34px 30px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 20px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7); }
+        .toast { position: fixed; bottom: 24px; left: 24px; background: #1f2937; color: #fff; padding: 14px 20px; border-radius: 12px; border-right: 5px solid var(--primary); box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: none; z-index: 3000; font-weight: 700; font-size: 0.88rem; }
     </style>
 </head>
 <body>
-    <header class="navbar">
-        <a href="/" class="brand">
-            <img src="/app-icon.png" alt="Logo" onerror="this.style.display='none'">
-            <div class="brand-text">WhatsApp Flow <span class="brand-badge">PRO</span></div>
-        </a>
+
+<div class="login-gate" id="loginGate">
+    <div class="login-card">
+        <div class="brand-icon" style="width:68px;height:68px;">
+            <img src="app-icon.png" style="width:64px;height:64px;" alt="Logo">
+        </div>
         <div>
-            <a href="/admin" style="color:var(--text-muted);text-decoration:none;font-size:0.85rem;font-weight:800;display:flex;align-items:center;gap:6px">
-                <i class="fa-solid fa-lock"></i> لوحة الأدمن
-            </a>
+            <h2 style="font-size:1.45rem;font-weight:900;color:#fff;margin-bottom:6px">WhatsApp Flow Pro</h2>
+            <div style="color:var(--text-muted);font-size:0.85rem">👑 بوابة الأدمن المركزية للتحكم في التراخيص والمشتركين</div>
+        </div>
+        <div style="width:100%;display:flex;flex-direction:column;gap:12px;text-align:right">
+            <div class="form-group">
+                <label>🔑 رمز مرور الأدمن (Admin PIN):</label>
+                <input type="password" id="loginPin" class="form-control" placeholder="أدخل رمز المرور..." onkeydown="if(event.key==='Enter') doLogin()">
+            </div>
+            <button class="btn btn-primary" style="width:100%;padding:12px" onclick="doLogin()">
+                <i class="fa-solid fa-lock-open"></i> دخول لوحة التحكم
+            </button>
+            <div id="loginError" style="color:#f87171;font-size:0.8rem;display:none"></div>
+        </div>
+        <div style="font-size:0.75rem;color:#64748b">رمز المرور الافتراضي: <code>admin2026</code></div>
+    </div>
+</div>
+
+<div class="container" id="mainApp" style="display:none">
+    <header class="card header-card">
+        <div class="brand-box">
+            <div class="brand-icon">
+                <img src="app-icon.png" alt="Logo">
+            </div>
+            <div>
+                <div class="brand-title">
+                    WhatsApp Flow <span class="badge-pro">MASTER CLOUD</span>
+                </div>
+                <div style="font-size:0.78rem;color:var(--text-muted)">منظومة التحكم السحابية المركزية وإدارة العملاء عن بُعد</div>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <button class="btn btn-secondary btn-sm" onclick="openBroadcastModal()">
+                <i class="fa-solid fa-bullhorn" style="color:var(--accent)"></i> تنبيه عام للبرامج
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="openChangePasswordModal()">
+                <i class="fa-solid fa-key"></i> تغيير الرمز
+            </button>
+            <button class="btn btn-danger btn-sm" onclick="doLogout()">
+                <i class="fa-solid fa-right-from-bracket"></i> خروج
+            </button>
         </div>
     </header>
 
-    <main class="main-container">
-        <div class="portal-card">
-            <div style="text-align:center;margin-bottom:20px">
-                <h2 style="font-size:1.4rem;font-weight:900;margin-bottom:6px">بوابة المشتركين السحابية 🌐</h2>
-                <p style="font-size:0.84rem;color:var(--text-muted)">تسجيل الدخول وإدارة اشتراكك في منظومة WhatsApp Flow Pro</p>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-info">
+                <h4>👥 إجمالي العملاء</h4>
+                <div class="stat-value" id="statTotal">0</div>
             </div>
-
-            <div id="alertBox" class="alert"></div>
-
-            <div class="tabs">
-                <button type="button" class="tab-btn active" id="tabLogin" onclick="switchTab('login')"><i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول</button>
-                <button type="button" class="tab-btn" id="tabRegister" onclick="switchTab('register')"><i class="fa-solid fa-user-plus"></i> حساب جديد</button>
-            </div>
-
-            <!-- Login Form -->
-            <form id="loginForm" onsubmit="handleLogin(event)">
-                <div class="form-group">
-                    <label><i class="fa-solid fa-user" style="color:var(--primary)"></i> اسم المستخدم أو البريد الإلكتروني:</label>
-                    <input type="text" id="loginUser" class="form-control" style="direction:ltr;text-align:right" required placeholder="أدخل اسم المستخدم أو الإيميل">
-                </div>
-                <div class="form-group">
-                    <label><i class="fa-solid fa-lock" style="color:var(--primary)"></i> كلمة المرور:</label>
-                    <input type="password" id="loginPass" class="form-control" required placeholder="••••••••">
-                </div>
-                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-bolt"></i> تسجيل الدخول</button>
-            </form>
-
-            <!-- Register Form -->
-            <form id="registerForm" style="display:none" onsubmit="handleRegister(event)">
-                <div class="form-group">
-                    <label><i class="fa-solid fa-id-card" style="color:var(--primary)"></i> اسم المستخدم:</label>
-                    <input type="text" id="regUser" class="form-control" style="direction:ltr;text-align:right" required placeholder="مثال: user2026">
-                </div>
-                <div class="form-group">
-                    <label><i class="fa-solid fa-lock" style="color:var(--primary)"></i> كلمة المرور:</label>
-                    <input type="password" id="regPass" class="form-control" required placeholder="4 خانات على الأقل">
-                </div>
-                <div class="form-group">
-                    <label><i class="fa-solid fa-user" style="color:var(--primary)"></i> اسم العميل الكامل:</label>
-                    <input type="text" id="regName" class="form-control" required placeholder="اسمك الكريم">
-                </div>
-                <div class="form-group">
-                    <label><i class="fa-solid fa-building" style="color:var(--primary)"></i> اسم الشركة أو النشاط:</label>
-                    <input type="text" id="regCompany" class="form-control" placeholder="مثال: متجر النخبة">
-                </div>
-                <div class="form-group">
-                    <label><i class="fa-solid fa-phone" style="color:var(--primary)"></i> رقم الهاتف:</label>
-                    <input type="tel" id="regPhone" class="form-control" style="direction:ltr;text-align:right" placeholder="01012345678">
-                </div>
-                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> إنشاء الحساب فوراً</button>
-            </form>
-
-            <!-- User Dashboard State (Shown after login) -->
-            <div id="userProfileSection" style="display:none;text-align:center">
-                <div style="width:60px;height:60px;border-radius:50%;background:rgba(16,185,129,0.2);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin:0 auto 12px">
-                    <i class="fa-solid fa-circle-check"></i>
-                </div>
-                <h3 id="profName" style="font-weight:900;margin-bottom:4px">مرحباً بك</h3>
-                <p id="profCompany" style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px"></p>
-                
-                <div style="background:rgba(255,255,255,0.05);padding:14px;border-radius:12px;margin-bottom:16px;text-align:right;font-size:0.85rem">
-                    <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-                        <span style="color:var(--text-muted)">نوع الاشتراك:</span>
-                        <strong id="profPlan" style="color:var(--primary)"></strong>
-                    </div>
-                    <div style="display:flex;justify-content:space-between">
-                        <span style="color:var(--text-muted)">الصلاحية:</span>
-                        <strong id="profExpiry"></strong>
-                    </div>
-                </div>
-
-                <button class="btn btn-secondary" onclick="logoutUser()"><i class="fa-solid fa-arrow-right-from-bracket"></i> تسجيل الخروج</button>
+            <div class="stat-icon" style="background:rgba(59,130,246,0.15);color:#60a5fa">
+                <i class="fa-solid fa-users"></i>
             </div>
         </div>
-    </main>
+        <div class="stat-card">
+            <div class="stat-info">
+                <h4>🟢 المشتركين النشطين</h4>
+                <div class="stat-value" id="statActive" style="color:#34d399">0</div>
+            </div>
+            <div class="stat-icon" style="background:rgba(16,185,129,0.15);color:#34d399">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-info">
+                <h4>🔴 المعلقين / المحظورين</h4>
+                <div class="stat-value" id="statSuspended" style="color:#f87171">0</div>
+            </div>
+            <div class="stat-icon" style="background:rgba(239,68,68,0.15);color:#f87171">
+                <i class="fa-solid fa-ban"></i>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-info">
+                <h4>⌛ منتهية الصلاحية</h4>
+                <div class="stat-value" id="statExpired" style="color:#fbbf24">0</div>
+            </div>
+            <div class="stat-icon" style="background:rgba(217,119,6,0.15);color:#fbbf24">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-info">
+                <h4>⚡ شوهدوا اليوم (24h)</h4>
+                <div class="stat-value" id="statOnline" style="color:#c084fc">0</div>
+            </div>
+            <div class="stat-icon" style="background:rgba(168,85,247,0.15);color:#c084fc">
+                <i class="fa-solid fa-bolt"></i>
+            </div>
+        </div>
+    </div>
 
-    <footer class="footer">
-        جميع الحقوق محفوظة &copy; 2026 - WhatsApp Flow Pro | المنظومة الذكية للتسويق المتقدم
-    </footer>
+    <div class="card" style="display:flex;flex-direction:column;gap:16px;">
+        <div class="controls-bar">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass" style="color:var(--text-muted)"></i>
+                <input type="text" id="searchInput" placeholder="بحث باسم العميل، الهاتف، HWID، أو الشركة..." oninput="loadClients()">
+            </div>
 
-    <script>
-        function switchTab(tab) {
-            document.getElementById('alertBox').style.display = 'none';
-            if (tab === 'login') {
-                document.getElementById('tabLogin').classList.add('active');
-                document.getElementById('tabRegister').classList.remove('active');
-                document.getElementById('loginForm').style.display = 'block';
-                document.getElementById('registerForm').style.display = 'none';
-            } else {
-                document.getElementById('tabRegister').classList.add('active');
-                document.getElementById('tabLogin').classList.remove('active');
-                document.getElementById('registerForm').style.display = 'block';
-                document.getElementById('loginForm').style.display = 'none';
-            }
+            <div class="filter-group">
+                <select id="statusFilter" onchange="loadClients()">
+                    <option value="all">كل الحالات</option>
+                    <option value="active">🟢 النشطين فقط</option>
+                    <option value="suspended">🔴 المعلقين فقط</option>
+                    <option value="expired">⌛ المنتهيين فقط</option>
+                </select>
+
+                <select id="planFilter" onchange="loadClients()">
+                    <option value="all">كل الباقات</option>
+                    <option value="trial">تجريبي (Trial)</option>
+                    <option value="1month">شهري (1 Month)</option>
+                    <option value="1year">سنوي (1 Year)</option>
+                    <option value="lifetime">مدى الحياة (Lifetime)</option>
+                </select>
+
+                <button class="btn btn-primary" onclick="openAddClientModal()">
+                    <i class="fa-solid fa-user-plus"></i> إضافة عميل / ترخيص
+                </button>
+                <button class="btn btn-secondary" onclick="loadClients()" title="تحديث القائمة">
+                    <i class="fa-solid fa-rotate"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>العميل والنشاط</th>
+                        <th>الهاتف</th>
+                        <th>بصمة الجهاز (HWID)</th>
+                        <th>الباقة</th>
+                        <th>الصلاحية</th>
+                        <th>آخر ظهور</th>
+                        <th>الحالة</th>
+                        <th style="text-align:center">إجراءات التحكم</th>
+                    </tr>
+                </thead>
+                <tbody id="clientsTableBody">
+                    <tr>
+                        <td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted)">
+                            <i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem;color:var(--primary)"></i>
+                            <div style="margin-top:8px">جاري تحميل بيانات العملاء...</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="clientModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 id="modalTitle"><i class="fa-solid fa-user-plus" style="color:var(--primary)"></i> إضافة عميل وترخيص جديد</h3>
+            <button class="modal-close" onclick="closeModal('clientModal')">&times;</button>
+        </div>
+        <div class="form-group">
+            <label>🔑 بصمة جهاز العميل (HWID) * :</label>
+            <input type="text" id="mHwid" class="form-control" placeholder="WA-XXXX-XXXX-XXXX">
+        </div>
+        <div class="form-group">
+            <label>👤 اسم العميل:</label>
+            <input type="text" id="mName" class="form-control" placeholder="مثال: أحمد محمد">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="form-group">
+                <label>🏢 اسم الشركة / النشاط:</label>
+                <input type="text" id="mCompany" class="form-control" placeholder="مثال: متجر الأناقة">
+            </div>
+            <div class="form-group">
+                <label>📱 رقم الهاتف:</label>
+                <input type="text" id="mPhone" class="form-control" placeholder="01012345678">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>📦 باقة الاشتراك:</label>
+            <select id="mPlan" class="form-control" onchange="toggleCustomDays()">
+                <option value="lifetime">مدى الحياة (Lifetime - غير محدود)</option>
+                <option value="1year">سنوي (1 Year - 365 يوم)</option>
+                <option value="1month">شهري (1 Month - 30 يوم)</option>
+                <option value="trial">تجريبي (Trial - 3 أيام)</option>
+                <option value="custom">أيام مخصصة (Custom Days)</option>
+            </select>
+        </div>
+        <div class="form-group" id="mCustomDaysGroup" style="display:none">
+            <label>⏳ عدد الأيام:</label>
+            <input type="number" id="mDays" class="form-control" placeholder="مثال: 90">
+        </div>
+        <div class="form-group">
+            <label>📝 ملاحظات إضافية (خاصة بالأدمن):</label>
+            <input type="text" id="mNotes" class="form-control" placeholder="مثال: دفع عبر فودافون كاش">
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px">
+            <button class="btn btn-secondary" onclick="closeModal('clientModal')">إلغاء</button>
+            <button class="btn btn-primary" onclick="saveClientModal()">حفظ وإصدار الترخيص</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="renewModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-clock-rotate-left" style="color:var(--accent)"></i> تمديد / تجديد اشتراك العميل</h3>
+            <button class="modal-close" onclick="closeModal('renewModal')">&times;</button>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);padding:12px;border-radius:10px;font-size:0.85rem">
+            <div><strong>العميل:</strong> <span id="rClientName">—</span></div>
+            <div><strong>بصمة الجهاز:</strong> <code id="rHwid">—</code></div>
+        </div>
+        <div class="form-group">
+            <label>📦 حدد مدة التجديد الجديدة:</label>
+            <select id="rPlan" class="form-control">
+                <option value="1month">تجديد لشهر إضافي (+30 يوم)</option>
+                <option value="1year">تجديد لسنة كاملة (+365 يوم)</option>
+                <option value="lifetime">ترقية لاشتراك دائم (مدى الحياة)</option>
+                <option value="trial">تجربة 3 أيام</option>
+            </select>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px">
+            <button class="btn btn-secondary" onclick="closeModal('renewModal')">إلغاء</button>
+            <button class="btn btn-primary" onclick="confirmRenew()">تأكيد التجديد وتحديث الحساب</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="broadcastModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-bullhorn" style="color:var(--accent)"></i> إرسال تنبيه عام لجميع البرامج</h3>
+            <button class="modal-close" onclick="closeModal('broadcastModal')">&times;</button>
+        </div>
+        <p style="font-size:0.82rem;color:var(--text-muted)">
+            الرسالة التي ستكتبها هنا ستظهر في شريط علوي بارز داخل جميع برامج العملاء عند تشغيلهم للبرنامج.
+        </p>
+        <div class="form-group">
+            <label>حالة التنبيه:</label>
+            <select id="bcEnabled" class="form-control">
+                <option value="true">🟢 تفعيل التنبيه للجميع</option>
+                <option value="false">⚪ إيقاف التنبيه</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>نوع التنبيه:</label>
+            <select id="bcType" class="form-control">
+                <option value="info">معلومة عامة (أزرق)</option>
+                <option value="warning">تنبيه هام / صيانة (أصفر)</option>
+                <option value="success">عرض خاص / تحديث (أخضر)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>نص التنبيه:</label>
+            <textarea id="bcText" class="form-control" rows="3" placeholder="مثال: تنبيه لجميع المشتركين، تم إطلاق تحديث جديد للبرنامج بميزات مضاعفة..."></textarea>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px">
+            <button class="btn btn-secondary" onclick="closeModal('broadcastModal')">إلغاء</button>
+            <button class="btn btn-primary" onclick="saveBroadcast()">حفظ وبث التنبيه</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="passwordModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-key" style="color:var(--primary)"></i> تغيير رمز مرور الأدمن</h3>
+            <button class="modal-close" onclick="closeModal('passwordModal')">&times;</button>
+        </div>
+        <div class="form-group">
+            <label>رمز المرور الجديد:</label>
+            <input type="password" id="newPin" class="form-control" placeholder="أدخل 4 خانات على الأقل...">
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px">
+            <button class="btn btn-secondary" onclick="closeModal('passwordModal')">إلغاء</button>
+            <button class="btn btn-primary" onclick="saveNewPassword()">حفظ الرمز الجديد</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let adminToken = localStorage.getItem('flow_admin_token') || '';
+let currentClients = [];
+let activeTargetHwid = null;
+
+window.addEventListener('DOMContentLoaded', () => {
+    if (adminToken) {
+        verifySession();
+    } else {
+        showLogin();
+    }
+});
+
+function showLogin() {
+    document.getElementById('loginGate').style.display = 'flex';
+    document.getElementById('mainApp').style.display = 'none';
+}
+
+function showApp() {
+    document.getElementById('loginGate').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'flex';
+    loadStats();
+    loadClients();
+}
+
+async function doLogin() {
+    const pin = document.getElementById('loginPin').value.trim();
+    const errDiv = document.getElementById('loginError');
+    errDiv.style.display = 'none';
+
+    if (!pin) {
+        errDiv.innerText = 'يرجى إدخال رمز المرور';
+        errDiv.style.display = 'block';
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pin })
+        });
+        const data = await res.json();
+        if (data.success) {
+            adminToken = data.token;
+            localStorage.setItem('flow_admin_token', adminToken);
+            showApp();
+            showToast('🎉 مرحباً بك في لوحة تحكم الأدمن المركزية!');
+        } else {
+            errDiv.innerText = data.error || 'رمز المرور غير صحيح';
+            errDiv.style.display = 'block';
+        }
+    } catch (e) {
+        errDiv.innerText = 'فشل الاتصال بالسيرفر';
+        errDiv.style.display = 'block';
+    }
+}
+
+async function verifySession() {
+    try {
+        const res = await fetch('/api/admin/stats', {
+            headers: { 'Authorization': 'Bearer ' + adminToken }
+        });
+        if (res.ok) {
+            showApp();
+        } else {
+            localStorage.removeItem('flow_admin_token');
+            showLogin();
+        }
+    } catch (_) {
+        showLogin();
+    }
+}
+
+function doLogout() {
+    localStorage.removeItem('flow_admin_token');
+    adminToken = '';
+    showLogin();
+    showToast('تم تسجيل الخروج بنجاح');
+}
+
+async function loadStats() {
+    try {
+        const res = await fetch('/api/admin/stats', {
+            headers: { 'Authorization': 'Bearer ' + adminToken }
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('statTotal').innerText = data.stats.total || 0;
+            document.getElementById('statActive').innerText = data.stats.active || 0;
+            document.getElementById('statSuspended').innerText = data.stats.suspended || 0;
+            document.getElementById('statExpired').innerText = data.stats.expired || 0;
+            document.getElementById('statOnline').innerText = data.stats.onlineRecently || 0;
+        }
+    } catch (e) {
+        console.error('Error loading stats:', e);
+    }
+}
+
+async function loadClients() {
+    const search = document.getElementById('searchInput').value.trim();
+    const status = document.getElementById('statusFilter').value;
+    const plan = document.getElementById('planFilter').value;
+    const tbody = document.getElementById('clientsTableBody');
+
+    try {
+        const params = new URLSearchParams({ search, status, plan });
+        const res = await fetch('/api/admin/clients?' + params.toString(), {
+            headers: { 'Authorization': 'Bearer ' + adminToken }
+        });
+        const data = await res.json();
+        if (data.success) {
+            currentClients = data.clients || [];
+            renderTable(currentClients);
+        }
+    } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#f87171;padding:20px">خطأ في جلب بيانات العملاء</td></tr>';
+    }
+}
+
+function renderTable(clients) {
+    const tbody = document.getElementById('clientsTableBody');
+    if (!clients || clients.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:30px">لا يوجد عملاء مطابقين للبحث حالياً</td></tr>';
+        return;
+    }
+
+    const planLabels = {
+        'trial': '<span class="badge badge-warning"><i class="fa-solid fa-flask"></i> تجريبي (3 أيام)</span>',
+        '1month': '<span class="badge badge-info"><i class="fa-solid fa-calendar"></i> شهري</span>',
+        '1year': '<span class="badge badge-purple"><i class="fa-solid fa-crown"></i> سنوي</span>',
+        'lifetime': '<span class="badge badge-success"><i class="fa-solid fa-infinity"></i> مدى الحياة</span>'
+    };
+
+    tbody.innerHTML = clients.map(c => {
+        const isSuspended = c.computedStatus === 'suspended';
+        const isExpired = c.computedStatus === 'expired';
+
+        let statusBadge = '<span class="badge badge-success">🟢 نشط</span>';
+        if (isSuspended) statusBadge = '<span class="badge badge-danger">🔴 معلق / محظور</span>';
+        else if (isExpired) statusBadge = '<span class="badge badge-warning">⌛ منتهي</span>';
+
+        const rawPhone = (c.phone || '').replace(/[^0-9]/g, '');
+        const waLink = rawPhone ? `<a href="https://wa.me/${rawPhone}" target="_blank" class="btn btn-sm btn-secondary" style="color:#34d399" title="محادثة واتساب مباشرة"><i class="fa-brands fa-whatsapp"></i> ${c.phone}</a>` : '<span style="color:#64748b">—</span>';
+
+        let lastSeenText = '<span style="color:#64748b">لم يسجل دخول</span>';
+        if (c.lastSeenAt) {
+            const diffMin = Math.round((new Date() - new Date(c.lastSeenAt)) / 60000);
+            if (diffMin < 5) lastSeenText = '<span style="color:#34d399;font-weight:700">متصل الآن ⚡</span>';
+            else if (diffMin < 60) lastSeenText = `منذ ${diffMin} دقيقة`;
+            else if (diffMin < 1440) lastSeenText = `منذ ${Math.round(diffMin/60)} ساعة`;
+            else lastSeenText = new Date(c.lastSeenAt).toLocaleDateString('ar-EG');
         }
 
-        function showAlert(msg, isSuccess = false) {
-            const box = document.getElementById('alertBox');
-            box.className = isSuccess ? 'alert alert-success' : 'alert alert-error';
-            box.textContent = msg;
-            box.style.display = 'block';
-        }
+        const toggleBtnIcon = isSuspended ? 'fa-play' : 'fa-ban';
+        const toggleBtnClass = isSuspended ? 'btn-primary' : 'btn-danger';
+        const toggleBtnTitle = isSuspended ? 'تفعيل وإلغاء الحظر' : 'حظر / إيقاف الحساب فوراً';
 
-        async function handleLogin(e) {
-            e.preventDefault();
-            const usernameOrEmail = document.getElementById('loginUser').value.trim();
-            const password = document.getElementById('loginPass').value.trim();
-            try {
-                const res = await fetch('/api/user/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ usernameOrEmail, password })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    showProfile(data.user);
-                } else {
-                    showAlert(data.error || 'فشل تسجيل الدخول');
-                }
-            } catch (err) {
-                showAlert('تعذر الاتصال بالسيرفر السحابي');
-            }
-        }
+        return `
+            <tr>
+                <td>
+                    <div class="client-name">${escapeHtml(c.name || 'عميل مسجل')}</div>
+                    <div class="client-sub">${escapeHtml(c.company || 'نشاط تجاري')}</div>
+                </td>
+                <td>${waLink}</td>
+                <td>
+                    <div class="hwid-code" title="بصمة الجهاز">
+                        ${c.hwid}
+                        <button onclick="copyText('${c.hwid}', 'تم نسخ بصمة الجهاز')" style="background:none;border:none;color:#94a3b8;cursor:pointer" title="نسخ"><i class="fa-regular fa-copy"></i></button>
+                    </div>
+                </td>
+                <td>${planLabels[c.plan] || planLabels.lifetime}</td>
+                <td>
+                    <div style="font-weight:700">${c.expiry === 'LIFETIME' ? '♾️ مدى الحياة' : c.expiry}</div>
+                    <div style="font-size:0.75rem;color:${isExpired ? '#f87171' : 'var(--text-muted)'}">${c.daysLeft === 'غير محدود' ? 'غير محدود' : 'متبقي: ' + c.daysLeft + ' يوم'}</div>
+                </td>
+                <td>${lastSeenText}</td>
+                <td>${statusBadge}</td>
+                <td style="text-align:center">
+                    <div class="action-btns" style="justify-content:center">
+                        <button class="btn btn-sm ${toggleBtnClass}" onclick="toggleClientStatus('${c.hwid}')" title="${toggleBtnTitle}">
+                            <i class="fa-solid ${toggleBtnIcon}"></i>
+                        </button>
+                        <button class="btn btn-sm btn-warning" onclick="openRenewModal('${c.hwid}')" title="تمديد / تجديد الاشتراك">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                        </button>
+                        <button class="btn btn-sm btn-secondary" onclick="copyText('${c.licenseKey}', 'تم نسخ كود التفعيل الخاص بالعميل')" title="نسخ كود التفعيل">
+                            <i class="fa-solid fa-key"></i>
+                        </button>
+                        <button class="btn btn-sm btn-secondary" onclick="editClient('${c.hwid}')" title="تعديل بيانات العميل">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteClient('${c.hwid}')" title="حذف العميل">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
 
-        async function handleRegister(e) {
-            e.preventDefault();
-            const username = document.getElementById('regUser').value.trim();
-            const password = document.getElementById('regPass').value.trim();
-            const name = document.getElementById('regName').value.trim();
-            const company = document.getElementById('regCompany').value.trim();
-            const phone = document.getElementById('regPhone').value.trim();
-            try {
-                const res = await fetch('/api/user/auth/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password, name, company, phone })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    showAlert('تم إنشاء الحساب بنجاح! جاري تسجيل دخولك...', true);
-                    setTimeout(() => showProfile(data.user), 1000);
-                } else {
-                    showAlert(data.error || 'فشل إنشاء الحساب');
-                }
-            } catch (err) {
-                showAlert('تعذر الاتصال بالسيرفر');
-            }
+async function toggleClientStatus(hwid) {
+    try {
+        const res = await fetch('/api/admin/clients/' + hwid + '/toggle-status', {
+            method: 'PUT',
+            headers: { 'Authorization': 'Bearer ' + adminToken, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: 'تم إيقاف الاشتراك من قبل الإدارة' })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast(data.status === 'suspended' ? '🔒 تم إيقاف وحظر العميل فوراً عن بعد!' : '✅ تم تفعيل العميل بنجاح!');
+            loadStats();
+            loadClients();
         }
+    } catch (e) {
+        showToast('حدث خطأ أثناء تغيير الحالة');
+    }
+}
 
-        function showProfile(user) {
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('registerForm').style.display = 'none';
-            document.querySelector('.tabs').style.display = 'none';
-            document.getElementById('alertBox').style.display = 'none';
-            document.getElementById('userProfileSection').style.display = 'block';
+function openRenewModal(hwid) {
+    const client = currentClients.find(c => c.hwid === hwid);
+    if (!client) return;
+    activeTargetHwid = hwid;
+    document.getElementById('rClientName').innerText = client.name || 'عميل';
+    document.getElementById('rHwid').innerText = hwid;
+    openModal('renewModal');
+}
 
-            document.getElementById('profName').textContent = 'مرحباً ' + (user.name || user.username);
-            document.getElementById('profCompany').textContent = user.company || 'مؤسسة تجارية';
-            document.getElementById('profPlan').textContent = user.plan === 'lifetime' ? 'باقة VIP الدائمة' : (user.plan === 'trial' ? 'تجربة مجانية' : 'اشتراك سنوي');
-            document.getElementById('profExpiry').textContent = user.expiry === 'LIFETIME' ? 'غير محدود' : user.expiry;
+async function confirmRenew() {
+    if (!activeTargetHwid) return;
+    const plan = document.getElementById('rPlan').value;
+    try {
+        const res = await fetch('/api/admin/clients/' + activeTargetHwid + '/renew', {
+            method: 'PUT',
+            headers: { 'Authorization': 'Bearer ' + adminToken, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ plan })
+        });
+        const data = await res.json();
+        if (data.success) {
+            closeModal('renewModal');
+            showToast('🎉 تم تجديد اشتراك العميل بنجاح وتحديث صلاحيته!');
+            loadStats();
+            loadClients();
         }
+    } catch (e) {
+        showToast('حدث خطأ في عملية التجديد');
+    }
+}
 
-        function logoutUser() {
-            document.getElementById('userProfileSection').style.display = 'none';
-            document.querySelector('.tabs').style.display = 'flex';
-            switchTab('login');
+function openAddClientModal() {
+    activeTargetHwid = null;
+    document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-user-plus" style="color:var(--primary)"></i> إضافة عميل وترخيص جديد';
+    document.getElementById('mHwid').value = '';
+    document.getElementById('mHwid').disabled = false;
+    document.getElementById('mName').value = '';
+    document.getElementById('mCompany').value = '';
+    document.getElementById('mPhone').value = '';
+    document.getElementById('mPlan').value = 'lifetime';
+    document.getElementById('mNotes').value = '';
+    toggleCustomDays();
+    openModal('clientModal');
+}
+
+function editClient(hwid) {
+    const client = currentClients.find(c => c.hwid === hwid);
+    if (!client) return;
+    activeTargetHwid = hwid;
+    document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color:var(--primary)"></i> تعديل بيانات العميل';
+    document.getElementById('mHwid').value = client.hwid;
+    document.getElementById('mHwid').disabled = true;
+    document.getElementById('mName').value = client.name || '';
+    document.getElementById('mCompany').value = client.company || '';
+    document.getElementById('mPhone').value = client.phone || '';
+    document.getElementById('mPlan').value = client.plan || 'lifetime';
+    document.getElementById('mNotes').value = client.notes || '';
+    toggleCustomDays();
+    openModal('clientModal');
+}
+
+function toggleCustomDays() {
+    const plan = document.getElementById('mPlan').value;
+    document.getElementById('mCustomDaysGroup').style.display = (plan === 'custom') ? 'flex' : 'none';
+}
+
+async function saveClientModal() {
+    const hwid = document.getElementById('mHwid').value.trim();
+    const name = document.getElementById('mName').value.trim();
+    const company = document.getElementById('mCompany').value.trim();
+    const phone = document.getElementById('mPhone').value.trim();
+    const plan = document.getElementById('mPlan').value;
+    const days = (plan === 'custom') ? parseInt(document.getElementById('mDays').value) : null;
+    const notes = document.getElementById('mNotes').value.trim();
+
+    if (!hwid) {
+        showToast('يرجى إدخال بصمة الجهاز HWID');
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/admin/clients', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + adminToken, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ hwid, name, company, phone, plan, days, notes })
+        });
+        const data = await res.json();
+        if (data.success) {
+            closeModal('clientModal');
+            showToast('✅ تم حفظ بيانات العميل وإصدار الترخيص بنجاح!');
+            loadStats();
+            loadClients();
+        } else {
+            showToast(data.error || 'حدث خطأ أثناء الحفظ');
         }
-    </script>
+    } catch (e) {
+        showToast('فشل الاتصال بالسيرفر');
+    }
+}
+
+async function deleteClient(hwid) {
+    if (!confirm('هل أنت متأكد من حذف هذا العميل من قاعدة البيانات؟')) return;
+    try {
+        const res = await fetch('/api/admin/clients/' + hwid, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + adminToken }
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast('تم حذف العميل بنجاح');
+            loadStats();
+            loadClients();
+        }
+    } catch (e) {
+        showToast('حدث خطأ أثناء الحذف');
+    }
+}
+
+async function openBroadcastModal() {
+    try {
+        const res = await fetch('/api/admin/stats', { headers: { 'Authorization': 'Bearer ' + adminToken } });
+        const data = await res.json();
+        if (data.broadcast) {
+            document.getElementById('bcEnabled').value = data.broadcast.enabled ? 'true' : 'false';
+            document.getElementById('bcType').value = data.broadcast.type || 'info';
+            document.getElementById('bcText').value = data.broadcast.text || '';
+        }
+    } catch (_) {}
+    openModal('broadcastModal');
+}
+
+async function saveBroadcast() {
+    const enabled = document.getElementById('bcEnabled').value === 'true';
+    const type = document.getElementById('bcType').value;
+    const text = document.getElementById('bcText').value.trim();
+
+    try {
+        const res = await fetch('/api/admin/broadcast', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + adminToken, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ enabled, type, text })
+        });
+        const data = await res.json();
+        if (data.success) {
+            closeModal('broadcastModal');
+            showToast('📢 تم تحديث وبث التنبيه لجميع برامج المشتركين!');
+        }
+    } catch (e) {
+        showToast('فشل حفظ التنبيه');
+    }
+}
+
+function openChangePasswordModal() {
+    document.getElementById('newPin').value = '';
+    openModal('passwordModal');
+}
+
+async function saveNewPassword() {
+    const newPin = document.getElementById('newPin').value.trim();
+    if (!newPin || newPin.length < 4) {
+        showToast('يجب أن يكون الرمز 4 خانات على الأقل');
+        return;
+    }
+    try {
+        const res = await fetch('/api/admin/change-password', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + adminToken, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ newPin })
+        });
+        const data = await res.json();
+        if (data.success) {
+            adminToken = newPin;
+            localStorage.setItem('flow_admin_token', newPin);
+            closeModal('passwordModal');
+            showToast('🔒 تم تغيير رمز مرور الأدمن بنجاح!');
+        }
+    } catch (e) {
+        showToast('فشل تغيير الرمز');
+    }
+}
+
+function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+function copyText(text, msg = 'تم النسخ') {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    showToast(msg);
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.innerText = msg;
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 3200);
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+</script>
 </body>
 </html>
