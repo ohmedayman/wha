@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.wwebjs_auth/
+.wwebjs_cache/
+uploads/
+data/
+*.log
+*.zip
+scratch/

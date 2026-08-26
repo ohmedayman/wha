@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👑 WhatsApp Flow Pro - لوحة المطور المستقلة لتوليد التراخيص</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <style>
+        :root {
+            --bg-main: #090d16;
+            --card-bg: #111827;
+            --card-border: rgba(255, 255, 255, 0.08);
+            --primary: #10b981;
+            --primary-glow: rgba(16, 185, 129, 0.35);
+            --accent: #d97706;
+            --accent-glow: rgba(217, 119, 6, 0.35);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --radius-lg: 20px;
+            --radius-md: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at top right, #064e3b 0%, #090d16 50%, #030712 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 30px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1120px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Top Header */
+        .header-card {
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 24px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .brand-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .brand-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            box-shadow: 0 6px 20px var(--primary-glow);
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .grid-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 26px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+            color: #ffffff;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.84rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            width: 100%;
+            height: 44px;
+            background: #1f2937;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: var(--radius-md);
+            color: #fff;
+            padding: 0 14px;
+            font-size: 0.92rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+            background: #111827;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .btn {
+            height: 46px;
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 6px 18px var(--primary-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5);
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            box-shadow: 0 6px 18px var(--accent-glow);
+        }
+
+        .btn-secondary {
+            background: #374151;
+            color: #e5e7eb;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-sm {
+            height: 34px;
+            font-size: 0.8rem;
+            padding: 0 12px;
+        }
+
+        /* Result Box */
+        .result-box {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1.5px solid rgba(16, 185, 129, 0.4);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-top: 18px;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .table-container {
+            overflow-x: auto;
+            max-height: 280px;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            background: #111827;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+            text-align: right;
+        }
+
+        th {
+            background: #1f2937;
+            padding: 12px 14px;
+            font-weight: 800;
+            color: var(--text-muted);
+            position: sticky;
+            top: 0;
+        }
+
+        td {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            background: #1f2937;
+            color: #fff;
+            padding: 14px 20px;
+            border-radius: 12px;
+            border-right: 5px solid var(--primary);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none;
+            z-index: 1000;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header-card">
+        <div class="brand-box">
+            <div class="brand-icon" style="background:transparent;box-shadow:none;">
+                <img src="app-icon.png" style="width:48px;height:48px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(16,185,129,0.5));" alt="Logo">
+            </div>
+            <div>
+                <h1 style="font-size:1.45rem;font-weight:900;color:#fff">WhatsApp Flow Pro <span style="background:linear-gradient(135deg,#10b981,#059669);padding:2px 8px;border-radius:6px;font-size:0.75rem">MASTER KEYGEN</span></h1>
+                <p style="color:var(--text-muted);font-size:0.85rem">اللوحة المستقلة الخاصة بالمطور لتوليد وإدارة تراخيص العملاء والأرباح</p>
+            </div>
+        </div>
+        <div style="text-align:left">
+            <span class="badge" style="background:rgba(16,185,129,0.15);color:var(--primary);font-size:0.8rem;padding:6px 14px;border-radius:20px;border:1px solid rgba(16,185,129,0.3)">
+                <i class="fa-solid fa-shield-halved"></i> تشفير وتوقيع رقمي معتمد (HMAC-SHA256)
+            </span>
+        </div>
+    </div>
+
+    <!-- Main Generator & Validator Grid -->
+    <div class="grid-layout">
+        <!-- 1. Generator Card -->
+        <div class="card">
+            <div class="card-title">
+                <i class="fa-solid fa-wand-magic-sparkles" style="color:var(--primary)"></i> توليد كود ترخيص جديد لعميل
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>اسم العميل / النشاط التجاري:</label>
+                    <input type="text" id="clientName" class="form-control" placeholder="مثال: أحمد - شركة النور">
+                </div>
+                <div class="form-group">
+                    <label>رقم هاتف العميل (واتساب):</label>
+                    <input type="tel" id="clientPhone" class="form-control" placeholder="01012345678">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>بصمة جهاز العميل (Hardware ID): <span style="color:#ef4444">*</span></label>
+                <input type="text" id="clientHwid" class="form-control" placeholder="الصق بصمة الجهاز هنا (مثال: WA-9260-K185-OFA3)" style="font-family:monospace;font-weight:700">
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>نوع الباقة والاشتراك:</label>
+                    <select id="planSelect" class="form-control" onchange="handlePlanChange()">
+                        <option value="lifetime">👑 باقة مدى الحياة الدائمة (VIP Lifetime)</option>
+                        <option value="1year">⚡ باقة سنوية (365 يوم)</option>
+                        <option value="6months">📅 باقة 6 أشهر (180 يوم)</option>
+                        <option value="1month">📆 باقة شهرية (30 يوم)</option>
+                        <option value="trial">⏳ باقة تجريبية (3 أيام)</option>
+                        <option value="custom">⚙️ مخصص بعدد أيام محددة</option>
+                    </select>
+                </div>
+                <div class="form-group" id="customDaysBox" style="display:none">
+                    <label>عدد الأيام المخصصة:</label>
+                    <input type="number" id="customDays" class="form-control" value="60">
+                </div>
+                <div class="form-group" id="salePriceBox">
+                    <label>سعر البيع / الإيراد (اختياري للتقارير):</label>
+                    <input type="number" id="salePrice" class="form-control" placeholder="مثال: 500">
+                </div>
+            </div>
+
+            <button class="btn btn-primary" style="width:100%;margin-top:6px;font-size:1.05rem" onclick="generateClientKey()"><i class="fa-solid fa-bolt"></i> ⚡ توليد كود التفعيل الفوري وحفظ الترخيص</button>
+
+            <!-- Result Box -->
+            <div id="genResultBox" class="result-box">
+                <div style="font-size:0.9rem;font-weight:800;color:var(--primary);margin-bottom:8px"><i class="fa-solid fa-circle-check"></i> تم توليد كود التفعيل بنجاح:</div>
+                
+                <div style="display:flex;gap:8px;margin-bottom:12px">
+                    <input type="text" id="generatedKeyOut" readonly class="form-control" style="font-family:monospace;font-size:0.95rem;font-weight:900;color:var(--primary);background:#090d16">
+                    <button class="btn btn-accent" onclick="copyKey()"><i class="fa-solid fa-copy"></i> نسخ الكود</button>
+                </div>
+
+                <div style="font-size:0.82rem;font-weight:800;color:var(--text-muted);margin-bottom:4px">💬 رسالة واتساب الموجهة للعميل:</div>
+                <textarea id="waMsgTemplate" class="form-control" style="min-height:110px;font-size:0.84rem;padding:10px" readonly></textarea>
+                
+                <div style="display:flex;gap:8px;margin-top:8px">
+                    <button class="btn btn-sm btn-secondary" style="flex:1" onclick="copyWaMsg()"><i class="fa-solid fa-copy"></i> نسخ الرسالة كاملة</button>
+                    <button class="btn btn-sm btn-primary" style="flex:1" onclick="sendDirectWhatsApp()"><i class="fa-brands fa-whatsapp"></i> فتح واتساب وإرسال فوراً</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Key Inspector & Summary Stats -->
+        <div style="display:flex;flex-direction:column;gap:24px">
+            <!-- Stats -->
+            <div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:20px">
+                <div style="background:#1f2937;padding:14px;border-radius:var(--radius-md);text-align:center;border:1px solid var(--card-border)">
+                    <div style="font-size:0.78rem;color:var(--text-muted);font-weight:700">إجمالي التراخيص المصدرة</div>
+                    <div id="statTotalKeys" style="font-size:1.8rem;font-weight:900;color:var(--primary);margin-top:4px">0</div>
+                </div>
+                <div style="background:#1f2937;padding:14px;border-radius:var(--radius-md);text-align:center;border:1px solid var(--card-border)">
+                    <div style="font-size:0.78rem;color:var(--text-muted);font-weight:700">إجمالي المبيعات المسجلة</div>
+                    <div id="statTotalRevenue" style="font-size:1.8rem;font-weight:900;color:var(--accent);margin-top:4px">0 جنيه</div>
+                </div>
+            </div>
+
+            <!-- Key Validator -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fa-solid fa-magnifying-glass" style="color:var(--accent)"></i> فاحص ومحلل الأكواد (Key Inspector)
+                </div>
+                <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px">الصق أي كود صادر لمعرفة بياناته وصلاحيته وبصمة الجهاز التابع له:</p>
+                <div style="display:flex;gap:8px;margin-bottom:10px">
+                    <input type="text" id="inspectKeyInput" class="form-control" placeholder="KEY-..." style="font-family:monospace;font-size:0.85rem">
+                    <button class="btn btn-secondary btn-sm" onclick="inspectKey()"><i class="fa-solid fa-check"></i> فحص</button>
+                </div>
+                <div id="inspectResultBox" style="display:none;background:#1f2937;padding:12px;border-radius:var(--radius-md);font-size:0.82rem;line-height:1.6"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Issued Licenses Database Table -->
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:1px solid var(--card-border);padding-bottom:12px;flex-wrap:wrap;gap:10px">
+            <div class="card-title" style="border:none;padding:0;margin:0">
+                <i class="fa-solid fa-database" style="color:var(--primary)"></i> سجل وتاريخ تراخيص العملاء
+            </div>
+            <div style="display:flex;gap:8px">
+                <input type="text" id="searchKeysInput" class="form-control" style="height:34px;width:220px;font-size:0.82rem" placeholder="🔍 بحث باسم أو هاتف أو HWID..." oninput="filterKeysTable()">
+                <button class="btn btn-sm btn-secondary" onclick="exportKeysToCsv()"><i class="fa-solid fa-file-excel"></i> تصدير Excel</button>
+                <button class="btn btn-sm btn-secondary" onclick="clearKeysHistory()"><i class="fa-solid fa-trash"></i> مسح السجل</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>العميل</th>
+                        <th>الهاتف</th>
+                        <th>الباقة</th>
+                        <th>بصمة الجهاز (HWID)</th>
+                        <th>الكود الصادر</th>
+                        <th>السعر</th>
+                        <th>تاريخ الإصدار</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="keysTableBody">
+                    <tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:20px">لا توجد تراخيص مسجلة بعد</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- Synchronous Offline-Ready Crypto Engine -->
+<script>
+const LICENSE_SECRET = 'WA_BULK_SENDER_SECRET_KEY_@2026#MARKETING!';
+const DB_STORAGE_KEY = 'whatsapp_flow_pro_master_licenses_db';
+
+// Base64URL Encoding/Decoding
+function base64UrlEncode(str) {
+    const utf8Bytes = new TextEncoder().encode(str);
+    let binary = '';
+    for (let i = 0; i < utf8Bytes.length; i++) binary += String.fromCharCode(utf8Bytes[i]);
+    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function base64UrlDecode(str) {
+    str = str.replace(/-/g, '+').replace(/_/g, '/');
+    while (str.length % 4) str += '=';
+    const binary = atob(str);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+}
+
+function generateKeySync(hwid, plan = 'lifetime', days = null) {
+    const cleanHWID = (hwid || '').trim().toUpperCase();
+    let expiry = null;
+
+    if (days && days > 0) {
+        const expDate = new Date();
+        expDate.setDate(expDate.getDate() + parseInt(days));
+        expiry = expDate.toISOString().split('T')[0];
+    } else if (plan === 'trial') {
+        const expDate = new Date();
+        expDate.setDate(expDate.getDate() + 3);
+        expiry = expDate.toISOString().split('T')[0];
+    } else if (plan === '1month') {
+        const expDate = new Date();
+        expDate.setDate(expDate.getDate() + 30);
+        expiry = expDate.toISOString().split('T')[0];
+    } else if (plan === '6months') {
+        const expDate = new Date();
+        expDate.setDate(expDate.getDate() + 180);
+        expiry = expDate.toISOString().split('T')[0];
+    } else if (plan === '1year') {
+        const expDate = new Date();
+        expDate.setDate(expDate.getDate() + 365);
+        expiry = expDate.toISOString().split('T')[0];
+    } else {
+        expiry = 'LIFETIME';
+    }
+
+    const payload = `${cleanHWID}:${plan}:${expiry}`;
+    const hmac = CryptoJS.HmacSHA256(payload, LICENSE_SECRET).toString(CryptoJS.enc.Hex).substring(0, 12).toUpperCase();
+    const encodedPayload = base64UrlEncode(payload);
+
+    return `KEY-${encodedPayload}-${hmac}`;
+}
+
+function verifyKeySync(key, currentHWID) {
+    if (!key || typeof key !== 'string') return { valid: false, error: 'الكود فارغ' };
+    const parts = key.trim().split('-');
+    if (parts.length !== 3 || parts[0] !== 'KEY') return { valid: false, error: 'صيغة الكود غير صحيحة' };
+
+    let payload = '';
+    try {
+        payload = base64UrlDecode(parts[1]);
+    } catch (_) {
+        return { valid: false, error: 'كود تالف' };
+    }
+
+    const [keyHWID, plan, expiry] = payload.split(':');
+    const expectedHmac = CryptoJS.HmacSHA256(payload, LICENSE_SECRET).toString(CryptoJS.enc.Hex).substring(0, 12).toUpperCase();
+
+    if (expectedHmac !== parts[2]) return { valid: false, error: 'توقيع الكود غير مطابق (مزور)' };
+    if (currentHWID && currentHWID.trim().toUpperCase() !== keyHWID) {
+        return { valid: false, error: `الكود مخصص لجهاز آخر (${keyHWID})` };
+    }
+
+    return { valid: true, hwid: keyHWID, plan, expiry };
+}
+
+// Database Helpers
+function getStoredKeys() {
+    try {
+        const data = localStorage.getItem(DB_STORAGE_KEY);
+        return data ? JSON.parse(data) : [];
+    } catch (_) {
+        return [];
+    }
+}
+
+function saveStoredKeys(keys) {
+    localStorage.setItem(DB_STORAGE_KEY, JSON.stringify(keys));
+    renderKeysTable();
+    updateStats();
+}
+
+function handlePlanChange() {
+    const plan = document.getElementById('planSelect').value;
+    document.getElementById('customDaysBox').style.display = (plan === 'custom') ? 'block' : 'none';
+}
+
+function generateClientKey() {
+    const name = document.getElementById('clientName').value.trim() || 'عميل جديد';
+    const phone = document.getElementById('clientPhone').value.trim();
+    const hwid = document.getElementById('clientHwid').value.trim().toUpperCase();
+    const plan = document.getElementById('planSelect').value;
+    const customDays = document.getElementById('customDays').value;
+    const price = document.getElementById('salePrice').value.trim();
+
+    if (!hwid) {
+        showToast('⚠️ يرجى إدخال بصمة جهاز العميل (HWID)');
+        document.getElementById('clientHwid').focus();
+        return;
+    }
+
+    const days = (plan === 'custom') ? parseInt(customDays) : null;
+    const key = generateKeySync(hwid, plan, days);
+
+    let planLabel = 'باقة مدى الحياة الدائمة (VIP)';
+    if (plan === '1year') planLabel = 'باقة سنوية (365 يوم)';
+    if (plan === '6months') planLabel = 'باقة 6 أشهر (180 يوم)';
+    if (plan === '1month') planLabel = 'باقة شهرية (30 يوم)';
+    if (plan === 'trial') planLabel = 'باقة تجريبية (3 أيام)';
+    if (plan === 'custom') planLabel = `باقة مخصصة (${days} يوم)`;
+
+    const waMsg = `🎉 مرحباً بك يا ${name} في منظومة WhatsApp Flow Pro!
+
+🔑 *كود التفعيل الخاص بنسختك:*
+`${key}`
+
+📋 *تفاصيل الترخيص:*
+• بصمة جهازك: `${hwid}`
+• الخطة المفعلة: *${planLabel}*
+
+⚡ *طريقة التفعيل:*
+افتح البرنامج واضغط زر (التفعيل) في الشاشة الأولى، والصق كود التفعيل واضغط (تفعيل ودخول).
+
+📞 نحن في خدمتك لأي استفسار أو دعم فني!`;
+
+    document.getElementById('generatedKeyOut').value = key;
+    document.getElementById('waMsgTemplate').value = waMsg;
+    document.getElementById('genResultBox').style.display = 'block';
+
+    // Store in DB
+    const keys = getStoredKeys();
+    keys.unshift({
+        key,
+        name,
+        phone,
+        hwid,
+        plan: planLabel,
+        price: price ? parseFloat(price) : 0,
+        createdAt: new Date().toISOString()
+    });
+    saveStoredKeys(keys);
+
+    showToast('🎉 تم توليد وحفظ كود التفعيل بنجاح!');
+}
+
+function copyKey() {
+    const el = document.getElementById('generatedKeyOut');
+    if (el && el.value) {
+        navigator.clipboard.writeText(el.value);
+        showToast('📋 تم نسخ كود التفعيل');
+    }
+}
+
+function copyWaMsg() {
+    const el = document.getElementById('waMsgTemplate');
+    if (el && el.value) {
+        navigator.clipboard.writeText(el.value);
+        showToast('📋 تم نسخ رسالة الواتساب بالكامل');
+    }
+}
+
+function sendDirectWhatsApp() {
+    const phone = document.getElementById('clientPhone').value.trim();
+    const msg = encodeURIComponent(document.getElementById('waMsgTemplate').value);
+    if (!phone) {
+        window.open(`https://web.whatsapp.com/send?text=${msg}`, '_blank');
+    } else {
+        const cleanPhone = phone.replace(/[^0-9]/g, '');
+        window.open(`https://wa.me/${cleanPhone}?text=${msg}`, '_blank');
+    }
+}
+
+function inspectKey() {
+    const key = document.getElementById('inspectKeyInput').value.trim();
+    const resultBox = document.getElementById('inspectResultBox');
+    if (!key) return;
+
+    const res = verifyKeySync(key);
+    resultBox.style.display = 'block';
+    if (res.valid) {
+        resultBox.innerHTML = `
+            <div style="color:var(--primary);font-weight:800"><i class="fa-solid fa-circle-check"></i> الكود صالح وأصلي 100%</div>
+            <div>• بصمة الجهاز: <code style="color:var(--primary)">${res.hwid}</code></div>
+            <div>• الباقة: <b>${res.plan}</b></div>
+            <div>• الصلاحية: <b>${res.expiry === 'LIFETIME' ? '👑 مدى الحياة دائم' : res.expiry}</b></div>
+        `;
+    } else {
+        resultBox.innerHTML = `<div style="color:#ef4444;font-weight:800"><i class="fa-solid fa-triangle-exclamation"></i> كود غير صالح: ${res.error}</div>`;
+    }
+}
+
+function renderKeysTable(filterText = '') {
+    const tbody = document.getElementById('keysTableBody');
+    const keys = getStoredKeys();
+    const filtered = filterText ? keys.filter(k => 
+        (k.name && k.name.toLowerCase().includes(filterText)) ||
+        (k.hwid && k.hwid.toLowerCase().includes(filterText)) ||
+        (k.phone && k.phone.includes(filterText)) ||
+        (k.key && k.key.toLowerCase().includes(filterText))
+    ) : keys;
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:20px">لا توجد تراخيص مسجلة مطابقة للبحث</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = filtered.map((k, idx) => `
+        <tr>
+            <td style="font-weight:800">${k.name}</td>
+            <td style="direction:ltr;text-align:right">${k.phone || '—'}</td>
+            <td><span class="badge" style="background:rgba(16,185,129,0.15);color:var(--primary)">${k.plan}</span></td>
+            <td><code style="color:var(--text-muted)">${k.hwid}</code></td>
+            <td><code style="cursor:pointer;color:var(--primary)" onclick="navigator.clipboard.writeText('${k.key}');showToast('📋 تم نسخ الكود')">${k.key.substring(0, 16)}... <i class="fa-solid fa-copy"></i></code></td>
+            <td style="font-weight:800;color:var(--accent)">${k.price ? k.price + ' ج' : '—'}</td>
+            <td style="color:var(--text-muted);font-size:0.75rem">${new Date(k.createdAt).toLocaleDateString('ar-EG')}</td>
+            <td><button class="btn btn-sm btn-secondary" onclick="deleteKey(${idx})"><i class="fa-solid fa-trash" style="color:#ef4444"></i></button></td>
+        </tr>
+    `).join('');
+}
+
+function filterKeysTable() {
+    const txt = document.getElementById('searchKeysInput').value.trim().toLowerCase();
+    renderKeysTable(txt);
+}
+
+function deleteKey(index) {
+    if (!confirm('هل تريد حذف هذا الترخيص من السجل؟')) return;
+    const keys = getStoredKeys();
+    keys.splice(index, 1);
+    saveStoredKeys(keys);
+    showToast('🗑️ تم حذف الترخيص');
+}
+
+function clearKeysHistory() {
+    if (!confirm('⚠️ هل أنت متأكد من مسح كافة التراخيص المسجلة في السجل؟')) return;
+    localStorage.removeItem(DB_STORAGE_KEY);
+    renderKeysTable();
+    updateStats();
+    showToast('🗑️ تم مسح السجل');
+}
+
+function exportKeysToCsv() {
+    const keys = getStoredKeys();
+    if (keys.length === 0) return alert('لا توجد بيانات لتصديرها');
+
+    let csv = '\uFEFFالاسم,الهاتف,الباقة,بصمة الجهاز,كود التفعيل,السعر,تاريخ الإصدار\n';
+    keys.forEach(k => {
+        csv += `"${k.name}","${k.phone || ''}","${k.plan}","${k.hwid}","${k.key}","${k.price || 0}","${new Date(k.createdAt).toLocaleString('ar-EG')}"\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `WhatsApp_Flow_Licenses_${Date.now()}.csv`;
+    a.click();
+}
+
+function updateStats() {
+    const keys = getStoredKeys();
+    document.getElementById('statTotalKeys').textContent = keys.length;
+    let rev = 0;
+    keys.forEach(k => rev += (k.price || 0));
+    document.getElementById('statTotalRevenue').textContent = rev.toLocaleString() + ' ج';
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 2500);
+}
+
+// Initial Boot
+renderKeysTable();
+updateStats();
+</script>
+</body>
+</html>
