@@ -744,7 +744,7 @@ app.use((req, res) => {
     if (req.path.startsWith('/api')) {
         return res.status(404).json({ success: false, error: 'API endpoint not found' });
     }
-    res.redirect('/');
+    return res.status(404).send('Not Found');
 });
 
 module.exports = app;
