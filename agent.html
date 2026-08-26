@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة شبكة الوكلاء والموزعين المعتمدين | WhatsApp Flow Pro</title>
+    <link rel="icon" type="image/png" href="/app-icon.png">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #070a14;
+            --card-bg: rgba(15, 23, 42, 0.78);
+            --card-border: rgba(255, 255, 255, 0.09);
+            --primary: #10b981;
+            --primary-glow: rgba(16, 185, 129, 0.4);
+            --indigo: #6366f1;
+            --indigo-glow: rgba(99, 102, 241, 0.35);
+            --accent: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --radius-xl: 22px;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px 16px;
+        }
+
+        #starCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .portal-wrap {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        /* Glass Card */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-xl);
+            padding: 36px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(99, 102, 241, 0.15);
+        }
+
+        /* Header */
+        .portal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .portal-brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .brand-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--indigo), #4338ca);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: white;
+            box-shadow: 0 0 20px var(--indigo-glow);
+        }
+
+        /* Tabs Switcher */
+        .tab-switcher {
+            display: flex;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-md);
+            padding: 4px;
+            gap: 4px;
+            margin-bottom: 24px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 800;
+            font-size: 0.92rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--indigo) 0%, #4f46e5 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Form elements */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #cbd5e1;
+            margin-bottom: 7px;
+        }
+        .form-input {
+            width: 100%;
+            height: 46px;
+            background: rgba(10, 15, 30, 0.6);
+            border: 1.5px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-md);
+            color: white;
+            padding: 0 14px;
+            font-size: 0.92rem;
+            outline: none;
+            transition: var(--transition);
+        }
+        .form-input:focus {
+            border-color: var(--indigo);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+            background: rgba(99, 102, 241, 0.06);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            font-family: inherit;
+        }
+        .btn-indigo {
+            background: linear-gradient(135deg, var(--indigo), #4f46e5);
+            color: white;
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+        .btn-indigo:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--emerald));
+            color: white;
+            box-shadow: 0 8px 25px var(--primary-glow);
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+        }
+
+        /* KPI Cards in Agent Dashboard */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .kpi-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .kpi-title { font-size: 0.82rem; color: var(--text-muted); font-weight: 800; }
+        .kpi-num { font-size: 2.2rem; font-weight: 900; color: white; letter-spacing: -0.5px; }
+
+        /* Table */
+        .table-wrap {
+            overflow-x: auto;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--card-border);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: right;
+            font-size: 0.88rem;
+        }
+        th {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 14px 16px;
+            color: var(--text-muted);
+            font-weight: 800;
+            border-bottom: 1px solid var(--card-border);
+        }
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--card-border);
+            color: var(--text-main);
+        }
+        tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: #0f172a;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-xl);
+            padding: 30px;
+            width: 100%;
+            max-width: 520px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="starCanvas"></canvas>
+
+    <div class="portal-wrap">
+        <!-- 1️⃣ AUTHENTICATION / APPLICATION SCREEN -->
+        <div id="agentAuthContainer" class="glass-card" style="max-width:620px;margin:auto">
+            <div style="text-align:center;margin-bottom:24px">
+                <div class="brand-icon" style="margin:0 auto 14px"><i class="fa-solid fa-handshake"></i></div>
+                <h1 style="font-size:1.65rem;font-weight:900;margin-bottom:6px">بوابة شبكة الوكلاء والموزعين</h1>
+                <p style="font-size:0.88rem;color:var(--text-muted)">انضم إلى شبكة الموزعين المعتمدين لبرنامج WhatsApp Flow Pro وحقق عوائد مستمرة</p>
+            </div>
+
+            <div class="tab-switcher">
+                <button type="button" id="tabBtnLogin" class="tab-btn active" onclick="switchTab('login')">
+                    <i class="fa-solid fa-right-to-bracket"></i> تسجيل دخول وكيل معتمد
+                </button>
+                <button type="button" id="tabBtnApply" class="tab-btn" onclick="switchTab('apply')">
+                    <i class="fa-solid fa-file-signature"></i> تقديم طلب انضمام جديد
+                </button>
+            </div>
+
+            <!-- Login Form -->
+            <div id="formLogin">
+                <div class="form-group">
+                    <label class="form-label"><i class="fa-solid fa-user" style="color:var(--indigo)"></i> اسم مستخدم الوكيل (Username):</label>
+                    <input type="text" id="agentLogUser" class="form-input" style="direction:ltr;text-align:right" placeholder="أدخل اسم المستخدم الخاص بك" onkeydown="if(event.key==='Enter') submitAgentLogin()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><i class="fa-solid fa-lock" style="color:var(--indigo)"></i> كلمة المرور:</label>
+                    <input type="password" id="agentLogPass" class="form-input" placeholder="••••••••" onkeydown="if(event.key==='Enter') submitAgentLogin()">
+                </div>
+                <button type="button" class="btn btn-indigo" style="width:100%;height:48px;font-size:1rem;margin-top:8px" onclick="submitAgentLogin()">
+                    <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول للوحة الوكيل
+                </button>
+            </div>
+
+            <!-- Application Form -->
+            <div id="formApply" style="display:none">
+                <div class="form-grid">
+                    <div>
+                        <label class="form-label">الاسم الكامل / اسم المسؤول: *</label>
+                        <input type="text" id="appFullName" class="form-input" placeholder="مثال: أحمد محمود">
+                    </div>
+                    <div>
+                        <label class="form-label">اسم المستخدم المطلوب: *</label>
+                        <input type="text" id="appUsername" class="form-input" style="direction:ltr;text-align:right" placeholder="مثال: ahmed_cairo">
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div>
+                        <label class="form-label">كلمة المرور المطلوبة: *</label>
+                        <input type="password" id="appPassword" class="form-input" placeholder="••••••••">
+                    </div>
+                    <div>
+                        <label class="form-label">رقم الهاتف / واتساب: *</label>
+                        <input type="tel" id="appPhone" class="form-input" style="direction:ltr;text-align:right" placeholder="01012345678">
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div>
+                        <label class="form-label">اسم الشركة أو الوكالة:</label>
+                        <input type="text" id="appCompany" class="form-input" placeholder="وكالة الإبداع الرقمي">
+                    </div>
+                    <div>
+                        <label class="form-label">المحافظة / المدينة: *</label>
+                        <input type="text" id="appCity" class="form-input" placeholder="مثال: القاهرة / الإسكندرية">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">حجم المبيعات الشهري المتوقع:</label>
+                    <input type="text" id="appSales" class="form-input" placeholder="مثال: 20 إلى 50 ترخيص شهرياً">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">ملاحظات أو سابقة خبرة (اختياري):</label>
+                    <textarea id="appNotes" class="form-input" style="height:70px;padding:10px" placeholder="نبذة عن نشاطك وقاعدة عملائك..."></textarea>
+                </div>
+
+                <button type="button" class="btn btn-primary" style="width:100%;height:48px;font-size:1rem" onclick="submitAgentApplication()">
+                    <i class="fa-solid fa-paper-plane"></i> إرسال طلب الانضمام للمراجعة
+                </button>
+            </div>
+        </div>
+
+        <!-- 2️⃣ AGENT DASHBOARD SCREEN (ACTIVE AGENTS) -->
+        <div id="agentDashboardContainer" class="glass-card" style="display:none">
+            <!-- Header -->
+            <div class="portal-header">
+                <div class="portal-brand">
+                    <div class="brand-icon"><i class="fa-solid fa-briefcase"></i></div>
+                    <div>
+                        <h2 style="font-size:1.35rem;font-weight:900" id="dashAgentName">لوحة تحكم الوكيل</h2>
+                        <div style="font-size:0.85rem;color:var(--text-muted)" id="dashAgentCompany">وكالة معتمدة</div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:12px;align-items:center">
+                    <a href="https://wa.me/201028707543?text=مرحباً، أريد شحن رصيد تراخيص إضافي لحسابي كوكيل" target="_blank" class="btn btn-primary" style="background:#25d366;font-size:0.88rem">
+                        <i class="fa-brands fa-whatsapp"></i> شحن رصيد تراخيص
+                    </a>
+                    <button class="btn btn-secondary" onclick="logoutAgent()"><i class="fa-solid fa-right-from-bracket"></i> خروج</button>
+                </div>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="kpi-grid">
+                <div class="kpi-card" style="border-color:rgba(245,158,11,0.3)">
+                    <div class="kpi-title">رصيد التراخيص المتاح لديك <i class="fa-solid fa-key" style="color:var(--accent)"></i></div>
+                    <div class="kpi-num" style="color:#fbbf24" id="kpiAgentCredits">0</div>
+                    <small style="color:var(--text-muted);font-size:0.75rem">ترخيص جاهز للإصدار للعملاء</small>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">إجمالي عملائك المسجلين <i class="fa-solid fa-users" style="color:var(--indigo)"></i></div>
+                    <div class="kpi-num" style="color:#a5b4fc" id="kpiAgentTotalClients">0</div>
+                    <small style="color:var(--text-muted);font-size:0.75rem">مشترك مسجل تحت وكالتك</small>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">المشتركين النشطين <i class="fa-solid fa-circle-check" style="color:var(--primary)"></i></div>
+                    <div class="kpi-num" style="color:#34d399" id="kpiAgentActiveClients">0</div>
+                    <small style="color:var(--text-muted);font-size:0.75rem">حسابات نشطة حالياً</small>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">نسبة العمولة المعتمدة <i class="fa-solid fa-percent" style="color:#38bdf8"></i></div>
+                    <div class="kpi-num" style="color:#38bdf8" id="kpiAgentCommission">30%</div>
+                    <small style="color:var(--text-muted);font-size:0.75rem">نسبة ربحك المعتمدة</small>
+                </div>
+            </div>
+
+            <!-- Clients Header & Action -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px">
+                <h3 style="font-size:1.15rem;font-weight:900"><i class="fa-solid fa-users-gear" style="color:var(--indigo)"></i> قائمة المشتركين التابعين لوكالتك</h3>
+                <button class="btn btn-indigo" onclick="openCreateClientModal()"><i class="fa-solid fa-plus"></i> + إصدار ترخيص وتسجيل عميل جديد</button>
+            </div>
+
+            <!-- Clients Table -->
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>اسم العميل</th>
+                            <th>اسم المستخدم</th>
+                            <th>النشاط / الشركة</th>
+                            <th>الهاتف</th>
+                            <th>الباقة</th>
+                            <th>تاريخ الصلاحية</th>
+                            <th>حالة الاتصال</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="agentClientsBody">
+                        <tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted)">لا يوجد عملاء مسجلون تحت وكالتك بعد. اضغط (+ إصدار ترخيص) لإضافة أول عميل.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ➕ MODAL: AGENT CREATES CLIENT -->
+    <div class="modal-overlay" id="createClientModal">
+        <div class="modal-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;border-bottom:1px solid var(--card-border);padding-bottom:10px">
+                <h3 style="font-size:1.1rem;font-weight:900"><i class="fa-solid fa-user-plus" style="color:var(--indigo)"></i> إنشاء حساب عميل جديد (خصم 1 ترخيص)</h3>
+                <button onclick="closeClientModal()" style="background:transparent;border:none;color:var(--text-muted);font-size:22px;cursor:pointer">&times;</button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">اسم العميل الكامل: *</label>
+                <input type="text" id="newClientName" class="form-input" placeholder="مثال: محمد علي">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">اسم المستخدم للدخول (Username): *</label>
+                <input type="text" id="newClientUser" class="form-input" style="direction:ltr;text-align:right" placeholder="مثال: mohamed2026">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">كلمة المرور للعميل: *</label>
+                <input type="password" id="newClientPass" class="form-input" placeholder="••••••••">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">رقم هاتف العميل:</label>
+                <input type="tel" id="newClientPhone" class="form-input" style="direction:ltr;text-align:right" placeholder="01012345678">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">الشركة أو النشاط:</label>
+                <input type="text" id="newClientCompany" class="form-input" placeholder="متجر الأناقة">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">مدة الترخيص: *</label>
+                <select id="newClientPlan" class="form-input" style="background:#0f172a;cursor:pointer">
+                    <option value="1year">سنة كاملة (365 يوم) - 1 ترخيص</option>
+                    <option value="1month">شهر واحد (30 يوم) - 1 ترخيص</option>
+                    <option value="lifetime">مدى الحياة VIP - 1 ترخيص</option>
+                </select>
+            </div>
+
+            <button type="button" class="btn btn-indigo" style="width:100%;height:46px;margin-top:10px" onclick="submitAgentCreateClient()">
+                <i class="fa-solid fa-bolt"></i> تفعيل الترخيص وإنشاء الحساب
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let agentToken = localStorage.getItem('flow_agent_token') || '';
+
+        if (agentToken) {
+            loadAgentDashboard();
+        }
+
+        function switchTab(tab) {
+            document.getElementById('tabBtnLogin').classList.toggle('active', tab === 'login');
+            document.getElementById('tabBtnApply').classList.toggle('active', tab === 'apply');
+            document.getElementById('formLogin').style.display = tab === 'login' ? 'block' : 'none';
+            document.getElementById('formApply').style.display = tab === 'apply' ? 'block' : 'none';
+        }
+
+        async function submitAgentApplication() {
+            const name = document.getElementById('appFullName').value.trim();
+            const username = document.getElementById('appUsername').value.trim();
+            const password = document.getElementById('appPassword').value.trim();
+            const phone = document.getElementById('appPhone').value.trim();
+            const company = document.getElementById('appCompany').value.trim();
+            const city = document.getElementById('appCity').value.trim();
+            const expectedSales = document.getElementById('appSales').value.trim();
+            const notes = document.getElementById('appNotes').value.trim();
+
+            if (!name || !username || !password || !phone) {
+                return alert('يرجى ملء الحقول الإجبارية (الاسم، اسم المستخدم، كلمة السر، الهاتف)');
+            }
+
+            try {
+                const res = await fetch('/api/agent/apply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, username, password, phone, company, city, expectedSales, notes })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(data.message);
+                    switchTab('login');
+                } else {
+                    alert(data.error || 'فشل إرسال الطلب');
+                }
+            } catch (e) {
+                alert('حدث خطأ في الاتصال بالسيرفر');
+            }
+        }
+
+        async function submitAgentLogin() {
+            const username = document.getElementById('agentLogUser').value.trim();
+            const password = document.getElementById('agentLogPass').value.trim();
+
+            if (!username || !password) return alert('يرجى إدخال اسم المستخدم وكلمة المرور');
+
+            try {
+                const res = await fetch('/api/agent/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    agentToken = data.token;
+                    localStorage.setItem('flow_agent_token', agentToken);
+                    loadAgentDashboard();
+                } else {
+                    alert(data.error || 'فشل تسجيل الدخول');
+                }
+            } catch (e) {
+                alert('حدث خطأ أثناء الاتصال');
+            }
+        }
+
+        async function loadAgentDashboard() {
+            if (!agentToken) return;
+
+            try {
+                const res = await fetch('/api/agent/my-dashboard', {
+                    headers: { 'Authorization': 'Bearer ' + agentToken }
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    document.getElementById('agentAuthContainer').style.display = 'none';
+                    document.getElementById('agentDashboardContainer').style.display = 'block';
+
+                    document.getElementById('dashAgentName').textContent = data.agent.name;
+                    document.getElementById('dashAgentCompany').textContent = data.agent.company || 'وكالة معتمدة';
+                    document.getElementById('kpiAgentCredits').textContent = data.agent.credits || 0;
+                    document.getElementById('kpiAgentTotalClients').textContent = data.stats.totalClients || 0;
+                    document.getElementById('kpiAgentActiveClients').textContent = data.stats.activeClients || 0;
+                    document.getElementById('kpiAgentCommission').textContent = data.agent.commission || '30%';
+
+                    renderClients(data.clients);
+                } else {
+                    localStorage.removeItem('flow_agent_token');
+                    document.getElementById('agentAuthContainer').style.display = 'block';
+                    document.getElementById('agentDashboardContainer').style.display = 'none';
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function renderClients(clients) {
+            const tbody = document.getElementById('agentClientsBody');
+            if (!clients || clients.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted)">لا يوجد عملاء مسجلون تحت وكالتك بعد. اضغط (+ إصدار ترخيص) لإضافة أول عميل.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = clients.map(c => `
+                <tr>
+                    <td><b style="color:white">${c.name}</b></td>
+                    <td><code style="color:var(--indigo);font-weight:bold">${c.username}</code></td>
+                    <td>${c.company || '-'}</td>
+                    <td>${c.phone || '-'}</td>
+                    <td><b style="color:#fbbf24">${c.plan}</b></td>
+                    <td>${c.expiry}</td>
+                    <td>
+                        <span style="display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:bold;background:${c.whatsappStatus === 'connected' ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.05)'};color:${c.whatsappStatus === 'connected' ? '#10b981' : 'var(--text-muted)'}">
+                            ${c.whatsappStatus === 'connected' ? '🟢 مربوط' : '⚪ غير مربوط'}
+                        </span>
+                    </td>
+                    <td>
+                        <span style="display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:bold;background:${c.status === 'active' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'};color:${c.status === 'active' ? '#10b981' : '#f87171'}">
+                            ${c.status === 'active' ? 'نشط' : 'موقوف'}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openCreateClientModal() { document.getElementById('createClientModal').classList.add('active'); }
+        function closeClientModal() { document.getElementById('createClientModal').classList.remove('active'); }
+
+        async function submitAgentCreateClient() {
+            const name = document.getElementById('newClientName').value.trim();
+            const username = document.getElementById('newClientUser').value.trim();
+            const password = document.getElementById('newClientPass').value.trim();
+            const phone = document.getElementById('newClientPhone').value.trim();
+            const company = document.getElementById('newClientCompany').value.trim();
+            const plan = document.getElementById('newClientPlan').value;
+
+            if (!name || !username || !password) return alert('يرجى ملء الحقول الإجبارية');
+
+            try {
+                const res = await fetch('/api/agent/client/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + agentToken
+                    },
+                    body: JSON.stringify({ name, username, password, phone, company, plan })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(data.message);
+                    closeClientModal();
+                    loadAgentDashboard();
+                } else {
+                    alert(data.error || 'فشل إنشاء الحساب');
+                }
+            } catch (e) {
+                alert('خطأ أثناء إنشاء حساب العميل');
+            }
+        }
+
+        function logoutAgent() {
+            localStorage.removeItem('flow_agent_token');
+            location.reload();
+        }
+
+        // Starfield
+        const canvas = document.getElementById('starCanvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+        let stars = [];
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            init();
+        });
+
+        function init() {
+            stars = [];
+            for (let i = 0; i < Math.floor((width * height) / 3800); i++) {
+                stars.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    radius: Math.random() * 1.5 + 0.3,
+                    alpha: Math.random() * 0.8 + 0.2,
+                    speed: Math.random() * 0.015 + 0.005,
+                    color: ['#ffffff', '#a5b4fc', '#818cf8', '#34d399'][Math.floor(Math.random() * 4)]
+                });
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+            for (let s of stars) {
+                s.alpha += s.speed;
+                if (s.alpha > 1 || s.alpha < 0.2) s.speed = -s.speed;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+                ctx.fillStyle = s.color;
+                ctx.globalAlpha = Math.max(0.1, Math.min(1, s.alpha));
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+            requestAnimationFrame(draw);
+        }
+
+        init();
+        draw();
+    </script>
+</body>
+</html>

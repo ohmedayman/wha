@@ -122,10 +122,7 @@
             color: white;
             box-shadow: 0 4px 15px var(--primary-glow);
         }
-        .btn-primary:hover {
-            filter: brightness(1.1);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
-        }
+        .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5); }
         .btn-indigo {
             background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
             border: none;
@@ -137,10 +134,7 @@
             border: 1px solid rgba(239, 68, 68, 0.3);
             color: #f87171;
         }
-        .btn-danger:hover {
-            background: #ef4444;
-            color: white;
-        }
+        .btn-danger:hover { background: #ef4444; color: white; }
 
         /* Nav Tabs */
         .admin-nav {
@@ -152,7 +146,7 @@
             flex-wrap: wrap;
         }
         .nav-tab {
-            padding: 10px 20px;
+            padding: 10px 18px;
             border-radius: var(--radius-md);
             color: var(--text-muted);
             cursor: pointer;
@@ -175,10 +169,19 @@
             color: var(--text-main);
         }
 
+        .badge-count {
+            background: #ef4444;
+            color: white;
+            padding: 2px 7px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 900;
+        }
+
         /* KPI Stats Grid */
         .kpi-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
             gap: 16px;
         }
         .kpi-card {
@@ -189,141 +192,36 @@
             display: flex;
             flex-direction: column;
             gap: 6px;
-            position: relative;
-            overflow: hidden;
         }
-        .kpi-title {
-            font-size: 12px;
-            font-weight: 800;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .kpi-value {
-            font-size: 26px;
-            font-weight: 900;
-            color: var(--text-main);
-            letter-spacing: -0.5px;
-        }
+        .kpi-title { font-size: 12px; font-weight: 800; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; }
+        .kpi-value { font-size: 26px; font-weight: 900; color: var(--text-main); letter-spacing: -0.5px; }
 
         /* Table */
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: right;
-            font-size: 13px;
-        }
-        th {
-            background: rgba(255, 255, 255, 0.03);
-            color: var(--text-muted);
-            font-weight: 800;
-            padding: 14px 16px;
-            border-bottom: 1px solid var(--card-border);
-            white-space: nowrap;
-        }
-        td {
-            padding: 14px 16px;
-            border-bottom: 1px solid var(--card-border);
-            color: var(--text-main);
-            vertical-align: middle;
-        }
-        tr:hover td {
-            background: rgba(255, 255, 255, 0.02);
-        }
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: right; font-size: 13px; }
+        th { background: rgba(255, 255, 255, 0.03); color: var(--text-muted); font-weight: 800; padding: 14px 16px; border-bottom: 1px solid var(--card-border); white-space: nowrap; }
+        td { padding: 14px 16px; border-bottom: 1px solid var(--card-border); color: var(--text-main); vertical-align: middle; }
+        tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
-        .badge-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 10px;
-            border-radius: 999px;
-            font-size: 11px;
-            font-weight: 800;
-        }
+        .badge-status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; }
         .status-active { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
         .status-suspended { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
 
         /* Modal */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(8px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            padding: 20px;
-        }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 20px; }
         .modal.active { display: flex; }
-        .modal-card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius-lg);
-            width: 100%;
-            max-width: 540px;
-            padding: 28px;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
-            animation: modalPop 0.25s ease;
-        }
-        @keyframes modalPop {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        .modal-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--card-border);
-            padding-bottom: 12px;
-        }
+        .modal-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-lg); width: 100%; max-width: 540px; padding: 28px; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6); }
+        .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--card-border); padding-bottom: 12px; }
         .modal-head h3 { font-size: 17px; font-weight: 900; }
-        .modal-close {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-size: 20px;
-            cursor: pointer;
-        }
+        .modal-close { background: transparent; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; }
 
         .form-group { margin-bottom: 14px; }
         .form-group label { display: block; font-size: 12px; font-weight: 800; color: var(--text-muted); margin-bottom: 6px; }
-        .form-input {
-            width: 100%;
-            height: 42px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius-md);
-            color: white;
-            padding: 0 14px;
-            font-size: 13px;
-            outline: none;
-            font-family: inherit;
-        }
+        .form-input { width: 100%; height: 42px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--card-border); border-radius: var(--radius-md); color: white; padding: 0 14px; font-size: 13px; outline: none; font-family: inherit; }
         .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); }
 
         /* Gate Modal */
-        .gate-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #090d16;
-            z-index: 99999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        .gate-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #090d16; z-index: 99999; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
@@ -351,10 +249,11 @@
                 <div class="brand-icon"><i class="fa-solid fa-crown"></i></div>
                 <div class="brand-title">
                     <h1>WhatsApp Flow Pro <span class="badge-cloud"><i class="fa-solid fa-server"></i> Master Hub 2026</span></h1>
-                    <small style="color:var(--text-muted);font-size:12px">مركز التحكم المركزي بالمشتركين وإدارة شبكة الوكلاء والموزعين</small>
+                    <small style="color:var(--text-muted);font-size:12px">مركز التحكم المركزي بالمشتركين وإدارة وموافقة طلبات الوكلاء والموزعين</small>
                 </div>
             </div>
             <div class="header-actions">
+                <a href="/agent" target="_blank" class="btn btn-indigo"><i class="fa-solid fa-arrow-up-right-from-square"></i> فتح بوابة الوكلاء</a>
                 <button class="btn btn-primary" onclick="loadAllAdminData()"><i class="fa-solid fa-rotate"></i> تحديث فوري</button>
                 <button class="btn btn-danger" onclick="logoutAdmin()"><i class="fa-solid fa-right-from-bracket"></i> قفل اللوحة</button>
             </div>
@@ -366,14 +265,17 @@
                 <button class="nav-tab active" id="tabBtnUsers" onclick="switchAdminTab('users')">
                     <i class="fa-solid fa-users"></i> المشتركين والعملاء (<span id="badgeUsersCount">0</span>)
                 </button>
+                <button class="nav-tab" id="tabBtnRequests" onclick="switchAdminTab('requests')">
+                    <i class="fa-solid fa-clock-rotate-left" style="color:#f59e0b"></i> طلبات انضمام الوكلاء <span class="badge-count" id="badgeRequestsCount">0</span>
+                </button>
                 <button class="nav-tab" id="tabBtnAgents" onclick="switchAdminTab('agents')">
-                    <i class="fa-solid fa-handshake"></i> شبكة الوكلاء والموزعين (<span id="badgeAgentsCount">0</span>)
+                    <i class="fa-solid fa-handshake"></i> الوكلاء المعتمدين (<span id="badgeAgentsCount">0</span>)
                 </button>
                 <button class="nav-tab" id="tabBtnBroadcast" onclick="switchAdminTab('broadcast')">
                     <i class="fa-solid fa-bullhorn"></i> إعلان عام للمشتركين
                 </button>
                 <button class="nav-tab" id="tabBtnLogs" onclick="switchAdminTab('logs')">
-                    <i class="fa-solid fa-shield-halved"></i> سجل التدقيق والأمان
+                    <i class="fa-solid fa-shield-halved"></i> سجل التدقيق
                 </button>
             </div>
 
@@ -384,12 +286,8 @@
                     <div class="kpi-value" id="kpiTotalUsers">0</div>
                 </div>
                 <div class="kpi-card">
-                    <div class="kpi-title">المتصلين بالديسكتوب <i class="fa-solid fa-desktop" style="color:#34d399"></i></div>
-                    <div class="kpi-value" id="kpiOnlineUsers" style="color:#34d399">0</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-title">واتساب مربوط ونشط <i class="fa-brands fa-whatsapp" style="color:#22c55e"></i></div>
-                    <div class="kpi-value" id="kpiWaConnected" style="color:#22c55e">0</div>
+                    <div class="kpi-title">طلبات وكلاء معلقة <i class="fa-solid fa-clock" style="color:#f59e0b"></i></div>
+                    <div class="kpi-value" id="kpiPendingRequests" style="color:#f59e0b">0</div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-title">إجمالي الوكلاء المعتمدين <i class="fa-solid fa-briefcase" style="color:var(--indigo)"></i></div>
@@ -399,16 +297,18 @@
                     <div class="kpi-title">رصيد تراخيص الوكلاء <i class="fa-solid fa-key" style="color:var(--accent)"></i></div>
                     <div class="kpi-value" id="kpiAgentCredits" style="color:#fbbf24">0</div>
                 </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">واتساب مربوط ونشط <i class="fa-brands fa-whatsapp" style="color:#22c55e"></i></div>
+                    <div class="kpi-value" id="kpiWaConnected" style="color:#22c55e">0</div>
+                </div>
             </div>
         </div>
 
         <!-- 👥 TAB 1: USERS & CLIENTS HUB -->
         <div id="sectionUsers" class="glass-panel">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px">
-                <h3 style="font-size:16px;font-weight:900"><i class="fa-solid fa-users" style="color:var(--primary)"></i> جدول المشتركين وإدارة الحسابات الحية</h3>
-                <div style="display:flex;gap:10px">
-                    <input type="text" id="clientSearchInput" class="form-input" placeholder="🔍 بحث باسم المستخدم، العميل، أو الهاتف..." style="width:260px;height:38px" oninput="filterClientsTable()">
-                </div>
+                <h3 style="font-size:16px;font-weight:900"><i class="fa-solid fa-users" style="color:var(--primary)"></i> جدول المشتركين وإدارة الحسابات</h3>
+                <input type="text" id="clientSearchInput" class="form-input" placeholder="🔍 بحث باسم العميل، المستخدم، أو الهاتف..." style="width:260px;height:38px" oninput="filterClientsTable()">
             </div>
 
             <div class="table-responsive">
@@ -420,10 +320,10 @@
                             <th>الهاتف</th>
                             <th>الوكيل التابع له</th>
                             <th>الباقة والصلاحية</th>
-                            <th>حالة الاتصال بالبرنامج</th>
+                            <th>حالة الاتصال</th>
                             <th>حالة واتساب</th>
                             <th>الحالة</th>
-                            <th>الإجراءات والتحكم</th>
+                            <th>الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="clientsTableBody">
@@ -433,14 +333,44 @@
             </div>
         </div>
 
-        <!-- 👔 TAB 2: AGENTS & RESELLERS HUB -->
+        <!-- 📋 TAB 2: PENDING AGENT APPLICATIONS (الموافقة على الوكلاء) -->
+        <div id="sectionRequests" class="glass-panel" style="display:none">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px">
+                <div>
+                    <h3 style="font-size:16px;font-weight:900;color:#fbbf24"><i class="fa-solid fa-clock-rotate-left"></i> طلبات الانضمام لشبكة الوكلاء (قيد المراجعة والموافقة)</h3>
+                    <small style="color:var(--text-muted);font-size:12px">راجع بيانات الوكلاء المتقدمين ووافق عليهم وحدد رصيد التراخيص الممنوح لهم فوراً</small>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>اسم الوكيل</th>
+                            <th>اسم المستخدم</th>
+                            <th>الهاتف / واتساب</th>
+                            <th>الشركة / المدينة</th>
+                            <th>المبيعات المتوقعة</th>
+                            <th>ملاحظات وسابقة أعمال</th>
+                            <th>تاريخ التقديم</th>
+                            <th>القرار والموافقة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestsTableBody">
+                        <tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:30px">لا توجد طلبات وكلاء معلقة حالياً ✅</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 👔 TAB 3: APPROVED AGENTS NETWORK -->
         <div id="sectionAgents" class="glass-panel" style="display:none">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px">
                 <div>
-                    <h3 style="font-size:16px;font-weight:900"><i class="fa-solid fa-handshake" style="color:var(--indigo)"></i> شبكة الوكلاء والموزعين المعتمدين</h3>
-                    <small style="color:var(--text-muted);font-size:12px">تخصيص رصيد تراخيص للوكلاء وإدارتهم لمضاعفة مبيعات المنظومة</small>
+                    <h3 style="font-size:16px;font-weight:900"><i class="fa-solid fa-handshake" style="color:var(--indigo)"></i> شبكة الوكلاء والموزعين المعتمدين النشطين</h3>
+                    <small style="color:var(--text-muted);font-size:12px">رابط بوابة دخول الوكلاء: <code style="color:#a5b4fc">https://wf.vexonet.online/agent</code></small>
                 </div>
-                <button class="btn btn-indigo" onclick="openAddAgentModal()"><i class="fa-solid fa-plus"></i> + إضافة وكيل جديد</button>
+                <button class="btn btn-indigo" onclick="openAddAgentModal()"><i class="fa-solid fa-plus"></i> + إضافة وكيل يدوياً</button>
             </div>
 
             <div class="table-responsive">
@@ -448,7 +378,7 @@
                     <thead>
                         <tr>
                             <th>اسم الوكيل / الوكالة</th>
-                            <th>اسم المستخدم (Login)</th>
+                            <th>اسم المستخدم</th>
                             <th>الهاتف</th>
                             <th>رصيد التراخيص المتاح</th>
                             <th>التراخيص المصدرة</th>
@@ -465,14 +395,14 @@
             </div>
         </div>
 
-        <!-- 📢 TAB 3: BROADCAST ANNOUNCEMENT -->
+        <!-- 📢 TAB 4: BROADCAST ANNOUNCEMENT -->
         <div id="sectionBroadcast" class="glass-panel" style="display:none">
             <h3 style="font-size:16px;font-weight:900;margin-bottom:8px"><i class="fa-solid fa-bullhorn" style="color:var(--accent)"></i> إرسال إعلان عام لجميع مستخدمي البرنامج</h3>
             <p style="font-size:12px;color:var(--text-muted);margin-bottom:18px">يظهر هذا الشريط الإعلاني في أعلى شاشة البرنامج المكتبي لجميع المشتركين فوراً.</p>
 
             <div class="form-group">
                 <label>نص الإعلان:</label>
-                <input type="text" id="broadcastTextInput" class="form-input" placeholder="مثال: ترقبوا إطلاق التحديث الجديد اليوم الساعة 9 مساءً!">
+                <input type="text" id="broadcastTextInput" class="form-input" placeholder="مثال: ترقبوا إطلاق التحديث الجديد اليوم!">
             </div>
 
             <div style="display:flex;gap:16px;margin-bottom:20px">
@@ -487,9 +417,9 @@
             </div>
         </div>
 
-        <!-- 📝 TAB 4: AUDIT LOGS -->
+        <!-- 📝 TAB 5: AUDIT LOGS -->
         <div id="sectionLogs" class="glass-panel" style="display:none">
-            <h3 style="font-size:16px;font-weight:900;margin-bottom:16px"><i class="fa-solid fa-shield-halved" style="color:var(--info)"></i> سجل الأمان والنشاط اللحظي (Audit Trail)</h3>
+            <h3 style="font-size:16px;font-weight:900;margin-bottom:16px"><i class="fa-solid fa-shield-halved" style="color:var(--info)"></i> سجل التدقيق والأمان اللحظي</h3>
             <div class="table-responsive">
                 <table>
                     <thead>
@@ -508,39 +438,62 @@
         </div>
     </div>
 
-    <!-- ➕ MODAL: ADD AGENT -->
+    <!-- ✅ MODAL: APPROVE AGENT REQUEST -->
+    <div class="modal" id="approveAgentModal">
+        <div class="modal-card">
+            <div class="modal-head">
+                <h3 style="color:#10b981"><i class="fa-solid fa-circle-check"></i> اعتماد وقبول طلب الوكيل</h3>
+                <button class="modal-close" onclick="closeModal('approveAgentModal')">&times;</button>
+            </div>
+            <input type="hidden" id="approveReqId">
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">الموافقة على وكالة: <b id="approveAgentName" style="color:white"></b></p>
+            <div class="form-group">
+                <label>رصيد التراخيص الممنوح مبدئياً للوكيل (License Quota):</label>
+                <input type="number" id="approveAgentCredits" class="form-input" value="15" min="1">
+            </div>
+            <div class="form-group">
+                <label>نسبة عمولة الوكيل (%):</label>
+                <input type="text" id="approveAgentCommission" class="form-input" value="30%">
+            </div>
+            <button class="btn btn-primary" style="width:100%;height:44px;justify-content:center;font-size:14px" onclick="submitApproveAgent()">
+                <i class="fa-solid fa-check"></i> تأكيد الاعتماد وتفعيل حساب الوكيل فوراً
+            </button>
+        </div>
+    </div>
+
+    <!-- ➕ MODAL: ADD AGENT MANUALLY -->
     <div class="modal" id="addAgentModal">
         <div class="modal-card">
             <div class="modal-head">
-                <h3><i class="fa-solid fa-handshake" style="color:var(--indigo)"></i> إضافة وكيل / موزع معتمد جديد</h3>
+                <h3><i class="fa-solid fa-handshake" style="color:var(--indigo)"></i> إضافة وكيل جديد يدوياً</h3>
                 <button class="modal-close" onclick="closeModal('addAgentModal')">&times;</button>
             </div>
             <div class="form-group">
-                <label>اسم الوكيل / الوكالة الكامل: *</label>
-                <input type="text" id="newAgentName" class="form-input" placeholder="مثال: وكالة النخبة للتسويق">
+                <label>اسم الوكيل الكامل: *</label>
+                <input type="text" id="newAgentName" class="form-input" placeholder="أحمد محمود">
             </div>
             <div class="form-group">
-                <label>اسم المستخدم للدخول (Username): *</label>
-                <input type="text" id="newAgentUser" class="form-input" style="direction:ltr;text-align:right" placeholder="مثال: agent_cairo">
+                <label>اسم المستخدم (Username): *</label>
+                <input type="text" id="newAgentUser" class="form-input" style="direction:ltr;text-align:right" placeholder="agent_cairo">
             </div>
             <div class="form-group">
                 <label>كلمة المرور: *</label>
                 <input type="password" id="newAgentPass" class="form-input" placeholder="••••••••">
             </div>
             <div class="form-group">
-                <label>رقم هاتف الوكيل: *</label>
+                <label>الهاتف: *</label>
                 <input type="tel" id="newAgentPhone" class="form-input" style="direction:ltr;text-align:right" placeholder="01099998888">
             </div>
             <div class="form-group">
-                <label>المنطقة / الشركة:</label>
-                <input type="text" id="newAgentCompany" class="form-input" placeholder="مثال: فرع القاهرة والجيزة">
+                <label>الشركة / المنطقة:</label>
+                <input type="text" id="newAgentCompany" class="form-input" placeholder="وكالة القاهرة">
             </div>
             <div class="form-group">
-                <label>رصيد التراخيص الممنوح (License Quota): *</label>
+                <label>رصيد التراخيص الممنوح:</label>
                 <input type="number" id="newAgentCredits" class="form-input" value="20" min="1">
             </div>
-            <button class="btn btn-indigo" style="width:100%;height:44px;justify-content:center;font-size:14px;margin-top:8px" onclick="submitCreateAgent()">
-                <i class="fa-solid fa-check"></i> حفظ وإنشاء الوكيل وتخصيص الرصيد
+            <button class="btn btn-indigo" style="width:100%;height:44px;justify-content:center;font-size:14px" onclick="submitCreateAgent()">
+                <i class="fa-solid fa-check"></i> حفظ وإنشاء الوكيل
             </button>
         </div>
     </div>
@@ -586,8 +539,8 @@
         let adminPin = localStorage.getItem('flow_admin_pin') || '';
         let allClients = [];
         let allAgents = [];
+        let allRequests = [];
 
-        // Check PIN Gate
         if (adminPin) {
             document.getElementById('adminPinGate').style.display = 'none';
             loadAllAdminData();
@@ -609,7 +562,7 @@
 
         function switchAdminTab(tab) {
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-            ['users', 'agents', 'broadcast', 'logs'].forEach(s => {
+            ['users', 'requests', 'agents', 'broadcast', 'logs'].forEach(s => {
                 const el = document.getElementById('section' + s.charAt(0).toUpperCase() + s.slice(1));
                 if (el) el.style.display = 'none';
             });
@@ -617,6 +570,9 @@
             if (tab === 'users') {
                 document.getElementById('tabBtnUsers').classList.add('active');
                 document.getElementById('sectionUsers').style.display = 'block';
+            } else if (tab === 'requests') {
+                document.getElementById('tabBtnRequests').classList.add('active');
+                document.getElementById('sectionRequests').style.display = 'block';
             } else if (tab === 'agents') {
                 document.getElementById('tabBtnAgents').classList.add('active');
                 document.getElementById('sectionAgents').style.display = 'block';
@@ -644,13 +600,22 @@
                 const sData = await sRes.json();
                 if (sData.success) {
                     document.getElementById('kpiTotalUsers').textContent = sData.stats.totalUsers || 0;
-                    document.getElementById('kpiOnlineUsers').textContent = sData.stats.onlineUsers || 0;
-                    document.getElementById('kpiWaConnected').textContent = sData.stats.waConnectedUsers || 0;
+                    document.getElementById('kpiPendingRequests').textContent = sData.stats.pendingRequests || 0;
                     document.getElementById('kpiTotalAgents').textContent = sData.stats.totalAgents || 0;
                     document.getElementById('kpiAgentCredits').textContent = sData.stats.totalAgentCredits || 0;
+                    document.getElementById('kpiWaConnected').textContent = sData.stats.waConnectedUsers || 0;
                 }
 
-                // 2. Clients
+                // 2. Pending Requests
+                const rRes = await fetch('/api/admin/agent-requests', { headers: { 'x-admin-pin': adminPin } });
+                const rData = await rRes.json();
+                if (rData.success) {
+                    allRequests = rData.requests;
+                    document.getElementById('badgeRequestsCount').textContent = allRequests.length;
+                    renderRequestsTable(allRequests);
+                }
+
+                // 3. Clients
                 const cRes = await fetch('/api/admin/clients', { headers: { 'x-admin-pin': adminPin } });
                 const cData = await cRes.json();
                 if (cData.success) {
@@ -659,7 +624,7 @@
                     renderClientsTable(allClients);
                 }
 
-                // 3. Agents
+                // 4. Agents
                 const aRes = await fetch('/api/admin/agents', { headers: { 'x-admin-pin': adminPin } });
                 const aData = await aRes.json();
                 if (aData.success) {
@@ -668,7 +633,7 @@
                     renderAgentsTable(allAgents);
                 }
 
-                // 4. Audit Logs
+                // 5. Audit Logs
                 const lRes = await fetch('/api/admin/audit-logs', { headers: { 'x-admin-pin': adminPin } });
                 const lData = await lRes.json();
                 if (lData.success) {
@@ -677,6 +642,71 @@
             } catch (err) {
                 console.error('Failed to load admin data:', err);
             }
+        }
+
+        // Render Pending Requests Table
+        function renderRequestsTable(requests) {
+            const tbody = document.getElementById('requestsTableBody');
+            if (!requests || requests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted)">لا توجد طلبات انضمام وكلاء معلقة حالياً ✅</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = requests.map(r => `
+                <tr>
+                    <td><b style="font-size:14px;color:white">${r.name}</b></td>
+                    <td><code style="color:#a5b4fc;font-weight:bold">${r.username}</code></td>
+                    <td><b>${r.phone}</b></td>
+                    <td>${r.company || '-'} <small style="color:var(--text-muted)">(${r.city || 'غير محدد'})</small></td>
+                    <td><b style="color:#fbbf24">${r.expectedSales || '-'}</b></td>
+                    <td style="max-width:220px;font-size:12px;color:var(--text-muted)">${r.notes || '-'}</td>
+                    <td style="font-size:11px;color:var(--text-muted)">${new Date(r.createdAt).toLocaleDateString('ar-EG')}</td>
+                    <td>
+                        <div style="display:flex;gap:6px">
+                            <button class="btn btn-primary btn-sm" onclick="openApproveModal('${r.id}', '${r.name}')"><i class="fa-solid fa-check"></i> قبول واعتماد</button>
+                            <button class="btn btn-danger btn-sm" onclick="rejectAgentRequest('${r.id}')"><i class="fa-solid fa-xmark"></i> رفض</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openApproveModal(id, name) {
+            document.getElementById('approveReqId').value = id;
+            document.getElementById('approveAgentName').textContent = name;
+            document.getElementById('approveAgentModal').classList.add('active');
+        }
+
+        async function submitApproveAgent() {
+            const requestId = document.getElementById('approveReqId').value;
+            const credits = document.getElementById('approveAgentCredits').value;
+            const commission = document.getElementById('approveAgentCommission').value.trim();
+
+            const res = await fetch('/api/admin/agent-requests/approve', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-admin-pin': adminPin },
+                body: JSON.stringify({ requestId, credits, commission })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(data.message);
+                closeModal('approveAgentModal');
+                loadAllAdminData();
+            } else {
+                alert(data.error);
+            }
+        }
+
+        async function rejectAgentRequest(requestId) {
+            if (!confirm('هل تريد بالتأكيد رفض طلب انضمام هذا الوكيل؟')) return;
+            const res = await fetch('/api/admin/agent-requests/reject', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-admin-pin': adminPin },
+                body: JSON.stringify({ requestId })
+            });
+            const data = await res.json();
+            alert(data.message);
+            loadAllAdminData();
         }
 
         // Render Clients Table
@@ -732,7 +762,7 @@
         function renderAgentsTable(agents) {
             const tbody = document.getElementById('agentsTableBody');
             if (!agents || agents.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted)">لا يوجد وكلاء مسجلون بعد. اضغط على (+ إضافة وكيل جديد) لإضافة أول وكيل.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted)">لا يوجد وكلاء معتمدون بعد.</td></tr>';
                 return;
             }
 
@@ -778,7 +808,6 @@
             `).join('');
         }
 
-        // Filter Clients
         function filterClientsTable() {
             const q = document.getElementById('clientSearchInput').value.toLowerCase().trim();
             if (!q) return renderClientsTable(allClients);
@@ -792,7 +821,7 @@
             renderClientsTable(filtered);
         }
 
-        // Actions: Users
+        // Actions
         async function renewClient(username, plan) {
             if (!confirm(`تجديد اشتراك العميل (${username}) لباقة: ${plan}؟`)) return;
             const res = await fetch('/api/admin/renew', {
@@ -828,7 +857,6 @@
             loadAllAdminData();
         }
 
-        // Actions: Agents
         function openAddAgentModal() { document.getElementById('addAgentModal').classList.add('active'); }
         function openRechargeModal(id, name) {
             document.getElementById('rechargeAgentId').value = id;
@@ -937,7 +965,6 @@
             loadAllAdminData();
         }
 
-        // Auto refresh every 20s
         setInterval(loadAllAdminData, 20000);
     </script>
 </body>
