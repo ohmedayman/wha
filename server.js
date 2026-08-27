@@ -2138,11 +2138,59 @@ app.post('/api/whatsapp/logout', async (req, res) => {
             appLog('warn', 'Could not clear auth dir: ' + err.message);
         }
 
+        // 🧹 Auto-Purge Old Account Extracted Chats & Preserve Manual / Online Contacts
+        let purgedCount = 0;
+        let preservedCount = 0;
+        try {
+            if (fs.existsSync(CONTACTS_FILE)) {
+                const contacts = fs.readJsonSync(CONTACTS_FILE);
+                if (Array.isArray(contacts)) {
+                    const preserved = contacts.filter(c => {
+                        const cat = (c.category || '').toLowerCase();
+                        const notes = (c.notes || '').toLowerCase();
+                        const isAccountExtracted = cat.includes('محادثات الحساب') || 
+                                                  cat.includes('محادثات واتساب') || 
+                                                  notes.includes('تم سحبها تلقائياً') ||
+                                                  notes.includes('تواصل معك مباشرة');
+                        return !isAccountExtracted;
+                    });
+                    purgedCount = contacts.length - preserved.length;
+                    preservedCount = preserved.length;
+                    fs.writeJsonSync(CONTACTS_FILE, preserved, { spaces: 2 });
+                    console.log(`[Logout] Purged ${purgedCount} old account chats. Preserved ${preservedCount} manual/online contacts!`);
+                }
+            }
+        } catch (errClean) {
+            console.error('[Logout Clean Contacts Error]:', errClean.message);
+        }
+
         setTimeout(() => {
             initWhatsApp();
         }, 800);
 
-        res.json({ success: true, message: 'تم تسجيل الخروج ومسح الجلسة، جاري توليد كود QR جديد...' });
+        res.json({
+            success: true,
+            purgedCount,
+            preservedCount,
+            message: `تم تسجيل الخروج وتصفية أرقام الحساب السابق (${purgedCount} رقم)، مع الاحتفاظ بـ (${preservedCount}) عميل يدوي مضاف بأمان!`
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+app.post('/api/contacts/purge-extracted', (req, res) => {
+    try {
+        if (!fs.existsSync(CONTACTS_FILE)) return res.json({ success: true, count: 0 });
+        const contacts = fs.readJsonSync(CONTACTS_FILE);
+        const preserved = contacts.filter(c => {
+            const cat = (c.category || '').toLowerCase();
+            const notes = (c.notes || '').toLowerCase();
+            return !cat.includes('محادثات الحساب') && !cat.includes('محادثات واتساب') && !notes.includes('تم سحبها تلقائياً');
+        });
+        const purgedCount = contacts.length - preserved.length;
+        fs.writeJsonSync(CONTACTS_FILE, preserved, { spaces: 2 });
+        res.json({ success: true, purgedCount, preservedCount: preserved.length });
     } catch (e) {
         res.status(500).json({ success: false, error: e.message });
     }

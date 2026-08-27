@@ -2679,6 +2679,7 @@
                         <div style="display:flex;gap:6px;flex-wrap:wrap">
                             <button class="btn btn-sm btn-accent" onclick="runDeliveryAuditScan()"><i class="fa-solid fa-radar"></i> 🔍 فحص ومعرفة من استلم رسائل</button>
                             <button class="btn btn-sm btn-primary" onclick="targetUnsentCampaign()"><i class="fa-solid fa-paper-plane"></i> 🚀 إرسال حملة للجدد فقط</button>
+                            <button class="btn btn-sm btn-secondary" onclick="purgeAccountChatsManual()"><i class="fa-solid fa-broom"></i> 🧹 مسح أرقام الحساب السابق فقط</button>
                             <button class="btn btn-sm btn-secondary" onclick="cleanContactsList()"><i class="fa-solid fa-broom"></i> فحص الأرقام</button>
                             <button class="btn btn-sm btn-secondary" onclick="loadContacts(true)"><i class="fa-solid fa-arrows-rotate"></i> تحديث</button>
                             <button class="btn btn-sm btn-danger" onclick="deleteSelectedContacts()"><i class="fa-solid fa-trash"></i> حذف المحدد</button>
@@ -7222,6 +7223,22 @@ async function runDeliveryAuditScan() {
         await loadContacts(false);
     } else {
         showToast('❌ خطأ في الفحص', res ? res.error : 'فشل الفحص', 'error', 3000);
+    }
+}
+
+// 🧹 Purge Extracted Account Chats and Keep Manual/Online Contacts
+async function purgeAccountChatsManual() {
+    if (!confirm('هل تريد مسح الأرقام المسحوبة تلقائياً من محادثات واتساب السابقة مع الاحتفاظ الكامل بالأرقام التي أضفتها يدوياً واستوردتها؟')) return;
+    
+    showToast('🧹 جاري التنظيف', 'جاري مسح أرقام واتساب السابقة والحفاظ على العملاء اليدويين...', 'info', 2000);
+    const res = await api('/api/contacts/purge-extracted', { method: 'POST' });
+    if (res && res.success) {
+        showToast('✅ اكتمل التنظيف', `تم مسح (${res.purgedCount}) رقم شات سابق والاحتفاظ بـ (${res.preservedCount}) عميل يدوي بنجاح!`, 'success', 4000);
+        playChime('success');
+        await loadContacts(false);
+        if (typeof loadDashboard === 'function') loadDashboard();
+    } else {
+        showToast('❌ خطأ', res ? res.error : 'فشل المسح', 'error', 3000);
     }
 }
 
