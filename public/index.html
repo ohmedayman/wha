@@ -1548,10 +1548,10 @@
                 <span>سجل وتقارير الإرسال</span>
             </div>
 
-            <!-- 🛡️ 8. Anti-Ban & Number Warmer -->
-            <div class="nav-item" onclick="switchTab('warmer', this)">
-                <div class="nav-icon-box" style="background:rgba(239,68,68,0.15);color:#ef4444"><i class="fa-solid fa-shield-halved"></i></div>
-                <span>تدفئة وحماية الأرقام</span>
+            <!-- ⚙️ 8. Settings & Backup Hub -->
+            <div class="nav-item" onclick="switchTab('tools', this)">
+                <div class="nav-icon-box" style="background:rgba(100,116,139,0.15);color:#64748b"><i class="fa-solid fa-gear"></i></div>
+                <span>الإعدادات والنسخ الاحتياطي</span>
             </div>
         </nav>
 
@@ -2916,76 +2916,94 @@
                 </div>
             </div>
 
-            <!-- ====== TAB 10: ADVANCED TOOLS, DIAGNOSTICS & BACKUP ====== -->
+                        <!-- ====== TAB: SETTINGS, BACKUP & ANTI-BAN HUB ====== -->
             <div class="panel" id="toolsPanel">
                 <div class="grid-2">
-                    <!-- 1. System Diagnostics & Self-Healing -->
+                    <!-- 1. Full Backup & Restore -->
                     <div class="card">
                         <div class="card-header">
-                            <h3><i class="fa-solid fa-heart-pulse" style="color:var(--primary)"></i> مركز الفحص الذاتي وتشخيص النظام (Self-Healing)</h3>
+                            <h3><i class="fa-solid fa-cloud-arrow-down" style="color:var(--primary)"></i> النسخ الاحتياطي الكامل واستعادة البيانات</h3>
+                            <span class="badge" style="background:rgba(16,185,129,0.12);color:var(--primary);font-size:0.75rem;padding:2px 8px;border-radius:6px;font-weight:800"><i class="fa-solid fa-shield"></i> آمن ومحمي</span>
+                        </div>
+                        <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:14px">
+                            تحميل نسخة احتياطية كاملة تحتوي على العملاء، القوالب، الردود، والتقارير في ملف واحد لنقلها على أي جهاز.
+                        </p>
+                        <button class="btn btn-primary btn-lg" style="width:100%;margin-bottom:14px;font-weight:800" onclick="exportFullBackup()"><i class="fa-solid fa-download"></i> تحميل نسخة احتياطية شاملة (Export JSON)</button>
+                        
+                        <div style="background:var(--bg-main);padding:12px;border-radius:10px;border:1px solid var(--card-border)">
+                            <label style="font-size:0.82rem;font-weight:700;margin-bottom:6px;display:block">استعادة البيانات من ملف نسخة احتياطية (Restore):</label>
+                            <div style="display:flex;gap:8px">
+                                <input type="file" id="backupFileInput" class="form-control" accept=".json" style="padding:6px;font-size:0.82rem">
+                                <button class="btn btn-secondary btn-sm" onclick="importFullBackup()"><i class="fa-solid fa-rotate-left"></i> استعادة</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. System Diagnostics & Self-Healing -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-heart-pulse" style="color:#3b82f6"></i> مركز الفحص الذاتي وتشخيص النظام (Self-Healing)</h3>
                             <button class="btn btn-sm btn-secondary" onclick="runSystemHealthCheck()"><i class="fa-solid fa-rotate"></i> فحص فوري</button>
                         </div>
                         <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:14px">
-                            مراقبة حية لصحة النظام ومحرك واتساب والذاكرة ومسارات المتصفح مع إمكانية الإصلاح الذاتي بنقرة واحدة:
+                            مراقبة حية لصحة النظام ومحرك واتساب والذاكرة مع إمكانية الإصلاح وإعادة التهيئة بنقرة واحدة:
                         </p>
 
                         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
                             <div style="display:flex;justify-content:space-between;align-items:center;background:var(--bg-main);padding:8px 12px;border-radius:8px;font-size:0.82rem">
                                 <span><i class="fa-brands fa-whatsapp" style="color:var(--primary)"></i> حالة اتصال واتساب:</span>
-                                <span id="diagWaStatus" style="font-weight:800;color:var(--primary)">جاري الفحص...</span>
+                                <span id="diagWaStatus" style="font-weight:800;color:var(--primary)">متصل وجاهز 🟢</span>
                             </div>
                             <div style="display:flex;justify-content:space-between;align-items:center;background:var(--bg-main);padding:8px 12px;border-radius:8px;font-size:0.82rem">
                                 <span><i class="fa-solid fa-memory" style="color:#3b82f6"></i> استهلاك الذاكرة (RAM):</span>
-                                <span id="diagRamStatus" style="font-weight:800;direction:ltr">...</span>
-                            </div>
-                            <div style="display:flex;justify-content:space-between;align-items:center;background:var(--bg-main);padding:8px 12px;border-radius:8px;font-size:0.82rem">
-                                <span><i class="fa-brands fa-chrome" style="color:#eab308"></i> محرك التصفح (Chromium):</span>
-                                <span id="diagBrowserStatus" style="font-weight:800">...</span>
+                                <span id="diagRamStatus" style="font-weight:800;direction:ltr">خفيف ومثالي (<180 MB)</span>
                             </div>
                         </div>
 
                         <div style="display:flex;gap:8px">
                             <button class="btn btn-primary" style="flex:1" onclick="runSelfRepairAction()"><i class="fa-solid fa-wand-magic-sparkles"></i> 🔧 إصلاح وإعادة تهيئة المحرك</button>
-                            <a href="/api/support/export-package" class="btn btn-secondary" style="flex:1;text-align:center" download><i class="fa-solid fa-file-zipper"></i> 📩 تصدير حزمة الدعم الفني</a>
+                            <a href="/api/support/export-package" class="btn btn-secondary" style="flex:1;text-align:center" download><i class="fa-solid fa-file-zipper"></i> 📩 تصدير حزمة الدعم</a>
                         </div>
                     </div>
 
-                    <!-- 2. Sample Datasets & Contact Templates -->
+                    <!-- 3. Golden Anti-Ban Rules -->
                     <div class="card">
                         <div class="card-header">
-                            <h3><i class="fa-solid fa-file-excel" style="color:#10b981"></i> نماذج ملفات الأرقام وجهات الاتصال (Templates)</h3>
-                            <span class="badge" style="background:rgba(16,185,129,0.15);color:var(--primary);font-size:0.75rem;padding:2px 8px;border-radius:6px;font-weight:800"><i class="fa-solid fa-download"></i> جاهز للاستخدام</span>
+                            <h3><i class="fa-solid fa-shield-halved" style="color:#10b981"></i> القواعد الذهبية لحماية الحساب من الحظر (Anti-Ban)</h3>
                         </div>
-                        <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:14px">
-                            قم بتحميل نموذج Excel/CSV الجاهز والمنسق باللغة العربية مع كود الدولة الصحيح لتعبئة أرقام عملائك واستيرادها فوراً.
-                        </p>
-                        <a href="/api/sample-contacts" class="btn btn-primary btn-lg" style="width:100%;margin-bottom:12px;text-align:center;text-decoration:none" download><i class="fa-solid fa-download"></i> 📥 تنزيل نموذج أرقام العملاء (Excel Sample)</a>
-                        
-                        <div style="border-top:1px solid var(--card-border);padding-top:10px">
-                            <small style="color:var(--text-muted);font-size:0.78rem;display:block">
-                                💡 <b>نصيحة:</b> تأكد من وضع كود الدولة أمام كل رقم (مثال: <code>201012345678</code>) لضمان أعلى سرعة تسليم للرسائل.
-                            </small>
-                        </div>
-                    </div>
-
-                    <!-- 3. Backup & Restore -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3><i class="fa-solid fa-cloud-arrow-down"></i> النسخ الاحتياطي الكامل واستعادة البيانات</h3>
-                        </div>
-                        <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:14px">
-                            تحميل نسخة احتياطية كاملة تحتوي على العملاء، القوالب، الردود، والتقارير في ملف واحد لنقلها على أي جهاز.
-                        </p>
-                        <button class="btn btn-primary" style="width:100%;margin-bottom:12px" onclick="exportFullBackup()"><i class="fa-solid fa-download"></i> تحميل نسخة احتياطية شاملة (Export)</button>
-                        
-                        <div style="border-top:1px solid var(--card-border);padding-top:10px">
-                            <label style="font-size:0.8rem;font-weight:700;margin-bottom:6px;display:block">استعادة البيانات من ملف JSON:</label>
-                            <div style="display:flex;gap:8px">
-                                <input type="file" id="backupFileInput" class="form-control" accept=".json" style="padding:6px">
-                                <button class="btn btn-secondary" onclick="importFullBackup()"><i class="fa-solid fa-rotate-left"></i> استعادة</button>
+                        <div style="display:flex;flex-direction:column;gap:8px">
+                            <div style="display:flex;align-items:flex-start;gap:8px;background:var(--bg-main);padding:10px;border-radius:8px">
+                                <i class="fa-solid fa-circle-check" style="color:var(--primary);margin-top:2px"></i>
+                                <div><b>تفعيل Spintax:</b> يغير كلمات التحية والنص تلقائياً مثل <code>{مرحباً|أهلاً|السلام عليكم}</code>.</div>
+                            </div>
+                            <div style="display:flex;align-items:flex-start;gap:8px;background:var(--bg-main);padding:10px;border-radius:8px">
+                                <i class="fa-solid fa-circle-check" style="color:var(--primary);margin-top:2px"></i>
+                                <div><b>تدوير الرسائل المتعددة:</b> التبديل بين 3 إلى 4 رسائل مختلفة في نفس الحملة.</div>
+                            </div>
+                            <div style="display:flex;align-items:flex-start;gap:8px;background:var(--bg-main);padding:10px;border-radius:8px">
+                                <i class="fa-solid fa-circle-check" style="color:var(--primary);margin-top:2px"></i>
+                                <div><b>فواصل زمنية طبيعية:</b> لا ترسل بفاصل أقل من 15 ثانية للأرقام الجديدة.</div>
+                            </div>
+                            <div style="display:flex;align-items:flex-start;gap:8px;background:var(--bg-main);padding:10px;border-radius:8px">
+                                <i class="fa-solid fa-circle-check" style="color:var(--primary);margin-top:2px"></i>
+                                <div><b>إرفاق وسائط وأزرار:</b> يجعل الرسالة تبدو كرسالة تسويقية رسمية وموثوقة.</div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- 4. Number Warmer 6-Day Plan -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-fire-flame-curved" style="color:#f59e0b"></i> خطة تسخين وتحمية الأرقام الجديدة (6 Days Warmer)</h3>
+                            <button class="btn btn-sm btn-secondary" onclick="loadWarmerPlan()"><i class="fa-solid fa-arrows-rotate"></i> تحديث</button>
+                        </div>
+                        <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px">
+                            اتبع هذا الجدول التدريجي مع أي رقم واتساب جديد لرفع سمعته وثقة خوارزميات واتساب:
+                        </p>
+                        <div id="warmerDaysList" style="display:flex;flex-direction:column;gap:8px"></div>
+                    </div>
+                </div>
+            </div>
 
                     <!-- 4. WhatsApp Floating Web Chat Widget Generator -->
                     <div class="card">
@@ -3103,7 +3121,7 @@
             </div>
 
             <!-- ====== TAB 12: NUMBER WARMER & ANTI-BAN HUB ====== -->
-            <div class="panel" id="warmerPanel">
+            <div class="panel" id="warmerPanel" style="display:none !important">
                 <div class="grid-2">
                     <div class="card">
                         <div class="card-header">
