@@ -7134,6 +7134,14 @@ function clearContactSearch() {
     renderContactsTable();
 }
 
+let contactsCurrentPage = 1;
+const CONTACTS_PAGE_SIZE = 60;
+
+function changeContactsPage(delta) {
+    contactsCurrentPage += delta;
+    renderContactsTable();
+}
+
 function renderContactsTable() {
     const el = document.getElementById('mainContactsContainer');
     const totalEl = document.getElementById('totalContactsHeader');
@@ -7188,7 +7196,15 @@ function renderContactsTable() {
         return;
     }
 
-    el.innerHTML = filtered.map(c => {
+    // ⚡ Fast Virtualized Pagination
+    const totalPages = Math.ceil(filtered.length / CONTACTS_PAGE_SIZE) || 1;
+    if (contactsCurrentPage > totalPages) contactsCurrentPage = totalPages;
+    if (contactsCurrentPage < 1) contactsCurrentPage = 1;
+
+    const startIdx = (contactsCurrentPage - 1) * CONTACTS_PAGE_SIZE;
+    const pagedSlice = filtered.slice(startIdx, startIdx + CONTACTS_PAGE_SIZE);
+
+    const rowsHtml = pagedSlice.map(c => {
         const displayName = highlightSearchMatch(c.name || 'عميل', tokens);
         const displayPhone = highlightSearchMatch(c.phone || '', tokens);
         const displayCat = highlightSearchMatch(c.category || 'عام', tokens);
@@ -7211,6 +7227,18 @@ function renderContactsTable() {
         `;
     }).join('');
 
+    let paginationControls = '';
+    if (totalPages > 1) {
+        paginationControls = `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;margin-top:10px">
+                <button class="btn btn-sm btn-secondary" ${contactsCurrentPage <= 1 ? 'disabled' : ''} onclick="changeContactsPage(-1)"><i class="fa-solid fa-arrow-right"></i> الصفحة السابقة</button>
+                <span style="font-size:0.85rem;font-weight:bold;color:var(--text-secondary)">صفحة <b style="color:var(--primary)">${contactsCurrentPage}</b> من <b style="color:var(--primary)">${totalPages}</b> (إجمالي ${filtered.length.toLocaleString()} عميل)</span>
+                <button class="btn btn-sm btn-secondary" ${contactsCurrentPage >= totalPages ? 'disabled' : ''} onclick="changeContactsPage(1)">الصفحة التالية <i class="fa-solid fa-arrow-left"></i></button>
+            </div>
+        `;
+    }
+
+    el.innerHTML = rowsHtml + paginationControls;
     updateContactSelectionState();
 }
 
@@ -8534,7 +8562,32 @@ document.addEventListener('keydown', (e) => {
 // Initial Boot
 loadUserProfile();
 checkStatus();
-setInterval(checkStatus, 1200);
+// 🚀 Smart Adaptive Polling (Turbo Performance)
+let statusPollTimer = null;
+function scheduleNextStatusCheck() {
+    if (statusPollTimer) clearTimeout(statusPollTimer);
+    
+    // If window is minimized / in background, slow down polling
+    if (document.hidden) {
+        statusPollTimer = setTimeout(() => { checkStatus().then(scheduleNextStatusCheck); }, 15000);
+        return;
+    }
+
+    const qrModal = document.getElementById('qrModal');
+    const isQrOpen = qrModal && qrModal.classList.contains('active');
+    
+    let interval = 8000; // Default when connected: 8 seconds
+    if (isQrOpen) {
+        interval = 1500; // Fast when QR modal is open
+    } else if (!lastStatusData || !lastStatusData.isReady) {
+        interval = 4000; // Normal when disconnected
+    }
+    
+    statusPollTimer = setTimeout(() => {
+        checkStatus().then(scheduleNextStatusCheck).catch(scheduleNextStatusCheck);
+    }, interval);
+}
+scheduleNextStatusCheck();
 loadContacts();
 loadTemplates();
 renderPhonePreview();

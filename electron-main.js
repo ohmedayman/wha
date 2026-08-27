@@ -16,6 +16,13 @@ if (typeof globalThis.File === 'undefined') {
 }
 
 const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+
+// 🚀 Turbo Performance & Memory Optimization Switches
+app.commandLine.appendSwitch('disable-renderer-backgrounding');
+app.commandLine.appendSwitch('disable-background-timer-throttling');
+app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=512');
+app.commandLine.appendSwitch('disable-site-isolation-trials');
 const path = require('path');
 const fs = require('fs-extra');
 
