@@ -1483,42 +1483,35 @@
         </div>
 
         <nav class="sidebar-menu">
-            <!-- 🏠 Dashboard -->
+            <!-- 🏠 1. Dashboard -->
             <div class="nav-item active" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-house-chimney"></i> <span>الرئيسية (Dashboard)</span></div>
 
-            <div class="sidebar-section-title"><i class="fa-solid fa-paper-plane"></i> <span>الإرسال والحملات</span></div>
-            <div class="nav-item" onclick="switchTab('send', this)"><i class="fa-solid fa-paper-plane"></i> <span>إرسال الحملات</span></div>
-            <div class="nav-item" onclick="switchTab('growth', this)"><i class="fa-solid fa-wand-magic-sparkles"></i> <span>سحب المنتجات والنمو</span> <span class="brand-badge" style="font-size:0.62rem;padding:1px 6px">جديد</span></div>
-            <div class="nav-item" onclick="switchTab('scheduled', this)"><i class="fa-solid fa-clock"></i> <span>الحملات المجدولة</span></div>
-
-            <div class="sidebar-section-title"><i class="fa-solid fa-comments"></i> <span>المحادثات والتوجيه</span></div>
+            <div class="sidebar-section-title"><i class="fa-solid fa-paper-plane"></i> <span>التسويق والمحادثات</span></div>
+            <!-- 🚀 2. Campaigns -->
+            <div class="nav-item" onclick="switchTab('send', this)"><i class="fa-solid fa-paper-plane"></i> <span>استوديو إرسال الحملات</span></div>
+            <!-- 💬 3. Live Inbox -->
             <div class="nav-item" onclick="switchTab('inbox', this)">
                 <i class="fa-solid fa-comments"></i>
-                <span>صندوق المحادثات</span>
+                <span>صندوق المحادثات (Inbox)</span>
                 <span id="inboxUnreadBadge" style="display:none;margin-right:auto;background:#ef4444;color:white;border-radius:10px;padding:1px 7px;font-size:0.68rem;font-weight:900">0</span>
             </div>
-            <div class="nav-item" onclick="switchTab('menubot', this)"><i class="fa-solid fa-list-ol"></i> <span>المنيو التفاعلي (IVR)</span></div>
-            <div class="nav-item" onclick="switchTab('forwarding', this)"><i class="fa-solid fa-phone-volume"></i> <span>تحويل وتوجيه المحادثات</span></div>
-            <div class="nav-item" onclick="switchTab('chatbot', this)"><i class="fa-solid fa-robot"></i> <span>الرد الآلي & AI</span></div>
-
-            <div class="sidebar-section-title"><i class="fa-solid fa-users"></i> <span>إدارة العملاء والبيانات</span></div>
+            <!-- 👥 4. Contacts & CRM -->
             <div class="nav-item" onclick="switchTab('contacts', this)">
                 <i class="fa-solid fa-address-book"></i>
-                <span>إدارة العملاء والوسوم</span>
+                <span>قاعدة العملاء والتصنيفات</span>
             </div>
-            <div class="nav-item" onclick="switchTab('gmaps', this)">
-                <i class="fa-solid fa-map-location-dot" style="color:#10b981"></i>
-                <span>ساحب بيانات خرائط جوجل</span>
-                <span class="badge" style="margin-right:auto;background:rgba(16,185,129,0.15);color:var(--primary);font-size:0.65rem;padding:2px 6px">جديد 🔥</span>
-            </div>
-            <div class="nav-item" onclick="switchTab('groups', this)"><i class="fa-solid fa-users-viewfinder"></i> <span>سحب الجروبات والروابط</span></div>
 
-            <div class="sidebar-section-title"><i class="fa-solid fa-chart-line"></i> <span>التحليلات والأدوات</span></div>
-            <div class="nav-item" onclick="switchTab('reports', this)"><i class="fa-solid fa-chart-line"></i> <span>التقارير والتحليلات</span></div>
-            <div class="nav-item" onclick="switchTab('templates', this)"><i class="fa-solid fa-layer-group"></i> <span>مكتبة القوالب</span></div>
-            <div class="nav-item" onclick="switchTab('warmer', this)"><i class="fa-solid fa-fire-flame-curved"></i> <span>تحمية الأرقام (Warmer)</span></div>
-            <div class="nav-item" onclick="switchTab('filter', this)"><i class="fa-solid fa-filter-circle-dollar"></i> <span>فحص وتوليد الأرقام</span></div>
-            <div class="nav-item" onclick="switchTab('tools', this)"><i class="fa-solid fa-screwdriver-wrench"></i> <span>الأدوات المتقدمة</span></div>
+            <div class="sidebar-section-title"><i class="fa-solid fa-robot"></i> <span>الأتمتة وسحب الأرقام</span></div>
+            <!-- 🤖 5. Auto-Reply & IVR Menu Bot -->
+            <div class="nav-item" onclick="switchTab('menubot', this)"><i class="fa-solid fa-robot"></i> <span>الرد الآلي والمنيو التفاعلي</span></div>
+            <!-- 👥 6. Account Chats & Groups Extractor -->
+            <div class="nav-item" onclick="switchTab('groups', this)"><i class="fa-solid fa-users-viewfinder"></i> <span>سحب محادثات وجروبات الحساب</span></div>
+
+            <div class="sidebar-section-title"><i class="fa-solid fa-chart-line"></i> <span>التقارير وحماية الحساب</span></div>
+            <!-- 📊 7. Reports & History -->
+            <div class="nav-item" onclick="switchTab('reports', this)"><i class="fa-solid fa-chart-line"></i> <span>سجل وتقارير الحملات</span></div>
+            <!-- 🛡️ 8. Anti-Ban & Number Warmer -->
+            <div class="nav-item" onclick="switchTab('warmer', this)"><i class="fa-solid fa-shield-halved"></i> <span>حماية وتدفئة الأرقام (Anti-Ban)</span></div>
         </nav>
 
         <div class="sidebar-footer">
@@ -2499,7 +2492,7 @@
             </div>
 
             <!-- ====== TAB: GOOGLE MAPS & BUSINESS LEAD EXTRACTOR ====== -->
-            <div class="panel" id="gmapsPanel">
+            <div class="panel" id="gmapsPanel" style="display:none !important">
                 <!-- Hero Header -->
                 <div class="campaign-hero-banner" style="background:linear-gradient(135deg, rgba(16,185,129,0.12), rgba(5,150,105,0.06));border:1px solid rgba(16,185,129,0.25);border-radius:14px;padding:16px 20px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
                     <div style="display:flex;align-items:center;gap:14px">
@@ -2594,15 +2587,18 @@
             <div class="panel" id="groupsPanel">
                 <div class="card">
                     <div class="card-header">
-                        <h3><i class="fa-solid fa-users-viewfinder"></i> سحب الجروبات والمحادثات وروابط الويب</h3>
+                        <div>
+                            <h3 style="margin:0"><i class="fa-solid fa-users-viewfinder" style="color:var(--primary)"></i> سحب واستخراج محادثات وأعضاء جروبات الحساب</h3>
+                            <small style="color:var(--text-muted);font-size:0.8rem">استخرج جميع الأرقام من شات حسابك وأعضاء الجروبات لحفظهم فوراً في قاعدة العملاء</small>
+                        </div>
                         <div style="display:flex;gap:8px">
-                            <button class="btn btn-accent btn-sm" onclick="extractAllAccountChats()"><i class="fa-solid fa-comments"></i> سحب كل محادثات الحساب</button>
-                            <button class="btn btn-primary btn-sm" onclick="loadWhatsAppGroups()"><i class="fa-solid fa-arrows-rotate"></i> جلب جروباتي</button>
+                            <button class="btn btn-accent btn-sm" onclick="extractAllAccountChats()"><i class="fa-solid fa-comments"></i> ⚡ سحب كل محادثات الحساب</button>
+                            <button class="btn btn-primary btn-sm" onclick="loadWhatsAppGroups()"><i class="fa-solid fa-arrows-rotate"></i> 👥 جلب واستخراج الجروبات</button>
                         </div>
                     </div>
 
                     <!-- Scrape Group Links from Web -->
-                    <div class="card" style="padding:14px;background:rgba(0,128,105,0.04);border:1px solid var(--card-border);margin-bottom:16px">
+                    <div class="card" style="display:none;padding:14px;background:rgba(0,128,105,0.04);border:1px solid var(--card-border);margin-bottom:16px">
                         <h4 style="font-size:0.92rem;color:var(--primary);margin-bottom:8px"><i class="fa-solid fa-globe"></i> استخراج روابط جروبات واتساب عامة من الإنترنت:</h4>
                         <div style="display:flex;gap:8px">
                             <input type="text" id="scrapeGroupKeyword" class="form-control" placeholder="اكتب اهتمامك (مثال: عقارات، سيارات، تسويق، تجارة)">
@@ -2620,7 +2616,7 @@
             </div>
 
             <!-- ====== TAB 8: WHATSAPP NUMBER FILTER & GENERATOR ====== -->
-            <div class="panel" id="filterPanel">
+            <div class="panel" id="filterPanel" style="display:none !important">
                 <!-- Sequential Number Generator -->
                 <div class="card" style="padding:16px;background:rgba(0,128,105,0.04);border:1px solid var(--card-border);margin-bottom:18px">
                     <h4 style="font-size:0.95rem;color:var(--primary);margin-bottom:8px"><i class="fa-solid fa-calculator"></i> توليد أرقام هواتف متسلسلة ومستهدفة (Number Generator)</h4>
@@ -2766,7 +2762,7 @@
             </div>
 
             <!-- ====== TAB 9.5: GROWTH & PRODUCT SCRAPER TOOLS ====== -->
-            <div class="panel" id="growthPanel">
+            <div class="panel" id="growthPanel" style="display:none !important">
                 <!-- 🚀 Luxury Hero Banner -->
                 <div class="campaign-hero-banner" style="background:linear-gradient(135deg, rgba(5,150,105,0.12), rgba(16,185,129,0.06));border:1px solid rgba(16,185,129,0.25);border-radius:var(--radius-lg);padding:14px 20px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
                     <div style="display:flex;align-items:center;gap:14px">
