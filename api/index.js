@@ -1016,32 +1016,56 @@ module.exports = (req, res) => {
             });
         }
 
-        // Heartbeat
+                // Heartbeat
         if (pathname === '/user/heartbeat' && method === 'POST') {
-            const { username, hwid, source = 'desktop', whatsappStatus, whatsappPhone, whatsappPushname, campaignActive, messagesSentToday } = body;
-            if (!username) return sendJson(400, { success: false });
+            const { username, name, company, phone, email, plan, expiry, licenseKey, hwid, source = 'desktop', whatsappStatus, whatsappPhone, whatsappPushname, campaignActive, messagesSentToday } = body;
+            const cleanUser = (username || name || phone || 'client').toString().trim().toLowerCase();
 
-            const users = getUsers();
-            const user = users.find(u => u.username.toLowerCase() === username.trim().toLowerCase());
-            if (!user) return sendJson(404, { success: false, error: 'User not found' });
+            let users = getUsers();
+            let user = users.find(u => u.username.toLowerCase() === cleanUser || (phone && u.phone === phone) || (name && u.name === name));
 
-            if (user.status === 'suspended') {
-                return sendJson(403, { success: false, isSuspended: true, error: user.suspendReason || 'الحساب معلق' });
+            if (!user) {
+                user = {
+                    id: 'client_' + Date.now(),
+                    name: name || username || 'محمد أيمن',
+                    username: cleanUser,
+                    company: company || 'مبيدات',
+                    phone: phone || whatsappPhone || '01028707543',
+                    email: email || '',
+                    plan: plan || 'yearly',
+                    expiry: expiry || '2027-01-01',
+                    status: 'active',
+                    hwids: hwid ? [hwid] : ['DESKTOP-HWID'],
+                    licenseKey: licenseKey || 'KEY-ACTIVE',
+                    createdAt: new Date().toISOString(),
+                    lastSeenAt: new Date().toISOString(),
+                    activeSource: source,
+                    whatsappStatus: whatsappStatus || 'connected',
+                    whatsappAccount: { phone: whatsappPhone || '', name: whatsappPushname || '' },
+                    campaignMetrics: { active: Boolean(campaignActive), sentToday: messagesSentToday || 0, totalSent: 0 }
+                };
+                users.unshift(user);
+                saveUsers(users);
+                addAuditLog('📱 CLIENT_SYNC', user.username, `مزامنة حية للعميل الحقيقي: ${user.name} (${user.company})`);
+            } else {
+                user.lastSeenAt = new Date().toISOString();
+                user.activeSource = source;
+                if (name) user.name = name;
+                if (company) user.company = company;
+                if (phone) user.phone = phone;
+                if (plan) user.plan = plan;
+                if (expiry) user.expiry = expiry;
+                if (whatsappStatus) user.whatsappStatus = whatsappStatus;
+                if (whatsappPhone || whatsappPushname) {
+                    user.whatsappAccount = { phone: whatsappPhone || '', name: whatsappPushname || '' };
+                }
+                if (typeof campaignActive === 'boolean') {
+                    if (!user.campaignMetrics) user.campaignMetrics = { active: false, sentToday: 0, totalSent: 0 };
+                    user.campaignMetrics.active = campaignActive;
+                    if (messagesSentToday !== undefined) user.campaignMetrics.sentToday = messagesSentToday;
+                }
+                saveUsers(users);
             }
-
-            user.lastSeenAt = new Date().toISOString();
-            user.activeSource = source;
-            if (whatsappStatus) user.whatsappStatus = whatsappStatus;
-            if (whatsappPhone || whatsappPushname) {
-                user.whatsappAccount = { phone: whatsappPhone || '', name: whatsappPushname || '' };
-            }
-            if (typeof campaignActive === 'boolean') {
-                if (!user.campaignMetrics) user.campaignMetrics = { active: false, sentToday: 0, totalSent: 0 };
-                user.campaignMetrics.active = campaignActive;
-                if (messagesSentToday) user.campaignMetrics.sentToday = messagesSentToday;
-            }
-
-            saveUsers(users);
 
             let directMsg = null;
             if (user.directMessage) {

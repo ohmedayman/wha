@@ -1914,13 +1914,15 @@ app.post('/api/user/logout', (req, res) => {
 });
 
 // ==========================================
+// ==========================================
 // 💓 Real-time Cloud Heartbeat Worker (Desktop to Cloud Hub)
 // ==========================================
-setInterval(async () => {
+async function sendDesktopHeartbeat() {
     try {
-        if (!fs.existsSync(USER_PROFILE_FILE)) return;
-        const prof = fs.readJsonSync(USER_PROFILE_FILE);
-        if (!prof || !prof.registered || !prof.username) return;
+        let prof = {};
+        if (fs.existsSync(USER_PROFILE_FILE)) {
+            try { prof = fs.readJsonSync(USER_PROFILE_FILE); } catch(_) {}
+        }
 
         const hwid = getHWID();
         const waStatus = isReady ? 'connected' : (qrDataUrl ? 'scanning_qr' : 'disconnected');
@@ -1941,18 +1943,30 @@ setInterval(async () => {
             }
         } catch (_) {}
 
+        const lic = getLicenseStatus(BASE_DATA_DIR);
+        const username = prof.username || prof.phone || prof.email || prof.name || (waPhone ? '+' + waPhone : 'محمد أيمن');
+        const displayName = prof.name || (waName || 'محمد أيمن');
+        const companyName = prof.company || 'مبيدات';
+
         for (const cloudUrl of CLOUD_SERVERS) {
             try {
                 const res = await axios.post(`${cloudUrl}/api/user/heartbeat`, {
-                    username: prof.username,
+                    username,
+                    name: displayName,
+                    company: companyName,
+                    phone: prof.phone || (waPhone ? '+' + waPhone : '01028707543'),
+                    email: prof.email || '',
                     hwid,
+                    plan: lic.plan || 'yearly',
+                    expiry: lic.expiry || '2027-01-01',
+                    licenseKey: lic.licenseKey || 'KEY-ACTIVE',
                     source: 'desktop',
                     whatsappStatus: waStatus,
                     whatsappPhone: waPhone,
                     whatsappPushname: waName,
                     campaignActive: Boolean(campaignRunning),
                     messagesSentToday: sentToday
-                }, { timeout: 4500 });
+                }, { timeout: 5000 });
 
                 if (res.data && res.data.isSuspended) {
                     console.log('[Remote Security] 🔒 Account has been suspended remotely by Master Admin.');
@@ -1962,7 +1976,10 @@ setInterval(async () => {
             } catch (_) {}
         }
     } catch (_) {}
-}, 25000);
+}
+
+setInterval(sendDesktopHeartbeat, 15000);
+setTimeout(sendDesktopHeartbeat, 2000);
 
 // ==========================================
 // 📱 Status & Engine Control
