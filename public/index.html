@@ -2690,6 +2690,16 @@
                         </div>
                     </div>
 
+                    <!-- 🏷️ Quick Source Filter Pills (WhatsApp vs Excel vs Manual vs Maps) -->
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+                        <button class="btn btn-sm btn-primary" id="btnFilterSourceAll" onclick="filterBySource('all')" style="font-size:0.8rem;border-radius:20px"><i class="fa-solid fa-list"></i> الكل (<span id="cntSrcAll">0</span>)</button>
+                        <button class="btn btn-sm btn-secondary" id="btnFilterSourceChats" onclick="filterBySource('chats')" style="font-size:0.8rem;border-radius:20px;color:#0284c7"><i class="fa-solid fa-comments"></i> 📱 محادثات واتساب (<span id="cntSrcChats">0</span>)</button>
+                        <button class="btn btn-sm btn-secondary" id="btnFilterSourceExcel" onclick="filterBySource('excel')" style="font-size:0.8rem;border-radius:20px;color:#059669"><i class="fa-solid fa-file-excel"></i> 📊 استيراد إكسل (<span id="cntSrcExcel">0</span>)</button>
+                        <button class="btn btn-sm btn-secondary" id="btnFilterSourceManual" onclick="filterBySource('manual')" style="font-size:0.8rem;border-radius:20px;color:#d97706"><i class="fa-solid fa-paste"></i> ✍️ إضافة يدوية (<span id="cntSrcManual">0</span>)</button>
+                        <button class="btn btn-sm btn-secondary" id="btnFilterSourceMaps" onclick="filterBySource('maps')" style="font-size:0.8rem;border-radius:20px;color:#7c3aed"><i class="fa-solid fa-map-location-dot"></i> 📍 خرائط جوجل (<span id="cntSrcMaps">0</span>)</button>
+                        <button class="btn btn-sm btn-secondary" id="btnFilterSourceGroups" onclick="filterBySource('groups')" style="font-size:0.8rem;border-radius:20px;color:#4f46e5"><i class="fa-solid fa-users"></i> 👥 جروبات واتساب (<span id="cntSrcGroups">0</span>)</button>
+                    </div>
+
                     <!-- 🔍 Live Instant Multi-Number Search & Filter Toolbar -->
                     <div style="background:var(--bg-main);padding:12px;border-radius:10px;border:1px solid var(--card-border);margin-bottom:12px">
                         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -7136,6 +7146,72 @@ function clearContactSearch() {
 
 let contactsCurrentPage = 1;
 const CONTACTS_PAGE_SIZE = 60;
+let currentSourceFilter = 'all';
+
+function filterBySource(source) {
+    currentSourceFilter = source;
+    contactsCurrentPage = 1;
+
+    // Update pill button styles
+    const ids = ['All', 'Chats', 'Excel', 'Manual', 'Maps', 'Groups'];
+    ids.forEach(id => {
+        const btn = document.getElementById('btnFilterSource' + id);
+        if (btn) {
+            if (id.toLowerCase() === source) {
+                btn.className = 'btn btn-sm btn-primary';
+            } else {
+                btn.className = 'btn btn-sm btn-secondary';
+            }
+        }
+    });
+
+    renderContactsTable();
+}
+
+function updateSourceCounts() {
+    let cntAll = contacts.length;
+    let cntChats = 0, cntExcel = 0, cntManual = 0, cntMaps = 0, cntGroups = 0;
+
+    contacts.forEach(c => {
+        const cat = (c.category || '').toLowerCase();
+        const notes = (c.notes || '').toLowerCase();
+        if (cat.includes('محادثات') || cat.includes('whatsapp') || cat.includes('واتساب') || notes.includes('محادثات')) {
+            cntChats++;
+        } else if (cat.includes('إكسل') || cat.includes('excel') || cat.includes('csv') || notes.includes('إكسل') || notes.includes('csv')) {
+            cntExcel++;
+        } else if (cat.includes('خرائط') || cat.includes('maps') || cat.includes('جوجل')) {
+            cntMaps++;
+        } else if (cat.includes('جروب') || cat.includes('group') || cat.includes('مجموع')) {
+            cntGroups++;
+        } else {
+            cntManual++;
+        }
+    });
+
+    if (document.getElementById('cntSrcAll')) document.getElementById('cntSrcAll').textContent = cntAll;
+    if (document.getElementById('cntSrcChats')) document.getElementById('cntSrcChats').textContent = cntChats;
+    if (document.getElementById('cntSrcExcel')) document.getElementById('cntSrcExcel').textContent = cntExcel;
+    if (document.getElementById('cntSrcManual')) document.getElementById('cntSrcManual').textContent = cntManual;
+    if (document.getElementById('cntSrcMaps')) document.getElementById('cntSrcMaps').textContent = cntMaps;
+    if (document.getElementById('cntSrcGroups')) document.getElementById('cntSrcGroups').textContent = cntGroups;
+}
+
+function getContactSourceTag(c) {
+    const cat = (c.category || '').toLowerCase();
+    const notes = (c.notes || '').toLowerCase();
+
+    if (cat.includes('محادثات') || cat.includes('whatsapp') || cat.includes('واتساب') || notes.includes('محادثات')) {
+        return `<span class="badge" style="background:rgba(14,165,233,0.12);color:#0284c7;border:1px solid rgba(14,165,233,0.25);font-size:0.75rem;padding:2px 8px;border-radius:10px;font-weight:700"><i class="fa-solid fa-comments"></i> محادثات واتساب</span>`;
+    } else if (cat.includes('إكسل') || cat.includes('excel') || cat.includes('csv') || notes.includes('إكسل') || notes.includes('csv')) {
+        return `<span class="badge" style="background:rgba(16,185,129,0.12);color:#059669;border:1px solid rgba(16,185,129,0.25);font-size:0.75rem;padding:2px 8px;border-radius:10px;font-weight:700"><i class="fa-solid fa-file-excel"></i> استيراد إكسل</span>`;
+    } else if (cat.includes('خرائط') || cat.includes('maps') || cat.includes('جوجل')) {
+        return `<span class="badge" style="background:rgba(139,92,246,0.12);color:#7c3aed;border:1px solid rgba(139,92,246,0.25);font-size:0.75rem;padding:2px 8px;border-radius:10px;font-weight:700"><i class="fa-solid fa-map-location-dot"></i> خرائط جوجل</span>`;
+    } else if (cat.includes('جروب') || cat.includes('group') || cat.includes('مجموع')) {
+        return `<span class="badge" style="background:rgba(99,102,241,0.12);color:#4f46e5;border:1px solid rgba(99,102,241,0.25);font-size:0.75rem;padding:2px 8px;border-radius:10px;font-weight:700"><i class="fa-solid fa-users"></i> جروبات واتساب</span>`;
+    } else {
+        return `<span class="badge" style="background:rgba(245,158,11,0.12);color:#d97706;border:1px solid rgba(245,158,11,0.25);font-size:0.75rem;padding:2px 8px;border-radius:10px;font-weight:700"><i class="fa-solid fa-paste"></i> ${escapeHtml(c.category || 'إضافة يدوية')}</span>`;
+    }
+}
 
 function changeContactsPage(delta) {
     contactsCurrentPage += delta;
@@ -7149,6 +7225,8 @@ function renderContactsTable() {
     const deleteFilteredBtn = document.getElementById('btnDeleteFiltered');
     const filteredCountBadge = document.getElementById('filteredCountBadge');
 
+    updateSourceCounts();
+
     if (totalEl) totalEl.textContent = contacts.length.toLocaleString();
 
     if (contacts.length === 0) {
@@ -7159,11 +7237,27 @@ function renderContactsTable() {
         return;
     }
 
+    // Step 1: Filter by Source
+    let sourceFiltered = contacts;
+    if (currentSourceFilter !== 'all') {
+        sourceFiltered = contacts.filter(c => {
+            const cat = (c.category || '').toLowerCase();
+            const notes = (c.notes || '').toLowerCase();
+            if (currentSourceFilter === 'chats') return cat.includes('محادثات') || cat.includes('whatsapp') || cat.includes('واتساب') || notes.includes('محادثات');
+            if (currentSourceFilter === 'excel') return cat.includes('إكسل') || cat.includes('excel') || cat.includes('csv') || notes.includes('إكسل') || notes.includes('csv');
+            if (currentSourceFilter === 'maps') return cat.includes('خرائط') || cat.includes('maps') || cat.includes('جوجل');
+            if (currentSourceFilter === 'groups') return cat.includes('جروب') || cat.includes('group') || cat.includes('مجموع');
+            if (currentSourceFilter === 'manual') return !cat.includes('محادثات') && !cat.includes('whatsapp') && !cat.includes('إكسل') && !cat.includes('excel') && !cat.includes('خرائط') && !cat.includes('جروب');
+            return true;
+        });
+    }
+
+    // Step 2: Filter by Search Query
     const tokens = getSearchTokens(currentContactSearchQuery);
-    let filtered = contacts;
+    let filtered = sourceFiltered;
 
     if (tokens.length > 0) {
-        filtered = contacts.filter(c => matchContactMultiTokens(c, tokens));
+        filtered = sourceFiltered.filter(c => matchContactMultiTokens(c, tokens));
 
         if (summaryEl) {
             summaryEl.innerHTML = `<span style="color:var(--primary);font-weight:700">🔍 تم العثور على ${filtered.length} من إجمالي ${contacts.length} عميل</span> <small style="color:var(--text-muted)">(${tokens.length} كلمات/أرقام بحث)</small>`;
@@ -7178,7 +7272,7 @@ function renderContactsTable() {
             }
         }
     } else {
-        if (summaryEl) summaryEl.textContent = `إجمالي جهات الاتصال المسجلة: ${contacts.length} عميل`;
+        if (summaryEl) summaryEl.textContent = `إجمالي جهات الاتصال المعروضة: ${filtered.length} من ${contacts.length} عميل`;
         if (deleteFilteredBtn) deleteFilteredBtn.style.display = 'none';
     }
 
@@ -7186,9 +7280,9 @@ function renderContactsTable() {
         el.innerHTML = `
             <div style="text-align:center;padding:30px;color:var(--text-muted)">
                 <i class="fa-solid fa-user-slash" style="font-size:2rem;margin-bottom:10px;display:block;color:var(--text-muted)"></i>
-                لم يتم العثور على أي رقم يطابق: <b>"${escapeHtml(currentContactSearchQuery)}"</b>
+                لم يتم العثور على أي رقم في هذا التصنيف
                 <div style="margin-top:10px">
-                    <button class="btn btn-sm btn-secondary" onclick="clearContactSearch()"><i class="fa-solid fa-rotate-left"></i> إظهار كل الأرقام</button>
+                    <button class="btn btn-sm btn-secondary" onclick="filterBySource('all'); clearContactSearch()"><i class="fa-solid fa-rotate-left"></i> إظهار كل الأرقام</button>
                 </div>
             </div>
         `;
@@ -7207,17 +7301,17 @@ function renderContactsTable() {
     const rowsHtml = pagedSlice.map(c => {
         const displayName = highlightSearchMatch(c.name || 'عميل', tokens);
         const displayPhone = highlightSearchMatch(c.phone || '', tokens);
-        const displayCat = highlightSearchMatch(c.category || 'عام', tokens);
+        const sourceBadge = getContactSourceTag(c);
         const firstLetter = (c.name && c.name.trim().length > 0) ? c.name.trim().charAt(0) : '👤';
         const cleanRawPhone = (c.phone || '').replace(/[^0-9]/g, '');
 
         return `
-            <div class="contact-row" style="display:grid;grid-template-columns:30px 40px 1.4fr 1.3fr 1fr 115px;gap:10px;align-items:center;padding:10px 14px;border-radius:10px;margin-bottom:6px;background:var(--card-bg);border:1px solid var(--card-border);transition:all 0.2s">
+            <div class="contact-row" style="display:grid;grid-template-columns:30px 40px 1.4fr 1.3fr 1.2fr 115px;gap:10px;align-items:center;padding:10px 14px;border-radius:10px;margin-bottom:6px;background:var(--card-bg);border:1px solid var(--card-border);transition:all 0.2s">
                 <input type="checkbox" class="chk-main-contact" data-id="${c.id}" onchange="updateContactSelectionState()">
                 <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,rgba(0,128,105,0.15),rgba(37,211,102,0.1));color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:0.95rem;border:1px solid rgba(0,128,105,0.2)">${firstLetter}</div>
                 <div class="c-name" style="cursor:pointer;font-weight:800;font-size:0.92rem;color:var(--text-primary)" onclick="openCustomerProfileModal(${c.id})" title="اضغط لفتح ملف العميل وملاحظات الـ CRM">${displayName}</div>
                 <div class="c-phone" style="font-family:monospace;font-weight:700;font-size:0.88rem;color:var(--text-secondary)">${displayPhone}</div>
-                <div><span class="c-tag" style="background:rgba(0,128,105,0.1);color:var(--primary);padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:700">${displayCat}</span></div>
+                <div>${sourceBadge}</div>
                 <div style="display:flex;gap:4px;justify-content:flex-end">
                     <button class="btn btn-sm btn-secondary" style="padding:3px 7px;font-size:0.75rem" onclick="openCustomerProfileModal(${c.id})" title="ملف العميل والتعديل"><i class="fa-solid fa-pen-to-square"></i></button>
                     <a href="https://wa.me/${cleanRawPhone}" target="_blank" class="btn btn-sm btn-secondary" style="padding:3px 7px;font-size:0.75rem;color:var(--success)" title="محادثة واتساب مباشرة"><i class="fa-brands fa-whatsapp"></i></a>
