@@ -2998,12 +2998,13 @@
                         
                         <!-- 🏷️ Quick Category Filter Tabs in Inbox -->
                         <div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px" id="inboxFilterChipsContainer">
-                            <button class="btn btn-xs btn-primary" onclick="filterInboxByTag('all', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px">الكل</button>
-                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('whatsapp', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;color:#0284c7">📱 محادثات</button>
-                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('online', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;color:#059669">🌐 أونلاين</button>
-                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('direct', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;color:#d97706">🤝 مباشر</button>
-                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('vip', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;color:#dc2626">👑 VIP</button>
-                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('excel', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;color:#16a34a">📊 إكسل</button>
+                            <button class="btn btn-xs btn-primary" onclick="filterInboxByTag('all', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;white-space:nowrap">الكل</button>
+                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('whatsapp', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;color:#0284c7;white-space:nowrap">📱 محادثات</button>
+                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('manual', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;color:#d97706;white-space:nowrap">✍️ إضافة يدوية</button>
+                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('online', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;color:#059669;white-space:nowrap">🌐 أونلاين</button>
+                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('direct', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;color:#8b5cf6;white-space:nowrap">🤝 مباشر</button>
+                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('vip', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;color:#dc2626;white-space:nowrap">👑 VIP</button>
+                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('excel', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;color:#16a34a;white-space:nowrap">📊 إكسل</button>
                         </div>
 
                         <!-- Search chats -->
@@ -4441,8 +4442,10 @@ function renderInboxChatsList(chats) {
     if (currentInboxTag !== 'all') {
         filtered = filtered.filter(c => {
             const cat = (c.category || '').toLowerCase();
+            const notes = (c.notes || '').toLowerCase();
             if (currentInboxTag === 'whatsapp') return cat.includes('محادثات') || cat.includes('whatsapp') || cat.includes('واتساب');
-            if (currentInboxTag === 'online') return cat.includes('أونلاين') || cat.includes('اونلاين') || cat.includes('online');
+            if (currentInboxTag === 'manual') return cat.includes('يدوي') || cat.includes('لصق') || cat.includes('manual') || notes.includes('يدوي');
+            if (currentInboxTag === 'online') return cat.includes('أونلاين') || cat.includes('اونلاين') || cat.includes('online') || cat.includes('متجر') || cat.includes('يدوي');
             if (currentInboxTag === 'direct') return cat.includes('مباشر') || cat.includes('محل') || cat.includes('direct');
             if (currentInboxTag === 'vip') return cat.includes('vip') || cat.includes('مميز');
             if (currentInboxTag === 'excel') return cat.includes('إكسل') || cat.includes('excel') || cat.includes('csv');

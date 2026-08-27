@@ -543,7 +543,7 @@ function initWhatsApp() {
                             notes: 'تواصل معك مباشرة عبر واتساب من الهاتف',
                             createdAt: new Date().toISOString()
                         });
-                        fs.writeJsonSync(CONTACTS_FILE, contactsList.slice(0, 5000), { spaces: 2 });
+                        fs.writeJsonSync(CONTACTS_FILE, contactsList, { spaces: 2 });
                         console.log(`[Sync] Live auto-saved incoming contact from phone: ${formattedPhone} (${notifName})`);
                     }
                 } catch(eSync) {
@@ -2419,19 +2419,22 @@ app.post('/api/ai/knowledge-base', (req, res) => {
 app.get('/api/inbox/chats', async (req, res) => {
     try {
         let list = [];
+        const existingPhones = new Set();
 
         // Strategy 1: Try client.getChats()
         if (client && isReady) {
             try {
                 const chats = await client.getChats();
                 if (Array.isArray(chats) && chats.length > 0) {
-                    list = chats.slice(0, 150).map(c => {
+                    chats.forEach(c => {
                         let lastMsg = '';
                         if (c.lastMessage) {
                             lastMsg = c.lastMessage.body || (c.lastMessage.hasMedia ? '📷 [وسائط]' : '');
                         }
                         const cleanPhone = (c.id && c.id.user) ? c.id.user.replace(/[^0-9]/g, '') : (c.id ? String(c.id).replace(/[^0-9]/g, '') : '');
-                        return {
+                        if (cleanPhone) existingPhones.add(cleanPhone);
+                        
+                        list.push({
                             id: (c.id && c.id._serialized) ? c.id._serialized : (cleanPhone + '@c.us'),
                             name: c.name || (c.contact ? (c.contact.pushname || c.contact.name) : null) || `عميل (${cleanPhone.slice(-4)})`,
                             phone: cleanPhone,
@@ -2440,7 +2443,7 @@ app.get('/api/inbox/chats', async (req, res) => {
                             unreadCount: c.unreadCount || 0,
                             timestamp: c.timestamp ? new Date(c.timestamp * 1000).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : 'نشط',
                             lastMessage: lastMsg.length > 60 ? lastMsg.substring(0, 60) + '...' : (lastMsg || 'محادثة نشطة')
-                        };
+                        });
                     });
                 }
             } catch (e1) {
@@ -2448,12 +2451,11 @@ app.get('/api/inbox/chats', async (req, res) => {
             }
         }
 
-        // Strategy 2: If live list is empty or to enrich with CRM contacts, merge with contacts database
+        // Strategy 2: Load ALL contacts from database without trimming
         if (fs.existsSync(CONTACTS_FILE)) {
             const contacts = fs.readJsonSync(CONTACTS_FILE);
             if (Array.isArray(contacts) && contacts.length > 0) {
-                const existingPhones = new Set(list.map(x => x.phone));
-                contacts.slice(0, 200).forEach(c => {
+                contacts.forEach(c => {
                     const clean = (c.phone || '').replace(/[^0-9]/g, '');
                     if (clean && !existingPhones.has(clean)) {
                         existingPhones.add(clean);
@@ -2461,7 +2463,7 @@ app.get('/api/inbox/chats', async (req, res) => {
                             id: clean + '@c.us',
                             name: c.name || `عميل (${clean.slice(-4)})`,
                             phone: clean,
-                            category: c.category || 'محادثات واتساب',
+                            category: c.category || 'إضافة يدوية',
                             isGroup: false,
                             unreadCount: 0,
                             timestamp: 'مسجل',
@@ -2481,7 +2483,10 @@ app.get('/api/inbox/chats', async (req, res) => {
 
 app.get('/api/inbox/chats/:id/messages', async (req, res) => {
     const rawId = req.params.id || '';
-    const clean = rawId.replace(/[^0-9]/g, '');
+    let clean = rawId.replace(/[^0-9]/g, '');
+    if (clean.startsWith('00')) clean = clean.substring(2);
+    if (clean.startsWith('0') && clean.length === 11) clean = '20' + clean.substring(1);
+
     const targetChatId = rawId.includes('@g.us') ? rawId : (clean + '@c.us');
     let chatName = `عميل (+${clean})`;
     let messages = [];
@@ -2489,7 +2494,14 @@ app.get('/api/inbox/chats/:id/messages', async (req, res) => {
     try {
         if (client && isReady) {
             try {
-                const chat = await client.getChatById(targetChatId).catch(() => null);
+                let chat = await client.getChatById(targetChatId).catch(() => null);
+                if (!chat && typeof client.getNumberId === 'function') {
+                    const numId = await client.getNumberId(clean).catch(() => null);
+                    if (numId && numId._serialized) {
+                        chat = await client.getChatById(numId._serialized).catch(() => null);
+                    }
+                }
+
                 if (chat) {
                     chatName = chat.name || (chat.contact ? (chat.contact.pushname || chat.contact.name) : null) || chatName;
                     const msgs = await chat.fetchMessages({ limit: 50 }).catch(() => []);
@@ -2527,33 +2539,28 @@ app.post('/api/inbox/send', async (req, res) => {
     try {
         const { chatId, message } = req.body;
         if (!chatId || !message) return res.status(400).json({ error: 'الرسالة ومعرف المحادثة مطلوبين' });
-        const clean = chatId.replace(/[^0-9]/g, '');
-        const targetChatId = chatId.includes('@g.us') ? chatId : (clean + '@c.us');
+        
+        let clean = chatId.replace(/[^0-9]/g, '');
+        if (clean.startsWith('00')) clean = clean.substring(2);
+        if (clean.startsWith('0') && clean.length === 11) clean = '20' + clean.substring(1);
+
+        let targetChatId = chatId.includes('@g.us') ? chatId : (clean + '@c.us');
+
+        try {
+            if (!chatId.includes('@g.us') && typeof client.getNumberId === 'function') {
+                const numberId = await client.getNumberId(clean);
+                if (numberId && numberId._serialized) {
+                    targetChatId = numberId._serialized;
+                }
+            }
+        } catch (_) {}
+
         const sentMsg = await client.sendMessage(targetChatId, message);
-        res.json({ success: true, message: 'تم إرسال الرد بنجاح!', id: sentMsg ? sentMsg.id._serialized : null });
+        res.json({ success: true, message: 'تم إرسال الرد بنجاح!', id: sentMsg ? (sentMsg.id ? sentMsg.id._serialized : null) : null });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        console.error('[Inbox Send Error]:', e.message);
+        res.status(500).json({ error: 'تعذر الإرسال: ' + e.message });
     }
-});
-
-// ==========================================
-// 🏷️ Smart Contact Tags & Bulk Actions
-// ==========================================
-
-app.post('/api/contacts/tags/add', (req, res) => {
-    const { contactIds, tag } = req.body;
-    if (!contactIds || !Array.isArray(contactIds) || !tag) {
-        return res.status(400).json({ error: 'البيانات غير مكتملة' });
-    }
-    const contacts = fs.readJsonSync(CONTACTS_FILE);
-    contacts.forEach(c => {
-        if (contactIds.includes(c.id)) {
-            if (!c.tags) c.tags = [];
-            if (!c.tags.includes(tag.trim())) c.tags.push(tag.trim());
-        }
-    });
-    fs.writeJsonSync(CONTACTS_FILE, contacts, { spaces: 2 });
-    res.json({ success: true, message: `تم إضافة الوسم "${tag}" للعملاء المحددين بنجاح!` });
 });
 
 // ==========================================
