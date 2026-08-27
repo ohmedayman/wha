@@ -4376,23 +4376,20 @@ async function loadInboxChats(isManual = false) {
     if (!container) return;
 
     if (!currentInboxChatsList || currentInboxChatsList.length === 0) {
-        container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted)"><i class="fa-solid fa-spinner fa-spin"></i> جاري جلب المحادثات...</div>';
+        container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted)"><i class="fa-solid fa-spinner fa-spin"></i> جاري جلب المحادثات والعملاء...</div>';
     }
 
     const chats = await api('/api/inbox/chats');
-    if (!chats || chats.error) {
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger)"><i class="fa-solid fa-triangle-exclamation"></i> ${chats ? chats.error : 'يرجى التأكد من ربط واتساب'}</div>`;
+    if (!chats || !Array.isArray(chats) || chats.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:25px 15px;color:var(--text-muted);font-size:0.85rem"><i class="fa-solid fa-comments" style="font-size:1.8rem;margin-bottom:8px;opacity:0.5;display:block"></i>لا توجد محادثات مفتوحة حالياً.<br><span style="font-size:0.75rem;color:var(--primary);cursor:pointer;font-weight:bold" onclick="showQrModalIfPending()">تأكد من ربط واتساب أو سحب محادثات الحساب</span></div>';
         return;
     }
-    if (chats.length === 0) {
-        container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted)">لا توجد محادثات واردة بعد.</div>';
-        return;
-    }
+    
     currentInboxChatsList = chats;
     renderInboxChatsList(chats);
 
     if (isManual) {
-        showToast('💬 تم تحديث المحادثات', 'تم جلب أحدث المحادثات والرسائل الواردة بنجاح', 'info', 2000);
+        showToast('💬 تم تحديث المحادثات', `تم جلب ${chats.length} محادثة وعميل بنجاح`, 'info', 2000);
         playChime('pop');
     }
 }

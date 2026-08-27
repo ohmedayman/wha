@@ -2365,55 +2365,99 @@ app.post('/api/ai/knowledge-base', (req, res) => {
 });
 
 // ==========================================
-// 💬 Live WhatsApp Inbox APIs
+// 💬 Live WhatsApp Inbox APIs (Resilient & Fault-Tolerant)
 // ==========================================
 
 app.get('/api/inbox/chats', async (req, res) => {
-    if (!isReady || !client) {
-        return res.status(400).json({ error: 'واتساب غير متصل - يرجى مسح رمز الـ QR' });
-    }
     try {
-        const chats = await client.getChats();
-        const list = chats.slice(0, 35).map(c => {
-            let lastMsg = '';
-            if (c.lastMessage) {
-                lastMsg = c.lastMessage.body || (c.lastMessage.hasMedia ? '📷 [وسائط]' : '');
+        let list = [];
+
+        // Strategy 1: Try client.getChats()
+        if (client && isReady) {
+            try {
+                const chats = await client.getChats();
+                if (Array.isArray(chats) && chats.length > 0) {
+                    list = chats.slice(0, 100).map(c => {
+                        let lastMsg = '';
+                        if (c.lastMessage) {
+                            lastMsg = c.lastMessage.body || (c.lastMessage.hasMedia ? '📷 [وسائط]' : '');
+                        }
+                        return {
+                            id: (c.id && c.id._serialized) ? c.id._serialized : (c.id || ''),
+                            name: c.name || (c.id ? c.id.user : 'جهة اتصال'),
+                            phone: c.id ? (c.id.user || '') : '',
+                            isGroup: Boolean(c.isGroup || (c.id && c.id._serialized && c.id._serialized.includes('@g.us'))),
+                            unreadCount: c.unreadCount || 0,
+                            timestamp: c.timestamp ? new Date(c.timestamp * 1000).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : 'نشط',
+                            lastMessage: lastMsg.length > 50 ? lastMsg.substring(0, 50) + '...' : (lastMsg || 'محادثة نشطة')
+                        };
+                    });
+                }
+            } catch (e1) {
+                console.log('[Inbox] getChats() warning, trying fallback:', e1.message);
             }
-            return {
-                id: c.id._serialized,
-                name: c.name || c.id.user || 'جهة اتصال',
-                phone: c.id.user || '',
-                isGroup: c.isGroup || false,
-                unreadCount: c.unreadCount || 0,
-                timestamp: c.timestamp ? new Date(c.timestamp * 1000).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : '',
-                lastMessage: lastMsg.length > 50 ? lastMsg.substring(0, 50) + '...' : lastMsg
-            };
-        });
-        res.json(list);
+        }
+
+        // Strategy 2: If live list is empty, fallback to extracted contacts from database
+        if (list.length === 0 && fs.existsSync(CONTACTS_FILE)) {
+            const contacts = fs.readJsonSync(CONTACTS_FILE);
+            if (Array.isArray(contacts) && contacts.length > 0) {
+                list = contacts.slice(0, 100).map(c => {
+                    const clean = (c.phone || '').replace(/[^0-9]/g, '');
+                    return {
+                        id: clean.includes('@') ? clean : clean + '@c.us',
+                        name: c.name || `عميل (${clean.slice(-4)})`,
+                        phone: clean,
+                        isGroup: false,
+                        unreadCount: 0,
+                        timestamp: 'مسجل',
+                        lastMessage: c.category || 'محادثات الحساب'
+                    };
+                });
+            }
+        }
+
+        return res.json(list);
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        console.error('Inbox chats fetch error:', e);
+        return res.json([]);
     }
 });
 
 app.get('/api/inbox/chats/:id/messages', async (req, res) => {
-    if (!isReady || !client) return res.status(400).json({ error: 'واتساب غير متصل' });
+    const chatId = req.params.id;
+    let clean = (chatId || '').replace(/[^0-9]/g, '');
+    let chatName = `محادثة +${clean}`;
+
     try {
-        const chatId = req.params.id;
-        const chat = await client.getChatById(chatId);
-        const msgs = await chat.fetchMessages({ limit: 30 });
-        const formatted = msgs.map(m => ({
-            id: m.id._serialized,
-            fromMe: m.fromMe,
-            body: m.body,
-            hasMedia: m.hasMedia,
-            type: m.type,
-            time: new Date(m.timestamp * 1000).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
-        }));
-        res.json({ chatName: chat.name || chat.id.user, messages: formatted });
+        if (client && isReady) {
+            try {
+                const chat = await client.getChatById(chatId);
+                if (chat) {
+                    chatName = chat.name || chat.id.user || chatName;
+                    const msgs = await chat.fetchMessages({ limit: 40 });
+                    const formatted = msgs.map(m => ({
+                        id: m.id ? m.id._serialized : String(Math.random()),
+                        fromMe: Boolean(m.fromMe),
+                        body: m.body || (m.hasMedia ? '📷 [وسائط]' : ''),
+                        hasMedia: Boolean(m.hasMedia),
+                        type: m.type || 'chat',
+                        time: m.timestamp ? new Date(m.timestamp * 1000).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : ''
+                    }));
+                    return res.json({ chatName, messages: formatted });
+                }
+            } catch (eChat) {
+                console.log('[Inbox] fetchMessages warning:', eChat.message);
+            }
+        }
+
+        // Fallback: Return empty messages thread so user can send new message
+        return res.json({ chatName, messages: [] });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        return res.json({ chatName, messages: [] });
     }
 });
+
 
 app.post('/api/inbox/send', async (req, res) => {
     if (!isReady || !client) return res.status(400).json({ error: 'واتساب غير متصل' });
