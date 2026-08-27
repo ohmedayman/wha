@@ -66,38 +66,9 @@ let memoryUsers = [
     }
 ];
 
-let memoryAgents = [
-    {
-        id: 'agent_cairo_vip',
-        name: 'وكالة النخبة للتسويق',
-        username: 'agent1',
-        passwordHash: hashPassword('agent123'),
-        phone: '01098765432',
-        company: 'وكيل معتمد - القاهرة',
-        credits: 30,
-        totalIssued: 5,
-        commission: '30%',
-        status: 'active',
-        notes: 'الوكيل الإقليمي لمنطقة القاهرة',
-        createdAt: new Date().toISOString()
-    }
-];
+let memoryAgents = [];
 
-let memoryAgentRequests = [
-    {
-        id: 'req_alex_sample',
-        name: 'وكالة الأهرام الرقمية',
-        username: 'ahram_alex',
-        passwordHash: hashPassword('123456'),
-        phone: '01011223344',
-        company: 'الأهرام للحلول البرمجية',
-        city: 'الإسكندرية',
-        expectedSales: '30 ترخيص شهرياً',
-        notes: 'نمتلك فريق مبيعات نشط في محافظات الإسكندرية والبحيرة ومطروح',
-        status: 'pending',
-        createdAt: new Date().toISOString()
-    }
-];
+let memoryAgentRequests = [];
 
 let memoryConfig = {
     adminPin: 'admin2026',
