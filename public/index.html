@@ -2006,21 +2006,12 @@
                                     <button class="btn btn-sm btn-secondary" onclick="toggleSelectAllSend(false)"><i class="fa-solid fa-xmark"></i> إلغاء</button>
                                 </div>
                             </div>
-                            <!-- 🎯 Smart Customer Segment / Category Selector -->
-                            <div style="margin-bottom:10px">
-                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-                                    <span style="font-size:0.8rem;color:var(--text-primary);font-weight:800"><i class="fa-solid fa-layer-group" style="color:var(--primary)"></i> اختر الفئة المستهدفة للحملة:</span>
-                                    <small style="color:var(--text-muted);font-size:0.72rem">اضغط على أي فئة لاختيارها فوراً</small>
-                                </div>
-                                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center" id="campaignSegmentChipsContainer">
-                                    <span class="tag-chip active" style="cursor:pointer;padding:4px 12px;border-radius:14px;font-size:0.78rem;font-weight:800;background:var(--primary);color:white" onclick="selectCampaignSegment('all', this)"><i class="fa-solid fa-users"></i> 🌟 كل العملاء</span>
-                                    <span class="tag-chip" style="cursor:pointer;padding:4px 12px;border-radius:14px;font-size:0.78rem;font-weight:800;background:rgba(14,165,233,0.12);color:#0284c7;border:1px solid rgba(14,165,233,0.25)" onclick="selectCampaignSegment('whatsapp', this)"><i class="fa-solid fa-comments"></i> 📱 محادثات واتساب</span>
-                                    <span class="tag-chip" style="cursor:pointer;padding:4px 12px;border-radius:14px;font-size:0.78rem;font-weight:800;background:rgba(16,185,129,0.12);color:#059669;border:1px solid rgba(16,185,129,0.25)" onclick="selectCampaignSegment('online', this)"><i class="fa-solid fa-globe"></i> 🌐 عملاء أونلاين</span>
-                                    <span class="tag-chip" style="cursor:pointer;padding:4px 12px;border-radius:14px;font-size:0.78rem;font-weight:800;background:rgba(245,158,11,0.12);color:#d97706;border:1px solid rgba(245,158,11,0.25)" onclick="selectCampaignSegment('direct', this)"><i class="fa-solid fa-handshake"></i> 🤝 عملاء مباشرين</span>
-                                    <span class="tag-chip" style="cursor:pointer;padding:4px 12px;border-radius:14px;font-size:0.78rem;font-weight:800;background:rgba(239,68,68,0.12);color:#dc2626;border:1px solid rgba(239,68,68,0.25)" onclick="selectCampaignSegment('vip', this)"><i class="fa-solid fa-crown"></i> 👑 عملاء VIP</span>
-                                    <span class="tag-chip" style="cursor:pointer;padding:4px 12px;border-radius:14px;font-size:0.78rem;font-weight:800;background:rgba(34,197,94,0.12);color:#16a34a;border:1px solid rgba(34,197,94,0.25)" onclick="selectCampaignSegment('excel', this)"><i class="fa-solid fa-file-excel"></i> 📊 استيراد إكسل</span>
-                                    <span class="tag-chip" style="cursor:pointer;padding:4px 12px;border-radius:14px;font-size:0.78rem;font-weight:800;background:rgba(139,92,246,0.12);color:#7c3aed;border:1px solid rgba(139,92,246,0.25)" onclick="selectCampaignSegment('maps', this)"><i class="fa-solid fa-map-location-dot"></i> 📍 خرائط جوجل</span>
-                                </div>
+                            <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;overflow-x:auto;padding-bottom:4px">
+                                <span style="font-size:0.75rem;color:var(--text-muted);font-weight:700">تصفية سريعة:</span>
+                                <span class="tag-chip active" style="cursor:pointer;padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:700;background:var(--primary);color:white" onclick="filterSendContactsByTag('all', this)">🌟 الكل</span>
+                                <span class="tag-chip" style="cursor:pointer;padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:700;background:rgba(0,128,105,0.1);color:var(--primary)" onclick="filterSendContactsByTag('VIP', this)">⭐ VIP</span>
+                                <span class="tag-chip" style="cursor:pointer;padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:700;background:rgba(0,128,105,0.1);color:var(--primary)" onclick="filterSendContactsByTag('مهتم', this)">🎯 مهتم</span>
+                                <span class="tag-chip" style="cursor:pointer;padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:700;background:rgba(0,128,105,0.1);color:var(--primary)" onclick="filterSendContactsByTag('جديد', this)">✨ جديد</span>
                             </div>
 
                             <!-- Live Quick Search in Recipients -->
@@ -2749,16 +2740,7 @@
                                 <h4 style="font-size:0.88rem;margin-bottom:8px"><i class="fa-solid fa-user"></i> إضافة عميل منفرد</h4>
                                 <div class="form-group"><input type="text" id="addName" class="form-control" placeholder="اسم العميل"></div>
                                 <div class="form-group"><input type="tel" id="addPhone" class="form-control" placeholder="رقم الهاتف"></div>
-                                <div class="form-group">
-    <select id="addCat" class="form-control">
-        <option value="عملاء أونلاين">🌐 عملاء أونلاين (متجر / ويب)</option>
-        <option value="عملاء مباشرين">🤝 عملاء مباشرين (المحل / المعرض)</option>
-        <option value="عملاء VIP">👑 عملاء VIP مميزين</option>
-        <option value="محادثات واتساب">📱 محادثات واتساب</option>
-        <option value="استيراد إكسل">📊 استيراد إكسل</option>
-        <option value="عام">📁 تصنيف عام</option>
-    </select>
-</div>
+                                <div class="form-group"><input type="text" id="addCat" class="form-control" placeholder="التصنيف (مثال: عملاء VIP)"></div>
                                 <button class="btn btn-primary btn-sm" onclick="createSingleContact()"><i class="fa-solid fa-check"></i> إضافة العميل</button>
                             </div>
 
@@ -4466,6 +4448,22 @@ function filterInboxChatsList() {
     renderInboxChatsList(currentInboxChatsList);
 }
 
+// 💬 1-Click Open Contact in Live Inbox Studio
+async function openContactInLiveInbox(phone, name) {
+    if (!phone) return;
+    const clean = phone.replace(/[^0-9]/g, '');
+    const chatId = clean.includes('@') ? clean : clean + '@c.us';
+
+    // Switch to Inbox tab
+    const navItem = document.querySelector('[onclick*="inbox"]') || document.querySelectorAll('.nav-item')[2];
+    switchTab('inbox', navItem);
+
+    showToast('💬 فتح المحادثة', `جاري فتح محادثة العميل (${name || phone})...`, 'info', 1500);
+
+    // Open chat in live studio
+    await openInboxChat(chatId, name || `عميل (+${clean})`, clean);
+}
+
 async function openInboxChat(chatId, name, phone) {
     currentInboxChatId = chatId;
     document.getElementById('inboxActiveName').textContent = name;
@@ -4609,60 +4607,6 @@ function toggleWarmerDayCompleted(day, state) {
 }
 
 // 🏷️ Tag Filter for Contacts in Send tab
-// 🎯 Smart Campaign Segmentation Logic
-let currentCampaignSegment = 'all';
-
-function selectCampaignSegment(segment, chipEl) {
-    currentCampaignSegment = segment;
-    
-    // Update chip styling
-    const container = document.getElementById('campaignSegmentChipsContainer');
-    if (container) {
-        container.querySelectorAll('.tag-chip').forEach(ch => {
-            ch.classList.remove('active');
-            ch.style.background = 'rgba(0,128,105,0.08)';
-            ch.style.color = 'var(--text-secondary)';
-        });
-    }
-    if (chipEl) {
-        chipEl.classList.add('active');
-        chipEl.style.background = 'var(--primary)';
-        chipEl.style.color = 'white';
-    }
-
-    // Select matching contacts in campaign send selection
-    sendSelectedContacts.clear();
-
-    contacts.forEach(c => {
-        const cat = (c.category || '').toLowerCase();
-        const notes = (c.notes || '').toLowerCase();
-        let match = false;
-
-        if (segment === 'all') {
-            match = true;
-        } else if (segment === 'whatsapp') {
-            match = cat.includes('محادثات') || cat.includes('whatsapp') || cat.includes('واتساب') || notes.includes('محادثات') || notes.includes('واتساب');
-        } else if (segment === 'online') {
-            match = cat.includes('أونلاين') || cat.includes('اونلاين') || cat.includes('online') || cat.includes('متجر') || notes.includes('أونلاين');
-        } else if (segment === 'direct') {
-            match = cat.includes('مباشر') || cat.includes('محل') || cat.includes('direct') || notes.includes('مباشر');
-        } else if (segment === 'vip') {
-            match = cat.includes('vip') || cat.includes('مميز') || notes.includes('vip');
-        } else if (segment === 'excel') {
-            match = cat.includes('إكسل') || cat.includes('excel') || cat.includes('csv') || notes.includes('إكسل');
-        } else if (segment === 'maps') {
-            match = cat.includes('خرائط') || cat.includes('maps') || cat.includes('جوجل');
-        }
-
-        if (match) {
-            sendSelectedContacts.add(c.id);
-        }
-    });
-
-    renderSendContactsList();
-    showToast('🎯 تم تحديد الفئة', `تم اختيار (${sendSelectedContacts.size}) عميل من فئة (${chipEl ? chipEl.innerText.trim() : segment})`, 'info', 2500);
-}
-
 function filterSendContactsByTag(tag, el) {
     document.querySelectorAll('.tag-chip').forEach(c => {
         c.style.background = 'rgba(0,128,105,0.1)';
@@ -7384,9 +7328,9 @@ function renderContactsTable() {
                 <div class="c-name" style="cursor:pointer;font-weight:800;font-size:0.92rem;color:var(--text-primary)" onclick="openCustomerProfileModal(${c.id})" title="اضغط لفتح ملف العميل وملاحظات الـ CRM">${displayName}</div>
                 <div class="c-phone" style="font-family:monospace;font-weight:700;font-size:0.88rem;color:var(--text-secondary)">${displayPhone}</div>
                 <div>${sourceBadge}</div>
-                <div style="display:flex;gap:4px;justify-content:flex-end">
+                <div style="display:flex;gap:4px;justify-content:flex-end;align-items:center">
+                    <button class="btn btn-sm btn-primary" style="padding:3px 8px;font-size:0.75rem;display:inline-flex;align-items:center;gap:4px;font-weight:700" onclick="openContactInLiveInbox('${c.phone}', '${escapeHtml(c.name || '')}')" title="فتح المحادثة المباشرة في صندوق الوارد"><i class="fa-solid fa-comments"></i> شات</button>
                     <button class="btn btn-sm btn-secondary" style="padding:3px 7px;font-size:0.75rem" onclick="openCustomerProfileModal(${c.id})" title="ملف العميل والتعديل"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <a href="https://wa.me/${cleanRawPhone}" target="_blank" class="btn btn-sm btn-secondary" style="padding:3px 7px;font-size:0.75rem;color:var(--success)" title="محادثة واتساب مباشرة"><i class="fa-brands fa-whatsapp"></i></a>
                     <button class="btn btn-sm btn-danger" style="padding:3px 7px;font-size:0.75rem" onclick="deleteContact(${c.id})" title="حذف هذا الرقم"><i class="fa-solid fa-trash"></i></button>
                 </div>
             </div>
