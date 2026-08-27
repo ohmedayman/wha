@@ -3768,3 +3768,103 @@ module.exports = {
     app,
     startServer
 };
+
+// ==========================================
+// 🔍 Delivery Status Audit & Scanner APIs
+// ==========================================
+
+app.post('/api/contacts/audit-scan', async (req, res) => {
+    try {
+        if (!fs.existsSync(CONTACTS_FILE)) {
+            return res.json({ totalContacts: 0, sentCount: 0, pendingCount: 0 });
+        }
+
+        const contacts = fs.readJsonSync(CONTACTS_FILE);
+        const sentPhones = new Set();
+        const sentDetails = {};
+
+        // 1. Check past campaign history
+        if (fs.existsSync(HISTORY_FILE)) {
+            try {
+                const history = fs.readJsonSync(HISTORY_FILE);
+                if (Array.isArray(history)) {
+                    history.forEach(h => {
+                        const logs = h.logs || [];
+                        logs.forEach(l => {
+                            if (l.status === 'sent' && l.phone) {
+                                const clean = String(l.phone).replace(/[^0-9]/g, '');
+                                sentPhones.add(clean);
+                                sentDetails[clean] = {
+                                    timestamp: l.timestamp || h.createdAt,
+                                    campaignName: h.campaignName || 'حملة تسويقية'
+                                };
+                            }
+                        });
+                    });
+                }
+            } catch (_) {}
+        }
+
+        // 2. Check live WhatsApp chats if connected
+        if (client && isReady) {
+            try {
+                const chats = await client.getChats();
+                if (Array.isArray(chats)) {
+                    chats.forEach(c => {
+                        const clean = (c.id && c.id.user) ? c.id.user.replace(/[^0-9]/g, '') : '';
+                        if (clean && (c.lastMessage || c.unreadCount > 0)) {
+                            sentPhones.add(clean);
+                            if (!sentDetails[clean]) {
+                                sentDetails[clean] = {
+                                    timestamp: c.timestamp ? new Date(c.timestamp * 1000).toISOString() : new Date().toISOString(),
+                                    campaignName: 'محادثة مباشرة'
+                                };
+                            }
+                        }
+                    });
+                }
+            } catch (_) {}
+        }
+
+        // 3. Update contacts with delivery status
+        let sentCount = 0;
+        let pendingCount = 0;
+
+        contacts.forEach(c => {
+            const clean = (c.phone || '').replace(/[^0-9]/g, '');
+            if (sentPhones.has(clean)) {
+                c.deliveryStatus = 'sent';
+                c.lastContactedAt = sentDetails[clean]?.timestamp || new Date().toISOString();
+                c.lastCampaign = sentDetails[clean]?.campaignName || 'تم الإرسال';
+                sentCount++;
+            } else {
+                c.deliveryStatus = 'pending';
+                c.lastContactedAt = null;
+                pendingCount++;
+            }
+        });
+
+        fs.writeJsonSync(CONTACTS_FILE, contacts, { spaces: 2 });
+
+        res.json({
+            success: true,
+            totalContacts: contacts.length,
+            sentCount,
+            pendingCount,
+            message: `تم فحص وتدقيق ${contacts.length} عميل: وجدنا (${sentCount}) تم مراسلتهم سابقاً، و (${pendingCount}) لم يتم مراسلتهم بعد!`
+        });
+    } catch (e) {
+        console.error('[Audit Scan Error]:', e.message);
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+app.post('/api/contacts/target-unsent', (req, res) => {
+    try {
+        const contacts = fs.existsSync(CONTACTS_FILE) ? fs.readJsonSync(CONTACTS_FILE) : [];
+        const unsentIds = contacts.filter(c => c.deliveryStatus !== 'sent').map(c => c.id);
+        res.json({ success: true, count: unsentIds.length, unsentIds });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});

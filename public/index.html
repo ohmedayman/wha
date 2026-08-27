@@ -2681,12 +2681,12 @@
                             <small style="color:var(--text-muted);font-size:0.75rem" id="contactSearchSummary">إجمالي جهات الاتصال المسجلة</small>
                         </div>
                         <div style="display:flex;gap:6px;flex-wrap:wrap">
-                            <button class="btn btn-sm btn-primary" onclick="cleanContactsList()"><i class="fa-solid fa-broom"></i> فحص وإصلاح الأرقام الذكي</button>
-                            <button class="btn btn-sm btn-accent" onclick="openBulkDeleteModal()"><i class="fa-solid fa-list-check"></i> حذف أرقام متعددة باللصق</button>
+                            <button class="btn btn-sm btn-accent" onclick="runDeliveryAuditScan()"><i class="fa-solid fa-radar"></i> 🔍 فحص ومعرفة من استلم رسائل</button>
+                            <button class="btn btn-sm btn-primary" onclick="targetUnsentCampaign()"><i class="fa-solid fa-paper-plane"></i> 🚀 إرسال حملة للجدد فقط</button>
+                            <button class="btn btn-sm btn-secondary" onclick="cleanContactsList()"><i class="fa-solid fa-broom"></i> فحص الأرقام</button>
                             <button class="btn btn-sm btn-secondary" onclick="loadContacts(true)"><i class="fa-solid fa-arrows-rotate"></i> تحديث</button>
                             <button class="btn btn-sm btn-danger" onclick="deleteSelectedContacts()"><i class="fa-solid fa-trash"></i> حذف المحدد</button>
                             <button class="btn btn-sm btn-danger" id="btnDeleteFiltered" style="display:none" onclick="deleteFilteredContacts()"><i class="fa-solid fa-trash-can"></i> حذف نتائج البحث (<span id="filteredCountBadge">0</span>)</button>
-                            <button class="btn btn-sm btn-danger" onclick="clearAllContacts()"><i class="fa-solid fa-dumpster-fire"></i> تفريغ الكل</button>
                         </div>
                     </div>
 
@@ -2698,6 +2698,8 @@
                         <button class="btn btn-sm btn-secondary" id="btnFilterSourceManual" onclick="filterBySource('manual')" style="font-size:0.8rem;border-radius:20px;color:#d97706"><i class="fa-solid fa-paste"></i> ✍️ إضافة يدوية (<span id="cntSrcManual">0</span>)</button>
                         <button class="btn btn-sm btn-secondary" id="btnFilterSourceMaps" onclick="filterBySource('maps')" style="font-size:0.8rem;border-radius:20px;color:#7c3aed"><i class="fa-solid fa-map-location-dot"></i> 📍 خرائط جوجل (<span id="cntSrcMaps">0</span>)</button>
                         <button class="btn btn-sm btn-secondary" id="btnFilterSourceGroups" onclick="filterBySource('groups')" style="font-size:0.8rem;border-radius:20px;color:#4f46e5"><i class="fa-solid fa-users"></i> 👥 جروبات واتساب (<span id="cntSrcGroups">0</span>)</button>
+                        <button class="btn btn-sm btn-secondary" id="btnFilterStatusSent" onclick="filterByDeliveryStatus('sent')" style="font-size:0.8rem;border-radius:20px;color:#16a34a;background:rgba(22,163,74,0.08)"><i class="fa-solid fa-circle-check"></i> 🟢 تم الإرسال لهم (<span id="cntStatusSent">0</span>)</button>
+                        <button class="btn btn-sm btn-secondary" id="btnFilterStatusPending" onclick="filterByDeliveryStatus('pending')" style="font-size:0.8rem;border-radius:20px;color:#ea580c;background:rgba(234,88,12,0.08)"><i class="fa-solid fa-circle-pause"></i> ⚪ لم يُرسل لهم بعد (<span id="cntStatusPending">0</span>)</button>
                     </div>
 
                     <!-- 🔍 Live Instant Multi-Number Search & Filter Toolbar -->
@@ -7212,6 +7214,47 @@ let contactsCurrentPage = 1;
 const CONTACTS_PAGE_SIZE = 60;
 let currentSourceFilter = 'all';
 
+// 🔍 Delivery Status Audit & Scanner System
+let currentDeliveryFilter = 'all';
+
+async function runDeliveryAuditScan() {
+    showToast('🔍 فحص الإرسال', 'جاري فحص وتدقيق سجلات الإرسال لجميع العملاء...', 'info', 2000);
+    const res = await api('/api/contacts/audit-scan', { method: 'POST' });
+    if (res && res.success) {
+        showToast('✅ اكتمل الفحص', res.message, 'success', 5000);
+        playChime('success');
+        await loadContacts(false);
+    } else {
+        showToast('❌ خطأ في الفحص', res ? res.error : 'فشل الفحص', 'error', 3000);
+    }
+}
+
+function filterByDeliveryStatus(status) {
+    currentDeliveryFilter = status;
+    currentSourceFilter = 'all';
+    contactsCurrentPage = 1;
+    renderContactsTable();
+    showToast('🎯 تصفية حسب حالة الإرسال', `عرض العملاء: ${status === 'sent' ? 'الذين تم إرسال رسائل لهم 🟢' : 'الذين لم يستلموا رسائل بعد ⚪'}`, 'info', 2000);
+}
+
+async function targetUnsentCampaign() {
+    const unsent = contacts.filter(c => c.deliveryStatus !== 'sent');
+    if (unsent.length === 0) {
+        return alert('🎉 رائع! تم إرسال رسائل لجميع العملاء المسجلين بالفعل، لا يوجد عملاء معلقين.');
+    }
+
+    sendSelectedContacts.clear();
+    unsent.forEach(c => sendSelectedContacts.add(c.id));
+
+    // Switch to campaign tab
+    const navItem = document.querySelectorAll('.nav-item')[0];
+    switchTab('campaign', navItem);
+
+    renderSendContactsList();
+    showToast('🚀 جاهز للإرسال', `تم تحديد (${unsent.length}) عميل لم يستلموا رسائل بعد، اكتب رسالتك واضغط بدء الحملة!`, 'success', 4000);
+    playChime('pop');
+}
+
 function filterBySource(source) {
     currentSourceFilter = source;
     contactsCurrentPage = 1;
@@ -7235,6 +7278,15 @@ function filterBySource(source) {
 function updateSourceCounts() {
     let cntAll = contacts.length;
     let cntChats = 0, cntExcel = 0, cntManual = 0, cntMaps = 0, cntGroups = 0;
+    let cntSent = 0, cntPending = 0;
+
+    contacts.forEach(c => {
+        if (c.deliveryStatus === 'sent') cntSent++;
+        else cntPending++;
+    });
+
+    if (document.getElementById('cntStatusSent')) document.getElementById('cntStatusSent').textContent = cntSent;
+    if (document.getElementById('cntStatusPending')) document.getElementById('cntStatusPending').textContent = cntPending;
 
     contacts.forEach(c => {
         const cat = (c.category || '').toLowerCase();
@@ -7301,9 +7353,13 @@ function renderContactsTable() {
         return;
     }
 
-    // Step 1: Filter by Source
+    // Step 1: Filter by Delivery Status or Source
     let sourceFiltered = contacts;
-    if (currentSourceFilter !== 'all') {
+    if (currentDeliveryFilter === 'sent') {
+        sourceFiltered = contacts.filter(c => c.deliveryStatus === 'sent');
+    } else if (currentDeliveryFilter === 'pending') {
+        sourceFiltered = contacts.filter(c => c.deliveryStatus !== 'sent');
+    } else if (currentSourceFilter !== 'all') {
         sourceFiltered = contacts.filter(c => {
             const cat = (c.category || '').toLowerCase();
             const notes = (c.notes || '').toLowerCase();
@@ -7375,7 +7431,13 @@ function renderContactsTable() {
                 <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,rgba(0,128,105,0.15),rgba(37,211,102,0.1));color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:0.95rem;border:1px solid rgba(0,128,105,0.2)">${firstLetter}</div>
                 <div class="c-name" style="cursor:pointer;font-weight:800;font-size:0.92rem;color:var(--text-primary)" onclick="openCustomerProfileModal(${c.id})" title="اضغط لفتح ملف العميل وملاحظات الـ CRM">${displayName}</div>
                 <div class="c-phone" style="font-family:monospace;font-weight:700;font-size:0.88rem;color:var(--text-secondary)">${displayPhone}</div>
-                <div>${sourceBadge}</div>
+                <div>
+    ${sourceBadge}
+    ${c.deliveryStatus === 'sent' 
+        ? `<span class="badge" style="background:rgba(22,163,74,0.12);color:#16a34a;border:1px solid rgba(22,163,74,0.25);font-size:0.72rem;padding:2px 6px;border-radius:10px;margin-right:4px;font-weight:700" title="تم الإرسال: ${c.lastContactedAt ? new Date(c.lastContactedAt).toLocaleDateString('ar-EG') : ''}"><i class="fa-solid fa-check"></i> تم الإرسال</span>` 
+        : `<span class="badge" style="background:rgba(234,88,12,0.12);color:#ea580c;border:1px solid rgba(234,88,12,0.25);font-size:0.72rem;padding:2px 6px;border-radius:10px;margin-right:4px;font-weight:700"><i class="fa-solid fa-clock"></i> لم يُرسل له</span>`
+    }
+</div>
                 <div style="display:flex;gap:4px;justify-content:flex-end;align-items:center">
                     <button class="btn btn-sm btn-primary" style="padding:3px 8px;font-size:0.75rem;display:inline-flex;align-items:center;gap:4px;font-weight:700" onclick="openContactInLiveInbox('${c.phone}', '${escapeHtml(c.name || '')}')" title="فتح المحادثة المباشرة في صندوق الوارد"><i class="fa-solid fa-comments"></i> شات</button>
                     <button class="btn btn-sm btn-secondary" style="padding:3px 7px;font-size:0.75rem" onclick="openCustomerProfileModal(${c.id})" title="ملف العميل والتعديل"><i class="fa-solid fa-pen-to-square"></i></button>
