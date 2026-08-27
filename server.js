@@ -1278,39 +1278,7 @@ app.post('/api/account/extract-all-chats', async (req, res) => {
         return res.status(500).json({ success: false, error: 'حدث تأخير في تحميل محادثات واتساب، يرجى الانتظار 3 ثوانٍ وإعادة المحاولة' });
     }
 });
-    }
 
-    try {
-        const chats = await client.getChats();
-        const contacts = fs.readJsonSync(CONTACTS_FILE);
-        const existingPhones = new Set(contacts.map(c => c.phone));
-        let addedCount = 0;
-
-        for (const chat of chats) {
-            if (chat.isGroup) continue;
-            const rawPhone = chat.id.user;
-            if (!rawPhone || rawPhone.length < 8) continue;
-            const formatted = '+' + rawPhone;
-
-            if (!existingPhones.has(formatted)) {
-                contacts.push({
-                    id: Date.now() + Math.floor(Math.random() * 10000),
-                    name: chat.name || `عميل (${rawPhone.slice(-4)})`,
-                    phone: formatted,
-                    category: 'محادثات الحساب',
-                    createdAt: new Date().toISOString()
-                });
-                existingPhones.add(formatted);
-                addedCount++;
-            }
-        }
-
-        fs.writeJsonSync(CONTACTS_FILE, contacts, { spaces: 2 });
-        res.json({ success: true, addedCount, totalContacts: contacts.length });
-    } catch (err) {
-        res.status(500).json({ error: 'فشل استخراج المحادثات: ' + err.message });
-    }
-});
 
 // ==========================================
 // 📋 Interactive Menu Bot APIs
@@ -3127,34 +3095,7 @@ app.post('/api/quick-send', upload.single('media'), async (req, res) => {
         return res.status(500).json({ success: false, error: 'فشل إرسال الرسالة: ' + (e.message || 'خطأ في الاتصال بالرقم') });
     }
 });
-    }
-    const { phone, message = '', sendVoiceNote = 'false' } = req.body;
-    if (!phone) return res.status(400).json({ error: 'يرجى إدخال رقم الهاتف' });
 
-    try {
-        let cleanPhone = phone.replace(/[^0-9]/g, '');
-        if (cleanPhone.startsWith('0')) cleanPhone = '20' + cleanPhone.substring(1);
-        const chatId = cleanPhone + '@c.us';
-
-        let mediaAttachment = null;
-        if (req.file && fs.existsSync(req.file.path)) {
-            mediaAttachment = await MessageMedia.fromFilePath(req.file.path);
-        }
-
-        if (mediaAttachment) {
-            await client.sendMessage(chatId, mediaAttachment, {
-                caption: processSpintax(message),
-                sendAudioAsVoice: sendVoiceNote === 'true' || sendVoiceNote === true
-            });
-        } else {
-            await client.sendMessage(chatId, processSpintax(message));
-        }
-
-        res.json({ success: true, message: 'تم إرسال الرسالة السريعة بنجاح!' });
-    } catch (e) {
-        res.status(500).json({ error: 'فشل الإرسال: ' + e.message });
-    }
-});
 
 // ==========================================
 // 🔢 Targeted Sequential Number Generator
