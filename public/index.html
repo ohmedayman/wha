@@ -217,37 +217,59 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 10px 14px;
-            border-radius: var(--radius-md);
-            color: var(--sidebar-muted);
-            font-size: 0.92rem;
-            font-weight: 700;
+            padding: 9px 12px;
+            border-radius: 12px;
+            color: #94a3b8;
+            font-size: 0.88rem;
+            font-weight: 800;
             cursor: pointer;
-            transition: var(--transition);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+            white-space: nowrap;
         }
-        .nav-item i { font-size: 1.1rem; width: 22px; text-align: center; transition: var(--transition); }
+        .nav-icon-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+            transition: all 0.25s ease;
+        }
         .nav-item:hover {
-            background: var(--sidebar-hover);
+            background: rgba(255, 255, 255, 0.06);
             color: #ffffff;
-            transform: translateX(-4px);
+            border-color: rgba(255, 255, 255, 0.08);
+            transform: translateX(-3px);
         }
-        .nav-item:hover i { transform: scale(1.15); color: #10b981; }
+        .nav-item:hover .nav-icon-box {
+            transform: scale(1.1);
+            filter: brightness(1.2);
+        }
         .nav-item.active {
-            background: linear-gradient(90deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.04));
-            color: #10b981;
+            background: linear-gradient(90deg, rgba(16, 185, 129, 0.18), rgba(16, 185, 129, 0.04));
+            color: #34d399;
             font-weight: 900;
+            border-color: rgba(16, 185, 129, 0.25);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
-        .nav-item.active i { color: #10b981; }
+        .nav-item.active .nav-icon-box {
+            background: #10b981 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
         .nav-item.active::after {
             content: '';
             position: absolute;
             right: 0;
             top: 6px;
             bottom: 6px;
-            width: 4px;
+            width: 3.5px;
             background: linear-gradient(180deg, #34d399, #059669);
             border-radius: 4px;
-            box-shadow: 0 0 12px rgba(16, 185, 129, 0.7);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.8);
         }
 
         .sidebar-footer {
@@ -1482,36 +1504,55 @@
             <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); checkStatus()"><i class="fa-solid fa-rotate-right"></i></button>
         </div>
 
-        <nav class="sidebar-menu">
+        <nav class="sidebar-menu" style="display:flex;flex-direction:column;gap:6px;padding:10px 8px">
             <!-- 🏠 1. Dashboard -->
-            <div class="nav-item active" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-house-chimney"></i> <span>الرئيسية (Dashboard)</span></div>
+            <div class="nav-item active" onclick="switchTab('dashboard', this)">
+                <div class="nav-icon-box" style="background:rgba(16,185,129,0.15);color:#10b981"><i class="fa-solid fa-house-chimney"></i></div>
+                <span>الرئيسية والإحصائيات</span>
+            </div>
 
-            <div class="sidebar-section-title"><i class="fa-solid fa-paper-plane"></i> <span>التسويق والمحادثات</span></div>
             <!-- 🚀 2. Campaigns -->
-            <div class="nav-item" onclick="switchTab('send', this)"><i class="fa-solid fa-paper-plane"></i> <span>استوديو إرسال الحملات</span></div>
+            <div class="nav-item" onclick="switchTab('send', this)">
+                <div class="nav-icon-box" style="background:rgba(14,165,233,0.15);color:#0284c7"><i class="fa-solid fa-paper-plane"></i></div>
+                <span>إرسال الحملات التسويقية</span>
+            </div>
+
             <!-- 💬 3. Live Inbox -->
             <div class="nav-item" onclick="switchTab('inbox', this)">
-                <i class="fa-solid fa-comments"></i>
-                <span>صندوق المحادثات (Inbox)</span>
+                <div class="nav-icon-box" style="background:rgba(37,211,102,0.15);color:#25d366"><i class="fa-solid fa-comments"></i></div>
+                <span>صندوق المحادثات والرد</span>
                 <span id="inboxUnreadBadge" style="display:none;margin-right:auto;background:#ef4444;color:white;border-radius:10px;padding:1px 7px;font-size:0.68rem;font-weight:900">0</span>
             </div>
+
             <!-- 👥 4. Contacts & CRM -->
             <div class="nav-item" onclick="switchTab('contacts', this)">
-                <i class="fa-solid fa-address-book"></i>
-                <span>قاعدة العملاء والتصنيفات</span>
+                <div class="nav-icon-box" style="background:rgba(245,158,11,0.15);color:#d97706"><i class="fa-solid fa-address-book"></i></div>
+                <span>قاعدة وتصنيف العملاء</span>
             </div>
 
-            <div class="sidebar-section-title"><i class="fa-solid fa-robot"></i> <span>الأتمتة وسحب الأرقام</span></div>
             <!-- 🤖 5. Auto-Reply & IVR Menu Bot -->
-            <div class="nav-item" onclick="switchTab('menubot', this)"><i class="fa-solid fa-robot"></i> <span>الرد الآلي والمنيو التفاعلي</span></div>
-            <!-- 👥 6. Account Chats & Groups Extractor -->
-            <div class="nav-item" onclick="switchTab('groups', this)"><i class="fa-solid fa-users-viewfinder"></i> <span>سحب محادثات وجروبات الحساب</span></div>
+            <div class="nav-item" onclick="switchTab('menubot', this)">
+                <div class="nav-icon-box" style="background:rgba(139,92,246,0.15);color:#8b5cf6"><i class="fa-solid fa-robot"></i></div>
+                <span>الرد الآلي والمنيو الذكي</span>
+            </div>
 
-            <div class="sidebar-section-title"><i class="fa-solid fa-chart-line"></i> <span>التقارير وحماية الحساب</span></div>
+            <!-- 👥 6. Account Chats & Groups Extractor -->
+            <div class="nav-item" onclick="switchTab('groups', this)">
+                <div class="nav-icon-box" style="background:rgba(6,182,212,0.15);color:#06b6d4"><i class="fa-solid fa-users-viewfinder"></i></div>
+                <span>سحب محادثات وجروبات الرقم</span>
+            </div>
+
             <!-- 📊 7. Reports & History -->
-            <div class="nav-item" onclick="switchTab('reports', this)"><i class="fa-solid fa-chart-line"></i> <span>سجل وتقارير الحملات</span></div>
+            <div class="nav-item" onclick="switchTab('reports', this)">
+                <div class="nav-icon-box" style="background:rgba(99,102,241,0.15);color:#6366f1"><i class="fa-solid fa-chart-line"></i></div>
+                <span>سجل وتقارير الإرسال</span>
+            </div>
+
             <!-- 🛡️ 8. Anti-Ban & Number Warmer -->
-            <div class="nav-item" onclick="switchTab('warmer', this)"><i class="fa-solid fa-shield-halved"></i> <span>حماية وتدفئة الأرقام (Anti-Ban)</span></div>
+            <div class="nav-item" onclick="switchTab('warmer', this)">
+                <div class="nav-icon-box" style="background:rgba(239,68,68,0.15);color:#ef4444"><i class="fa-solid fa-shield-halved"></i></div>
+                <span>تدفئة وحماية الأرقام</span>
+            </div>
         </nav>
 
         <div class="sidebar-footer">
