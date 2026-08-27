@@ -7525,14 +7525,30 @@ async function extractGroupMembers(groupId) {
 }
 
 async function extractAllAccountChats() {
-    if (!confirm('سحب جميع أرقام ومحادثات حسابك الفردية وحفظها في جهات الاتصال؟')) return;
-    const res = await api('/api/account/extract-all-chats', { method: 'POST' });
-    if (res && res.success) {
-        alert(`🎉 تم سحب ${res.addedCount} محادثة ورقم جديد بنجاح! إجمالي العملاء: ${res.totalContacts}`);
-        loadContacts();
-    } else {
-        alert('❌ ' + (res ? res.error : 'فشل الاستخراج'));
+    const btn = document.getElementById('btnExtractChats');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري فحص وسحب المحادثات...';
     }
+    
+    showToast('⏳ جاري سحب المحادثات', 'جاري استخراج جهات الاتصال والمحادثات النشطة من واتساب...', 'info', 3000);
+
+    const res = await api('/api/account/extract-all-chats', { method: 'POST' });
+    
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> سحب أرقام المحادثات النشطة الآن';
+    }
+
+    if (res && res.success) {
+        showToast('🎉 تم السحب بنجاح', res.message || `تم استخراج ${res.addedCount} محادثة جديدة!`, 'success', 4000);
+        playChime('pop');
+        if (typeof loadContacts === 'function') loadContacts();
+        if (typeof loadDashboard === 'function') loadDashboard();
+    } else {
+        showToast('⚠️ تنبيه', (res && res.error) ? res.error : 'جاري مزامنة المحادثات من السيرفر، يرجى إعادة المحاولة بعد لحظات', 'warning', 4000);
+    }
+}
 }
 
 // Number Filter

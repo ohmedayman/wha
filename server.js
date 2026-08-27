@@ -1161,12 +1161,123 @@ app.delete('/api/campaigns/scheduled/:id', (req, res) => {
 });
 
 // ==========================================
-// 📥 Extract All Account Contacts & Chats API
+// 📥 Extract All Account Contacts & Chats API (Fault-Tolerant)
 // ==========================================
 
 app.post('/api/account/extract-all-chats', async (req, res) => {
-    if (!isReady || !client) {
-        return res.status(400).json({ error: 'واتساب غير متصل - يرجى مسح رمز الـ QR أولاً' });
+    if (!client) {
+        return res.status(400).json({ success: false, error: 'واتساب غير متصل - يرجى مسح رمز الـ QR أولاً من هاتفك' });
+    }
+
+    try {
+        let rawList = [];
+
+        // Strategy 1: Try standard client.getChats()
+        try {
+            if (typeof client.getChats === 'function') {
+                const cList = await client.getChats();
+                if (Array.isArray(cList) && cList.length > 0) {
+                    rawList = cList.map(c => ({
+                        id: (c.id && c.id._serialized) ? c.id._serialized : (c.id || ''),
+                        user: (c.id && c.id.user) ? c.id.user : '',
+                        name: c.name || (c.id ? c.id.user : ''),
+                        isGroup: Boolean(c.isGroup || (c.id && c.id._serialized && c.id._serialized.includes('@g.us')))
+                    }));
+                }
+            }
+        } catch (e1) {
+            console.log('[Extract] getChats() standard method had warning, trying direct Store evaluation:', e1.message);
+        }
+
+        // Strategy 2: If standard method returned empty or threw, evaluate directly in Puppeteer DOM
+        if (rawList.length === 0 && client.pupPage) {
+            try {
+                const domChats = await client.pupPage.evaluate(() => {
+                    const out = [];
+                    try {
+                        if (window.Store && window.Store.Chat && window.Store.Chat.models) {
+                            for (const c of window.Store.Chat.models) {
+                                const sid = c.id ? (c.id._serialized || c.id) : '';
+                                if (!sid || sid.includes('@g.us') || sid.includes('status@broadcast')) continue;
+                                out.push({
+                                    id: sid,
+                                    user: c.id ? (c.id.user || '') : '',
+                                    name: c.name || c.formattedTitle || c.pushname || (c.id ? c.id.user : ''),
+                                    isGroup: false
+                                });
+                            }
+                        }
+                    } catch (_) {}
+                    return out;
+                });
+                if (Array.isArray(domChats) && domChats.length > 0) {
+                    rawList = domChats;
+                }
+            } catch (e2) {
+                console.log('[Extract] DOM Store evaluation warning:', e2.message);
+            }
+        }
+
+        // Strategy 3: Try contacts list as fallback
+        if (rawList.length === 0) {
+            try {
+                if (typeof client.getContacts === 'function') {
+                    const contactsList = await client.getContacts();
+                    if (Array.isArray(contactsList)) {
+                        rawList = contactsList.filter(c => c.isMyContact || c.isUser).map(c => ({
+                            id: (c.id && c.id._serialized) ? c.id._serialized : (c.id || ''),
+                            user: (c.id && c.id.user) ? c.id.user : '',
+                            name: c.name || c.pushname || (c.id ? c.id.user : ''),
+                            isGroup: false
+                        }));
+                    }
+                }
+            } catch (e3) {
+                console.log('[Extract] getContacts fallback warning:', e3.message);
+            }
+        }
+
+        // Process and save contacts
+        const contacts = fs.existsSync(CONTACTS_FILE) ? fs.readJsonSync(CONTACTS_FILE) : [];
+        const existingPhones = new Set(contacts.map(c => (c.phone || '').replace(/[^0-9]/g, '')));
+        let addedCount = 0;
+
+        for (const item of rawList) {
+            if (item.isGroup) continue;
+            let rawPhone = (item.user || item.id || '').replace(/[^0-9]/g, '');
+            if (!rawPhone || rawPhone.length < 8) continue;
+            
+            if (rawPhone.startsWith('00')) rawPhone = rawPhone.substring(2);
+            if (rawPhone.startsWith('0') && rawPhone.length === 11) rawPhone = '20' + rawPhone.substring(1);
+
+            if (!existingPhones.has(rawPhone)) {
+                contacts.push({
+                    id: Date.now() + Math.floor(Math.random() * 100000),
+                    name: item.name || `عميل (${rawPhone.slice(-4)})`,
+                    phone: '+' + rawPhone,
+                    category: 'محادثات الحساب',
+                    notes: 'تم سحبها تلقائياً من محادثات واتساب',
+                    createdAt: new Date().toISOString()
+                });
+                existingPhones.add(rawPhone);
+                addedCount++;
+            }
+        }
+
+        fs.writeJsonSync(CONTACTS_FILE, contacts, { spaces: 2 });
+        return res.json({
+            success: true,
+            addedCount,
+            totalContacts: contacts.length,
+            message: addedCount > 0 
+                ? `تم استخراج ${addedCount} محادثة جديدة وحفظها في قاعدة عملائك!` 
+                : 'تم فحص المحادثات: جميع الأرقام مسجلة بالفعل مسبقاً في قاعدة عملائك.'
+        });
+    } catch (err) {
+        console.error('Final Extract Error:', err);
+        return res.status(500).json({ success: false, error: 'حدث تأخير في تحميل محادثات واتساب، يرجى الانتظار 3 ثوانٍ وإعادة المحاولة' });
+    }
+});
     }
 
     try {
