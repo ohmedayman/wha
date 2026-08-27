@@ -2425,19 +2425,21 @@ app.get('/api/inbox/chats', async (req, res) => {
             try {
                 const chats = await client.getChats();
                 if (Array.isArray(chats) && chats.length > 0) {
-                    list = chats.slice(0, 100).map(c => {
+                    list = chats.slice(0, 150).map(c => {
                         let lastMsg = '';
                         if (c.lastMessage) {
                             lastMsg = c.lastMessage.body || (c.lastMessage.hasMedia ? '📷 [وسائط]' : '');
                         }
+                        const cleanPhone = (c.id && c.id.user) ? c.id.user.replace(/[^0-9]/g, '') : (c.id ? String(c.id).replace(/[^0-9]/g, '') : '');
                         return {
-                            id: (c.id && c.id._serialized) ? c.id._serialized : (c.id || ''),
-                            name: c.name || (c.id ? c.id.user : 'جهة اتصال'),
-                            phone: c.id ? (c.id.user || '') : '',
+                            id: (c.id && c.id._serialized) ? c.id._serialized : (cleanPhone + '@c.us'),
+                            name: c.name || (c.contact ? (c.contact.pushname || c.contact.name) : null) || `عميل (${cleanPhone.slice(-4)})`,
+                            phone: cleanPhone,
+                            category: 'محادثات واتساب',
                             isGroup: Boolean(c.isGroup || (c.id && c.id._serialized && c.id._serialized.includes('@g.us'))),
                             unreadCount: c.unreadCount || 0,
                             timestamp: c.timestamp ? new Date(c.timestamp * 1000).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : 'نشط',
-                            lastMessage: lastMsg.length > 50 ? lastMsg.substring(0, 50) + '...' : (lastMsg || 'محادثة نشطة')
+                            lastMessage: lastMsg.length > 60 ? lastMsg.substring(0, 60) + '...' : (lastMsg || 'محادثة نشطة')
                         };
                     });
                 }
@@ -2446,21 +2448,26 @@ app.get('/api/inbox/chats', async (req, res) => {
             }
         }
 
-        // Strategy 2: If live list is empty, fallback to extracted contacts from database
-        if (list.length === 0 && fs.existsSync(CONTACTS_FILE)) {
+        // Strategy 2: If live list is empty or to enrich with CRM contacts, merge with contacts database
+        if (fs.existsSync(CONTACTS_FILE)) {
             const contacts = fs.readJsonSync(CONTACTS_FILE);
             if (Array.isArray(contacts) && contacts.length > 0) {
-                list = contacts.slice(0, 100).map(c => {
+                const existingPhones = new Set(list.map(x => x.phone));
+                contacts.slice(0, 200).forEach(c => {
                     const clean = (c.phone || '').replace(/[^0-9]/g, '');
-                    return {
-                        id: clean.includes('@') ? clean : clean + '@c.us',
-                        name: c.name || `عميل (${clean.slice(-4)})`,
-                        phone: clean,
-                        isGroup: false,
-                        unreadCount: 0,
-                        timestamp: 'مسجل',
-                        lastMessage: c.category || 'محادثات الحساب'
-                    };
+                    if (clean && !existingPhones.has(clean)) {
+                        existingPhones.add(clean);
+                        list.push({
+                            id: clean + '@c.us',
+                            name: c.name || `عميل (${clean.slice(-4)})`,
+                            phone: clean,
+                            category: c.category || 'محادثات واتساب',
+                            isGroup: false,
+                            unreadCount: 0,
+                            timestamp: 'مسجل',
+                            lastMessage: c.notes || c.category || 'عميل مسجل في النظام'
+                        });
+                    }
                 });
             }
         }
@@ -2473,73 +2480,60 @@ app.get('/api/inbox/chats', async (req, res) => {
 });
 
 app.get('/api/inbox/chats/:id/messages', async (req, res) => {
-    const chatId = req.params.id;
-    let clean = (chatId || '').replace(/[^0-9]/g, '');
-    let chatName = `محادثة +${clean}`;
+    const rawId = req.params.id || '';
+    const clean = rawId.replace(/[^0-9]/g, '');
+    const targetChatId = rawId.includes('@g.us') ? rawId : (clean + '@c.us');
+    let chatName = `عميل (+${clean})`;
+    let messages = [];
 
     try {
         if (client && isReady) {
             try {
-                const chat = await client.getChatById(chatId);
+                const chat = await client.getChatById(targetChatId).catch(() => null);
                 if (chat) {
-                    chatName = chat.name || chat.id.user || chatName;
-                    const msgs = await chat.fetchMessages({ limit: 40 });
-                    const formatted = msgs.map(m => ({
+                    chatName = chat.name || (chat.contact ? (chat.contact.pushname || chat.contact.name) : null) || chatName;
+                    const msgs = await chat.fetchMessages({ limit: 50 }).catch(() => []);
+                    messages = msgs.map(m => ({
                         id: m.id ? m.id._serialized : String(Math.random()),
                         fromMe: Boolean(m.fromMe),
-                        body: m.body || (m.hasMedia ? '📷 [وسائط]' : ''),
+                        body: m.body || (m.hasMedia ? '📷 [وسائط / صورة]' : ''),
                         hasMedia: Boolean(m.hasMedia),
                         type: m.type || 'chat',
                         time: m.timestamp ? new Date(m.timestamp * 1000).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : ''
                     }));
-                    return res.json({ chatName, messages: formatted });
                 }
             } catch (eChat) {
                 console.log('[Inbox] fetchMessages warning:', eChat.message);
             }
         }
 
-        // Fallback: Return empty messages thread so user can send new message
-        return res.json({ chatName, messages: [] });
+        // Check local database for customized contact name
+        if (fs.existsSync(CONTACTS_FILE)) {
+            try {
+                const contacts = fs.readJsonSync(CONTACTS_FILE);
+                const found = contacts.find(c => (c.phone || '').replace(/[^0-9]/g, '') === clean);
+                if (found && found.name) chatName = found.name;
+            } catch (_) {}
+        }
+
+        return res.json({ chatName, messages });
     } catch (e) {
         return res.json({ chatName, messages: [] });
     }
 });
 
-
 app.post('/api/inbox/send', async (req, res) => {
-    if (!isReady || !client) return res.status(400).json({ error: 'واتساب غير متصل' });
+    if (!isReady || !client) return res.status(400).json({ error: 'واتساب غير متصل حالياً' });
     try {
         const { chatId, message } = req.body;
         if (!chatId || !message) return res.status(400).json({ error: 'الرسالة ومعرف المحادثة مطلوبين' });
-        await client.sendMessage(chatId, message);
-        res.json({ success: true, message: 'تم إرسال الرد بنجاح!' });
+        const clean = chatId.replace(/[^0-9]/g, '');
+        const targetChatId = chatId.includes('@g.us') ? chatId : (clean + '@c.us');
+        const sentMsg = await client.sendMessage(targetChatId, message);
+        res.json({ success: true, message: 'تم إرسال الرد بنجاح!', id: sentMsg ? sentMsg.id._serialized : null });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
-});
-
-// ==========================================
-// 🔥 WhatsApp Number Warmer & Anti-Ban Hub
-// ==========================================
-
-app.get('/api/warmer/plan', (req, res) => {
-    res.json({
-        days: [
-            { day: 1, dailyLimit: 20, delayMin: 40, delayMax: 80, notes: 'محادثات ودية مع أرقام معروفة وحفظ الأرقام' },
-            { day: 2, dailyLimit: 40, delayMin: 35, delayMax: 70, notes: 'إرسال نصوص وصور وتبادل ردود' },
-            { day: 3, dailyLimit: 80, delayMin: 30, delayMax: 60, notes: 'الانضمام لـ 2-3 جروبات وتفاعل طبيعي' },
-            { day: 4, dailyLimit: 150, delayMin: 25, delayMax: 50, notes: 'بدء أول حملة صغيرة مع Spintax وأزرار' },
-            { day: 5, dailyLimit: 300, delayMin: 20, delayMax: 40, notes: 'تفعيل الرد الآلي وتدوير النصوص' },
-            { day: 6, dailyLimit: 600, delayMin: 15, delayMax: 30, notes: 'الرقم أصبح دافئاً وموثوقاً بنسبة 100%' }
-        ],
-        tips: [
-            'استخدم ميزة Spintax لإنشاء آلاف التوليفات من الرسالة الواحدة',
-            'استخدم تدوير الرسائل المتعددة في نفس الحملة (Anti-Spam)',
-            'تأكد من وضع فواصل زمنية آمنة (15-30 ثانية على الأقل)',
-            'أرفق صورة أو أزرار تفاعلية لتحفيز العميل على التفاعل والرد'
-        ]
-    });
 });
 
 // ==========================================

@@ -2996,6 +2996,16 @@
                             <button class="btn btn-sm btn-secondary" onclick="loadInboxChats(true)"><i class="fa-solid fa-rotate"></i> تحديث</button>
                         </div>
                         
+                        <!-- 🏷️ Quick Category Filter Tabs in Inbox -->
+                        <div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px" id="inboxFilterChipsContainer">
+                            <button class="btn btn-xs btn-primary" onclick="filterInboxByTag('all', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px">الكل</button>
+                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('whatsapp', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;color:#0284c7">📱 محادثات</button>
+                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('online', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;color:#059669">🌐 أونلاين</button>
+                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('direct', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;color:#d97706">🤝 مباشر</button>
+                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('vip', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;color:#dc2626">👑 VIP</button>
+                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('excel', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;color:#16a34a">📊 إكسل</button>
+                        </div>
+
                         <!-- Search chats -->
                         <div style="position:relative;margin-bottom:10px">
                             <i class="fa-solid fa-magnifying-glass" style="position:absolute;right:10px;top:9px;color:var(--text-muted);font-size:0.8rem"></i>
@@ -4404,26 +4414,61 @@ async function loadInboxChats(isManual = false) {
     }
 }
 
+let currentInboxTag = 'all';
+
+function filterInboxByTag(tag, btnEl) {
+    currentInboxTag = tag;
+    const container = document.getElementById('inboxFilterChipsContainer');
+    if (container) {
+        container.querySelectorAll('button').forEach(b => {
+            b.className = 'btn btn-xs btn-secondary';
+        });
+    }
+    if (btnEl) {
+        btnEl.className = 'btn btn-xs btn-primary';
+    }
+    renderInboxChatsList(currentInboxChatsList);
+}
+
 function renderInboxChatsList(chats) {
     const container = document.getElementById('inboxChatsList');
     if (!container) return;
 
     const query = (document.getElementById('inboxSearchInput')?.value || '').trim().toLowerCase();
     let filtered = chats;
+
+    // Filter by Tag
+    if (currentInboxTag !== 'all') {
+        filtered = filtered.filter(c => {
+            const cat = (c.category || '').toLowerCase();
+            if (currentInboxTag === 'whatsapp') return cat.includes('محادثات') || cat.includes('whatsapp') || cat.includes('واتساب');
+            if (currentInboxTag === 'online') return cat.includes('أونلاين') || cat.includes('اونلاين') || cat.includes('online');
+            if (currentInboxTag === 'direct') return cat.includes('مباشر') || cat.includes('محل') || cat.includes('direct');
+            if (currentInboxTag === 'vip') return cat.includes('vip') || cat.includes('مميز');
+            if (currentInboxTag === 'excel') return cat.includes('إكسل') || cat.includes('excel') || cat.includes('csv');
+            return true;
+        });
+    }
+
+    // Filter by Search Query
     if (query) {
-        filtered = chats.filter(c => (c.name || '').toLowerCase().includes(query) || (c.phone || '').includes(query));
+        filtered = filtered.filter(c => (c.name || '').toLowerCase().includes(query) || (c.phone || '').includes(query));
     }
 
     if (filtered.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.85rem">لا توجد محادثات مطابقة لـ "${escapeHtml(query)}"</div>`;
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.85rem">لا توجد محادثات في هذا التصنيف</div>`;
         return;
     }
 
     container.innerHTML = filtered.map((c, idx) => {
-        const isActive = c.id === currentInboxChatId;
-        const initial = (c.name || 'W').charAt(0).toUpperCase();
+        const cleanPhone = (c.phone || '').replace(/[^0-9]/g, '');
+        const targetChatId = cleanPhone + '@c.us';
+        const isActive = (c.id === currentInboxChatId) || (targetChatId === currentInboxChatId);
+        const initial = (c.name && c.name.trim().length > 0) ? c.name.trim().charAt(0).toUpperCase() : '👤';
+        const cat = c.category || 'محادثات واتساب';
+
         return `
-            <div class="card" style="padding:10px 12px;margin-bottom:0;cursor:pointer;transition:all 0.2s;background:${isActive ? 'rgba(0,128,105,0.12)' : 'var(--card-bg)'};border-right:${isActive ? '4px solid var(--primary)' : '1px solid var(--card-border)'}" onclick="openInboxChat('${c.id}', '${escapeHtml(c.name)}', '${escapeHtml(c.phone)}')" onmouseover="if(!${isActive}) this.style.background='rgba(0,128,105,0.06)'" onmouseout="if(!${isActive}) this.style.background='var(--card-bg)'">
+            <div class="card" style="padding:10px 12px;margin-bottom:0;cursor:pointer;transition:all 0.2s;background:${isActive ? 'rgba(0,128,105,0.12)' : 'var(--card-bg)'};border-right:${isActive ? '4px solid var(--primary)' : '1px solid var(--card-border)'}" onclick="openInboxChat('${targetChatId}', '${escapeHtml(c.name)}', '${cleanPhone}')" onmouseover="if(!${isActive}) this.style.background='rgba(0,128,105,0.06)'" onmouseout="if(!${isActive}) this.style.background='var(--card-bg)'">
                 <div style="display:flex;align-items:center;gap:10px">
                     <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#008069,#25d366);color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.95rem;flex-shrink:0">
                         ${initial}
@@ -4434,7 +4479,7 @@ function renderInboxChatsList(chats) {
                             <small style="color:var(--text-muted);font-size:0.7rem;flex-shrink:0">${c.timestamp || ''}</small>
                         </div>
                         <div style="display:flex;justify-content:space-between;align-items:center">
-                            <span style="font-size:0.78rem;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">${escapeHtml(c.lastMessage || 'محادثة')}</span>
+                            <span style="font-size:0.75rem;color:var(--primary);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">${escapeHtml(cat)}</span>
                             ${c.unreadCount > 0 ? `<span class="badge" style="background:#25d366;color:white;font-size:0.7rem;border-radius:10px;padding:1px 6px">${c.unreadCount}</span>` : ''}
                         </div>
                     </div>
@@ -4452,34 +4497,39 @@ function filterInboxChatsList() {
 async function openContactInLiveInbox(phone, name) {
     if (!phone) return;
     const clean = phone.replace(/[^0-9]/g, '');
-    const chatId = clean.includes('@') ? clean : clean + '@c.us';
+    const chatId = clean + '@c.us';
 
-    // Switch to Inbox tab
     const navItem = document.querySelector('[onclick*="inbox"]') || document.querySelectorAll('.nav-item')[2];
     switchTab('inbox', navItem);
 
     showToast('💬 فتح المحادثة', `جاري فتح محادثة العميل (${name || phone})...`, 'info', 1500);
-
-    // Open chat in live studio
     await openInboxChat(chatId, name || `عميل (+${clean})`, clean);
 }
 
 async function openInboxChat(chatId, name, phone) {
-    currentInboxChatId = chatId;
-    document.getElementById('inboxActiveName').textContent = name;
-    document.getElementById('inboxActivePhone').textContent = phone ? ('+' + phone) : 'محادثة واتساب';
+    const cleanDigits = (phone || chatId || '').replace(/[^0-9]/g, '');
+    currentInboxChatId = cleanDigits + '@c.us';
+
+    document.getElementById('inboxActiveName').textContent = name || `عميل (+${cleanDigits})`;
+    document.getElementById('inboxActivePhone').textContent = '+' + cleanDigits;
     const avatar = document.getElementById('inboxActiveAvatar');
-    if (avatar) avatar.textContent = (name || 'W').charAt(0).toUpperCase();
+    if (avatar) avatar.textContent = (name && name.trim().length > 0) ? name.trim().charAt(0).toUpperCase() : '👤';
 
     renderInboxChatsList(currentInboxChatsList);
 
     const msgBox = document.getElementById('inboxMessagesBox');
     msgBox.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted)"><i class="fa-solid fa-spinner fa-spin"></i> جاري تحميل الرسائل...</div>';
 
-    const res = await api('/api/inbox/chats/' + encodeURIComponent(chatId) + '/messages');
+    const res = await api('/api/inbox/chats/' + encodeURIComponent(currentInboxChatId) + '/messages');
     if (res && res.messages) {
         if (res.messages.length === 0) {
-            msgBox.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted)">لا توجد رسائل سابقة في هذه المحادثة.</div>';
+            msgBox.innerHTML = `
+                <div style="text-align:center;padding:40px 20px;color:var(--text-muted)">
+                    <i class="fa-solid fa-comments" style="font-size:2.5rem;margin-bottom:12px;opacity:0.4;display:block;color:var(--primary)"></i>
+                    <b>بدء محادثة مباشرة مع ${escapeHtml(res.chatName || name)}</b>
+                    <p style="font-size:0.82rem;margin-top:6px">اكتب ردك المباشر في الحقل بالأسفل واضغط Enter أو زر الإرسال للتواصل المباشر مع العميل.</p>
+                </div>
+            `;
             return;
         }
         msgBox.innerHTML = res.messages.map(m => `
@@ -4495,46 +4545,41 @@ async function openInboxChat(chatId, name, phone) {
     }
 }
 
-function refreshCurrentChatMessages() {
-    if (currentInboxChatId) {
-        const name = document.getElementById('inboxActiveName').textContent;
-        const phone = document.getElementById('inboxActivePhone').textContent;
-        openInboxChat(currentInboxChatId, name, phone);
-        playChime('pop');
-    } else {
-        loadInboxChats(true);
-    }
-}
-
-function insertCannedReply(text) {
-    const input = document.getElementById('inboxReplyInput');
-    if (input) {
-        input.value = text;
-        input.focus();
-        playChime('pop');
-    }
-}
-
 async function sendInboxReply() {
     if (!currentInboxChatId) return alert('اختر محادثة أولاً من القائمة');
     const input = document.getElementById('inboxReplyInput');
     const message = input.value.trim();
     if (!message) return;
 
-    input.disabled = true;
+    const msgBox = document.getElementById('inboxMessagesBox');
+    const timeNow = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+
+    // Optimistic UI Append
+    const tempBubble = document.createElement('div');
+    tempBubble.style.cssText = 'display:flex;flex-direction:column;align-self:flex-start;max-width:75%;background:var(--primary);color:white;border:1px solid transparent;padding:8px 12px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06)';
+    tempBubble.innerHTML = `
+        <div style="font-size:0.88rem;white-space:pre-wrap;line-height:1.4">${escapeHtml(message)}</div>
+        <div style="font-size:0.65rem;opacity:0.85;text-align:left;direction:ltr;margin-top:3px;display:flex;align-items:center;justify-content:flex-end;gap:3px">
+            <span>${timeNow}</span>
+            <span style="color:#53bdeb;font-weight:bold">✓✓</span>
+        </div>
+    `;
+    msgBox.appendChild(tempBubble);
+    msgBox.scrollTop = msgBox.scrollHeight;
+
+    input.value = '';
+    input.focus();
+    playChime('send');
+
     const res = await api('/api/inbox/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ chatId: currentInboxChatId, message })
     });
-    input.disabled = false;
-    if (res && res.success) {
-        input.value = '';
-        playChime('send');
-        openInboxChat(currentInboxChatId, document.getElementById('inboxActiveName').textContent, document.getElementById('inboxActivePhone').textContent);
-    } else {
+
+    if (!res || !res.success) {
         playChime('warning');
-        alert('❌ ' + (res ? res.error : 'فشل إرسال الرد'));
+        showToast('❌ تعذر الإرسال', res ? res.error : 'فشل إرسال الرسالة، تأكد من اتصال الواتساب', 'error', 3000);
     }
 }
 
