@@ -4062,17 +4062,23 @@ async function manualCheckNetwork() {
 async function api(url, options = {}) {
     try {
         const opts = { ...options };
-        if (opts.body && typeof opts.body === 'string') {
-            opts.headers = opts.headers || {};
+        opts.headers = { ...(opts.headers || {}) };
+        
+        if (opts.body instanceof FormData) {
+            // Let browser set multipart boundary automatically
+            delete opts.headers['Content-Type'];
+        } else if (opts.body && typeof opts.body === 'string') {
             if (!opts.headers['Content-Type']) {
                 opts.headers['Content-Type'] = 'application/json';
             }
         }
+        
         const res = await fetch(url, opts);
-        return await res.json();
+        const data = await res.json();
+        return data;
     } catch (e) {
         console.error('API Err:', e);
-        if (!navigator.onLine) updateNetworkState(false);
+        if (!navigator.onLine && typeof updateNetworkState === 'function') updateNetworkState(false);
         return null;
     }
 }
@@ -4777,11 +4783,28 @@ function openQuickSendModal() { document.getElementById('quickSendModal').classL
 function closeQuickSendModal() { document.getElementById('quickSendModal').classList.remove('active'); }
 
 async function submitQuickSend() {
-    const phone = document.getElementById('quickSendPhone').value.trim();
-    const message = document.getElementById('quickSendMsg').value.trim();
-    const media = document.getElementById('quickSendMedia').files[0];
+    const phoneInput = document.getElementById('quickSendPhone');
+    const msgInput = document.getElementById('quickSendMsg');
+    const mediaInput = document.getElementById('quickSendMedia');
+    const btn = document.querySelector('#quickSendModal .btn-accent');
 
-    if (!phone || (!message && !media)) return alert('أدخل رقم الهاتف والرسالة');
+    const phone = phoneInput ? phoneInput.value.trim() : '';
+    const message = msgInput ? msgInput.value.trim() : '';
+    const media = (mediaInput && mediaInput.files) ? mediaInput.files[0] : null;
+
+    if (!phone) {
+        return showToast('⚠️ تنبيه', 'يرجى إدخال رقم هاتف المستلم (مع كود الدولة)', 'warning', 3000);
+    }
+    if (!message && !media) {
+        return showToast('⚠️ تنبيه', 'يرجى كتابة نص الرسالة أو إرفاق ملف/صورة للإرسال', 'warning', 3000);
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الإرسال عبر واتساب...';
+    }
+
+    showToast('⏳ جاري الإرسال', `جاري إرسال الرسالة المباشرة إلى (${phone})...`, 'info', 2500);
 
     const fd = new FormData();
     fd.append('phone', phone);
@@ -4789,14 +4812,22 @@ async function submitQuickSend() {
     if (media) fd.append('media', media);
 
     const res = await api('/api/quick-send', { method: 'POST', body: fd });
+
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> إرسال الآن فوراً';
+    }
+
     if (res && res.success) {
-        alert('🎉 ' + res.message);
-        document.getElementById('quickSendPhone').value = '';
-        document.getElementById('quickSendMsg').value = '';
-        document.getElementById('quickSendMedia').value = '';
+        showToast('🎉 تم الإرسال بنجاح', res.message || 'تم إرسال الرسالة بنجاح!', 'success', 4000);
+        playChime('pop');
+        if (phoneInput) phoneInput.value = '';
+        if (msgInput) msgInput.value = '';
+        if (mediaInput) mediaInput.value = '';
         closeQuickSendModal();
+        if (typeof loadDashboard === 'function') loadDashboard();
     } else {
-        alert('❌ ' + (res ? res.error : 'فشل الإرسال'));
+        showToast('❌ خطأ في الإرسال', (res && res.error) ? res.error : 'فشل إرسال الرسالة، تأكد من اتصال واتساب وصحة الرقم', 'error', 4500);
     }
 }
 

@@ -2963,7 +2963,59 @@ app.post('/api/campaign/start', upload.single('media'), async (req, res) => {
 
 app.post('/api/quick-send', upload.single('media'), async (req, res) => {
     if (!isReady || !client) {
-        return res.status(400).json({ error: 'واتساب غير متصل' });
+        return res.status(400).json({ success: false, error: 'واتساب غير متصل - يرجى مسح رمز الـ QR أولاً من هاتفك' });
+    }
+    const { phone, message = '', sendVoiceNote = 'false' } = req.body;
+    if (!phone || !phone.trim()) {
+        return res.status(400).json({ success: false, error: 'يرجى إدخال رقم هاتف المستلم' });
+    }
+    if (!message.trim() && !req.file) {
+        return res.status(400).json({ success: false, error: 'يرجى كتابة نص الرسالة أو إرفاق ملف/صورة' });
+    }
+
+    try {
+        let clean = phone.replace(/[^0-9]/g, '');
+        if (clean.startsWith('00')) clean = clean.substring(2);
+        if (clean.startsWith('0') && clean.length === 11) clean = '20' + clean.substring(1);
+        
+        const chatId = clean.includes('@') ? clean : clean + '@c.us';
+
+        let mediaAttachment = null;
+        if (req.file && fs.existsSync(req.file.path)) {
+            mediaAttachment = MessageMedia.fromFilePath(req.file.path);
+        }
+
+        const processedMsg = processSpintax(message);
+
+        if (mediaAttachment) {
+            await client.sendMessage(chatId, mediaAttachment, {
+                caption: processedMsg,
+                sendAudioAsVoice: sendVoiceNote === 'true' || sendVoiceNote === true
+            });
+        } else {
+            await client.sendMessage(chatId, processedMsg);
+        }
+
+        // Add to campaign history for stats
+        const history = fs.existsSync(HISTORY_FILE) ? fs.readJsonSync(HISTORY_FILE) : [];
+        history.unshift({
+            id: Date.now(),
+            name: `رسالة سريعة إلى +${clean}`,
+            date: new Date().toISOString(),
+            total: 1,
+            sent: 1,
+            failed: 0,
+            status: 'completed',
+            type: 'quick_direct'
+        });
+        fs.writeJsonSync(HISTORY_FILE, history.slice(0, 100), { spaces: 2 });
+
+        return res.json({ success: true, message: `تم إرسال الرسالة بنجاح إلى الرقم (+${clean})! 🎉` });
+    } catch (e) {
+        console.error('Quick send error:', e);
+        return res.status(500).json({ success: false, error: 'فشل إرسال الرسالة: ' + (e.message || 'خطأ في الاتصال بالرقم') });
+    }
+});
     }
     const { phone, message = '', sendVoiceNote = 'false' } = req.body;
     if (!phone) return res.status(400).json({ error: 'يرجى إدخال رقم الهاتف' });
