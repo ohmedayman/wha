@@ -242,7 +242,9 @@ const upload = multer({
 // WhatsApp client state variables
 let client = null;
 let isReady = false;
+let isAuthenticated = false;
 let isInitializing = false;
+let syncProgress = { percent: 0, message: "" };
 let rawQrCode = null;
 let qrDataUrl = null;
 
@@ -415,16 +417,30 @@ function initWhatsApp() {
         console.log('[WhatsApp] New QR code generated. Waiting for user scan...');
     });
 
+    client.on('authenticated', () => {
+        isAuthenticated = true;
+        rawQrCode = null;
+        qrDataUrl = null;
+        syncProgress = { percent: 90, message: '⚡ تم مسح الباركود بنجاح من الهاتف! جاري إكمال الربط...' };
+        console.log('[WhatsApp] Phone scan confirmed immediately via authenticated event.');
+    });
+
+    client.on('loading_screen', (percent, message) => {
+        isAuthenticated = true;
+        rawQrCode = null;
+        qrDataUrl = null;
+        syncProgress = { percent: percent || 50, message: `جاري مزامنة وتهيئة واتساب (${percent || 50}%)...` };
+        console.log(`[WhatsApp] Loading screen: ${percent}% - ${message}`);
+    });
+
     client.on('ready', () => {
         isReady = true;
+        isAuthenticated = true;
         isInitializing = false;
         rawQrCode = null;
         qrDataUrl = null;
+        syncProgress = { percent: 100, message: 'متصل وجاهز للعمل!' };
         console.log('[WhatsApp] Client connected and ready for campaigns!');
-    });
-
-    client.on('authenticated', () => {
-        console.log('[WhatsApp] Session authenticated successfully.');
     });
 
     client.on('auth_failure', (msg) => {
@@ -439,9 +455,11 @@ function initWhatsApp() {
     client.on('disconnected', (reason) => {
         console.log('[WhatsApp] Disconnected:', reason);
         isReady = false;
+        isAuthenticated = false;
         isInitializing = false;
         rawQrCode = null;
         qrDataUrl = null;
+        syncProgress = { percent: 0, message: "" };
         try {
             client.destroy();
         } catch (e) {}
@@ -1852,6 +1870,8 @@ app.get('/api/status', (req, res) => {
 
     res.json({
         isReady,
+        isAuthenticated,
+        syncProgress,
         hasQr: qrDataUrl !== null,
         qrCode: qrDataUrl,
         phone,
@@ -1955,9 +1975,11 @@ app.post('/api/whatsapp/restart', async (req, res) => {
             client = null;
         }
         isReady = false;
+        isAuthenticated = false;
         isInitializing = false;
         rawQrCode = null;
         qrDataUrl = null;
+        syncProgress = { percent: 0, message: "" };
         initWhatsApp();
         res.json({ success: true, message: 'Restarting WhatsApp engine...' });
     } catch (e) {
@@ -1974,9 +1996,11 @@ app.post('/api/whatsapp/logout', async (req, res) => {
             client = null;
         }
         isReady = false;
+        isAuthenticated = false;
         isInitializing = false;
         rawQrCode = null;
         qrDataUrl = null;
+        syncProgress = { percent: 0, message: "" };
 
         // Clean session directory to guarantee a fresh clean QR
         try {
@@ -3468,9 +3492,11 @@ app.post('/api/system/self-repair', async (req, res) => {
             client = null;
         }
         isReady = false;
+        isAuthenticated = false;
         isInitializing = false;
         rawQrCode = null;
         qrDataUrl = null;
+        syncProgress = { percent: 0, message: "" };
 
         setTimeout(() => {
             initWhatsApp();
