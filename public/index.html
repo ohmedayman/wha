@@ -4671,6 +4671,106 @@ async function openContactInLiveInbox(phone, name) {
     await openInboxChat(chatId, name || `عميل (+${clean})`, clean);
 }
 
+// ==========================================
+// 🔔 Global Live WhatsApp Notifications & Audio Alerts
+// ==========================================
+
+let lastKnownEventTimestamp = Date.now();
+let unreadNotificationsCount = 0;
+
+// Request Desktop Notification Permission on Startup
+if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+}
+
+function startGlobalLiveNotificationsStream() {
+    setInterval(async () => {
+        try {
+            const res = await api('/api/live/stream-events?since=' + lastKnownEventTimestamp);
+            if (res && res.success && Array.isArray(res.events) && res.events.length > 0) {
+                res.events.forEach(evt => {
+                    handleIncomingGlobalMessageEvent(evt);
+                });
+                lastKnownEventTimestamp = res.now || Date.now();
+            }
+        } catch (_) {}
+    }, 2000);
+}
+
+function handleIncomingGlobalMessageEvent(evt) {
+    unreadNotificationsCount++;
+    
+    // 1. Play chime audio
+    if (typeof playChime === 'function') {
+        playChime('pop');
+    }
+
+    // 2. Update Top Navbar Bell Badge
+    const bellBadge = document.getElementById('notifBadgeCount');
+    if (bellBadge) {
+        bellBadge.textContent = unreadNotificationsCount;
+        bellBadge.style.display = 'inline-block';
+    }
+
+    // 3. Add item to Notification Center Dropdown
+    const notifList = document.getElementById('notifList');
+    if (notifList) {
+        const emptyDiv = notifList.querySelector('.notif-empty');
+        if (emptyDiv) emptyDiv.remove();
+
+        const notifItem = document.createElement('div');
+        notifItem.className = 'notif-item';
+        notifItem.style.padding = '8px 12px';
+        notifItem.style.borderBottom = '1px solid var(--card-border)';
+        notifItem.style.cursor = 'pointer';
+        notifItem.onclick = () => {
+            openContactInLiveInbox('+' + evt.phone, evt.name);
+            document.getElementById('notifDropdown').style.display = 'none';
+        };
+        notifItem.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+                <span style="font-weight:800;color:var(--primary);font-size:0.85rem"><i class="fa-brands fa-whatsapp"></i> ${escapeHtml(evt.name)}</span>
+                <span style="font-size:0.7rem;color:var(--text-muted)">${evt.time}</span>
+            </div>
+            <div style="font-size:0.8rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(evt.body)}</div>
+        `;
+        notifList.prepend(notifItem);
+    }
+
+    // 4. Pop up rich interactive on-screen toast
+    showToast('💬 رسالة جديدة', `<b>${escapeHtml(evt.name)}</b> (+${evt.phone}):<br>"${escapeHtml(evt.body.slice(0, 50))}"`, 'success', 5000);
+
+    // 5. Windows Desktop Native Notification
+    if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+            new Notification(`💬 رسالة من ${evt.name} (+${evt.phone})`, {
+                body: evt.body,
+                icon: 'icon.ico'
+            });
+        } catch (_) {}
+    }
+
+    // 6. If currently in Live Inbox and looking at this chat, refresh messages immediately
+    if (currentInboxChatId && currentInboxChatId.includes(evt.phone)) {
+        if (typeof refreshCurrentChatMessages === 'function') {
+            refreshCurrentChatMessages();
+        }
+    }
+}
+
+function clearAllNotifications() {
+    unreadNotificationsCount = 0;
+    const bellBadge = document.getElementById('notifBadgeCount');
+    if (bellBadge) bellBadge.style.display = 'none';
+    const notifList = document.getElementById('notifList');
+    if (notifList) notifList.innerHTML = '<div class="notif-empty">لا توجد إشعارات جديدة</div>';
+    showToast('🧹 تم المسح', 'تم تفريغ مركز الإشعارات', 'info', 1500);
+}
+
+// Start global message notifications immediately
+startGlobalLiveNotificationsStream();
+
+
 // 🔄 Real-Time Live Inbox Message Stream & Sync
 let liveInboxTimer = null;
 let lastKnownMessagesCount = 0;

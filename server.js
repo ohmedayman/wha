@@ -544,6 +544,23 @@ function initWhatsApp() {
     client.on('message', async (msg) => {
         try {
             if (!msg.body || msg.isGroupMsg) return;
+            // 🔔 Record Global Live Event for Notifications
+            const notifSender = extractCleanPhoneFromJid(msg.from || '');
+            if (notifSender && notifSender.length >= 8) {
+                const notifName = (msg._data && msg._data.notifyName) ? msg._data.notifyName : `عميل (${notifSender.slice(-4)})`;
+                const newEvt = {
+                    id: msg.id ? (msg.id._serialized || msg.id.id) : ('evt_' + Date.now() + '_' + Math.random()),
+                    type: 'incoming_message',
+                    name: notifName,
+                    phone: notifSender,
+                    body: msg.body || (msg.hasMedia ? '📷 [وسائط / صورة]' : ''),
+                    hasMedia: Boolean(msg.hasMedia),
+                    time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+                    timestamp: Date.now()
+                };
+                globalIncomingEvents.push(newEvt);
+                if (globalIncomingEvents.length > 200) globalIncomingEvents = globalIncomingEvents.slice(-200);
+            }
 
             // 🔄 Auto-Sync Incoming Phone Messages into Contacts (Live 2-Way Sync)
             const normSender = normalizePhoneNumber(msg.from || '');
@@ -4169,5 +4186,23 @@ app.post('/api/inbox/ai-reply-suggest', async (req, res) => {
         res.json({ success: true, suggestion });
     } catch (e) {
         res.json({ success: true, suggestion: 'أهلاً بك يا فندم! كيف يمكننا مساعدتك اليوم؟' });
+    }
+});
+
+// ==========================================
+// 🔔 Global Live Incoming Messages & Notifications Stream
+// ==========================================
+
+app.get('/api/live/stream-events', (req, res) => {
+    try {
+        const since = parseInt(req.query.since || '0');
+        const events = globalIncomingEvents.filter(e => e.timestamp > since);
+        res.json({
+            success: true,
+            now: Date.now(),
+            events
+        });
+    } catch (e) {
+        res.json({ success: true, now: Date.now(), events: [] });
     }
 });
