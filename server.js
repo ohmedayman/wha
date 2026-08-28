@@ -34,6 +34,7 @@ const BASE_DATA_DIR = process.env.APP_DATA_DIR || path.join(__dirname, 'data');
 const UPLOADS_DIR = path.join(BASE_DATA_DIR, 'uploads');
 const AUTH_DIR = path.join(BASE_DATA_DIR, '.wwebjs_auth');
 const CONTACTS_FILE = path.join(BASE_DATA_DIR, 'contacts.json');
+const CHAT_HISTORY_FILE = path.join(BASE_DATA_DIR, 'chat_history.json');
 const MESSAGES_FILE = path.join(BASE_DATA_DIR, 'messages.json');
 const RULES_FILE = path.join(BASE_DATA_DIR, 'auto_reply_rules.json');
 const SETTINGS_FILE = path.join(BASE_DATA_DIR, 'settings.json');
@@ -521,6 +522,24 @@ function initWhatsApp() {
             console.error(`[LeadForwarding Error]:`, errFwd.message);
         }
     }
+
+        client.on('message_create', (msg) => {
+        try {
+            if (!msg.body && !msg.hasMedia) return;
+            const cleanTarget = normalizePhoneNumber(msg.fromMe ? (msg.to || '') : (msg.from || ''));
+            if (cleanTarget) {
+                recordMessageToLocalHistory(cleanTarget, {
+                    id: msg.id ? msg.id._serialized : String(Math.random()),
+                    fromMe: Boolean(msg.fromMe),
+                    body: msg.body || (msg.hasMedia ? '📷 [وسائط / صورة]' : ''),
+                    hasMedia: Boolean(msg.hasMedia),
+                    type: msg.type || 'chat',
+                    time: msg.timestamp ? new Date(msg.timestamp * 1000).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+                    timestamp: msg.timestamp ? (msg.timestamp * 1000) : Date.now()
+                });
+            }
+        } catch (_) {}
+    });
 
     client.on('message', async (msg) => {
         try {
