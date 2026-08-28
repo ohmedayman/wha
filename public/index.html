@@ -1481,7 +1481,38 @@
             .sidebar { width: 100%; height: auto; border-left: none; border-bottom: 1px solid rgba(255,255,255,0.07); }
             .campaign-split, .grid-2, .grid-3, .grid-4, .stats-grid, .chart-grid { grid-template-columns: 1fr; }
         }
-    </style>
+    
+        .inbox-emoji-btn {
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+        .inbox-emoji-btn:hover {
+            transform: scale(1.25);
+            background: rgba(0, 128, 105, 0.1);
+        }
+        .lightbox-modal {
+            display: none;
+            position: fixed;
+            z-index: 99999;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.88);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .lightbox-modal.active { display: flex; }
+        .lightbox-img {
+            max-width: 90vw;
+            max-height: 85vh;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        }
+
+</style>
 </head>
 <body>
 
@@ -3119,12 +3150,30 @@
                             <button type="button" class="btn btn-xs btn-secondary" style="border-radius:10px;white-space:nowrap;font-size:0.74rem;color:var(--primary)" onclick="addNewCustomCannedReply()"><i class="fa-solid fa-plus"></i> إضافة رد</button>
                         </div>
 
+                        <!-- In-Chat Emoji Quick Bar -->
+                        <div id="inboxEmojiBar" style="display:flex;gap:6px;padding:4px 14px;background:var(--card-bg);border-top:1px solid var(--card-border);overflow-x:auto;align-items:center">
+                            <span style="font-size:0.75rem;color:var(--text-muted);font-weight:700">😊 إيموجي:</span>
+                            <span class="inbox-emoji-btn" onclick="insertEmojiToReply('👋')">👋</span>
+                            <span class="inbox-emoji-btn" onclick="insertEmojiToReply('✅')">✅</span>
+                            <span class="inbox-emoji-btn" onclick="insertEmojiToReply('🌹')">🌹</span>
+                            <span class="inbox-emoji-btn" onclick="insertEmojiToReply('🙏')">🙏</span>
+                            <span class="inbox-emoji-btn" onclick="insertEmojiToReply('❤️')">❤️</span>
+                            <span class="inbox-emoji-btn" onclick="insertEmojiToReply('👍')">👍</span>
+                            <span class="inbox-emoji-btn" onclick="insertEmojiToReply('🎁')">🎁</span>
+                            <span class="inbox-emoji-btn" onclick="insertEmojiToReply('🚀')">🚀</span>
+                            <span class="inbox-emoji-btn" onclick="insertEmojiToReply('🔥')">🔥</span>
+                            <span class="inbox-emoji-btn" onclick="insertEmojiToReply('✨')">✨</span>
+                            <span class="inbox-emoji-btn" onclick="insertEmojiToReply('📍')">📍</span>
+                            <span class="inbox-emoji-btn" onclick="insertEmojiToReply('📦')">📦</span>
+                            <span class="inbox-emoji-btn" onclick="insertEmojiToReply('🛍️')">🛍️</span>
+                        </div>
+
                         <!-- Chat Input Box & Attachments -->
-                        <div style="display:flex;gap:8px;padding:10px 14px;background:var(--card-bg);border-top:1px solid var(--card-border);align-items:center">
+                        <div style="display:flex;gap:8px;padding:8px 14px 12px;background:var(--card-bg);border-top:1px solid var(--card-border);align-items:center">
                             <input type="file" id="inboxMediaFileInput" style="display:none" onchange="handleInboxMediaSelect(this)">
-                            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('inboxMediaFileInput').click()" title="إرفاق صورة أو مستند أو ملف"><i class="fa-solid fa-paperclip"></i></button>
-                            <input type="text" id="inboxReplyInput" class="form-control" style="font-size:0.9rem;height:40px" placeholder="اكتب ردك المباشر هنا... (اضغط Enter للإرسال)" onkeydown="if(event.key==='Enter') sendInboxReply()">
-                            <button class="btn btn-primary btn-md" style="padding:0 20px;height:40px;display:flex;align-items:center;gap:6px;font-weight:800" onclick="sendInboxReply()"><i class="fa-solid fa-paper-plane"></i> إرسال</button>
+                            <button class="btn btn-secondary btn-sm" style="border-radius:10px" onclick="document.getElementById('inboxMediaFileInput').click()" title="إرفاق صورة أو مستند أو ملف"><i class="fa-solid fa-paperclip"></i></button>
+                            <input type="text" id="inboxReplyInput" class="form-control" style="font-size:0.9rem;height:42px;border-radius:10px" placeholder="اكتب ردك المباشر هنا... (اضغط Enter للإرسال)" onkeydown="if(event.key==='Enter') sendInboxReply()">
+                            <button class="btn btn-primary btn-md" style="padding:0 22px;height:42px;display:flex;align-items:center;gap:6px;font-weight:800;border-radius:10px" onclick="sendInboxReply()"><i class="fa-solid fa-paper-plane"></i> إرسال</button>
                         </div>
                     </div>
 
@@ -4852,6 +4901,40 @@ async function deleteCurrentInboxContact() {
     }
 }
 
+
+// 😊 In-Chat Emoji Helper
+function insertEmojiToReply(emoji) {
+    const input = document.getElementById('inboxReplyInput');
+    if (!input) return;
+    input.value += emoji;
+    input.focus();
+}
+
+// 🖼️ Media Lightbox Handlers
+function openMediaLightbox(imgUrl) {
+    const modal = document.getElementById('mediaLightboxModal');
+    const target = document.getElementById('lightboxImgTarget');
+    if (modal && target) {
+        target.src = imgUrl;
+        modal.classList.add('active');
+        playChime('pop');
+    }
+}
+
+function closeMediaLightbox() {
+    const modal = document.getElementById('mediaLightboxModal');
+    if (modal) modal.classList.remove('active');
+}
+
+// 🔥 Interactive Warmer Plan Progress Tracker
+function toggleWarmerDayDone(dayNum) {
+    const key = 'warmer_day_done_' + dayNum;
+    const current = localStorage.getItem(key) === 'true';
+    localStorage.setItem(key, String(!current));
+    loadWarmerPlan();
+    showToast('🔥 خطة التدفئة', !current ? `تهانينا! تم إنجاز خطة اليوم (${dayNum}) بنجاح` : `تم إلغاء تحديد اليوم (${dayNum})`, 'info', 2000);
+}
+
 // ⚡ Quick Canned Responses
 function insertCannedReply(text) {
     const input = document.getElementById('inboxReplyInput');
@@ -6310,7 +6393,38 @@ function exportReportsPdf() {
                     .no-print { display: none !important; }
                     body { padding: 0; }
                 }
-            </style>
+            
+        .inbox-emoji-btn {
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+        .inbox-emoji-btn:hover {
+            transform: scale(1.25);
+            background: rgba(0, 128, 105, 0.1);
+        }
+        .lightbox-modal {
+            display: none;
+            position: fixed;
+            z-index: 99999;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.88);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .lightbox-modal.active { display: flex; }
+        .lightbox-img {
+            max-width: 90vw;
+            max-height: 85vh;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        }
+
+</style>
         </head>
         <body>
             <div class="no-print" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; background: #e6f4f1; padding: 10px 16px; border-radius: 8px;">
@@ -6382,7 +6496,14 @@ function exportReportsPdf() {
                 <div>تم إنشاء هذا التقرير تلقائياً بواسطة نظام WhatsApp Flow Pro v3.7</div>
                 <div>الصفحة 1 من 1</div>
             </div>
-        </body>
+        
+    <!-- 🖼️ Image & Media Lightbox Modal -->
+    <div id="mediaLightboxModal" class="lightbox-modal" onclick="closeMediaLightbox()">
+        <button class="btn btn-sm btn-secondary" style="position:absolute;top:20px;left:20px;color:white;background:rgba(255,255,255,0.2)" onclick="closeMediaLightbox()"><i class="fa-solid fa-xmark"></i> إغلاق</button>
+        <img id="lightboxImgTarget" class="lightbox-img" src="" alt="Media Preview" onclick="event.stopPropagation()">
+    </div>
+
+</body>
         </html>
     `);
     printWin.document.close();
@@ -6427,7 +6548,38 @@ function exportSingleCampaignPdf(id) {
                     .no-print { display: none !important; }
                     body { padding: 0; }
                 }
-            </style>
+            
+        .inbox-emoji-btn {
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+        .inbox-emoji-btn:hover {
+            transform: scale(1.25);
+            background: rgba(0, 128, 105, 0.1);
+        }
+        .lightbox-modal {
+            display: none;
+            position: fixed;
+            z-index: 99999;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.88);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .lightbox-modal.active { display: flex; }
+        .lightbox-img {
+            max-width: 90vw;
+            max-height: 85vh;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        }
+
+</style>
         </head>
         <body>
             <div class="no-print" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; background: #e6f4f1; padding: 10px 16px; border-radius: 8px;">
@@ -6495,7 +6647,14 @@ function exportSingleCampaignPdf(id) {
                 <div>تم إنشاء هذا التقرير تلقائياً بواسطة نظام WhatsApp Flow Pro</div>
                 <div>${dateStr}</div>
             </div>
-        </body>
+        
+    <!-- 🖼️ Image & Media Lightbox Modal -->
+    <div id="mediaLightboxModal" class="lightbox-modal" onclick="closeMediaLightbox()">
+        <button class="btn btn-sm btn-secondary" style="position:absolute;top:20px;left:20px;color:white;background:rgba(255,255,255,0.2)" onclick="closeMediaLightbox()"><i class="fa-solid fa-xmark"></i> إغلاق</button>
+        <img id="lightboxImgTarget" class="lightbox-img" src="" alt="Media Preview" onclick="event.stopPropagation()">
+    </div>
+
+</body>
         </html>
     `);
     printWin.document.close();
@@ -6542,7 +6701,38 @@ function downloadCampaignPdf() {
                     .no-print { display: none !important; }
                     body { padding: 0; }
                 }
-            </style>
+            
+        .inbox-emoji-btn {
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+        .inbox-emoji-btn:hover {
+            transform: scale(1.25);
+            background: rgba(0, 128, 105, 0.1);
+        }
+        .lightbox-modal {
+            display: none;
+            position: fixed;
+            z-index: 99999;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.88);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .lightbox-modal.active { display: flex; }
+        .lightbox-img {
+            max-width: 90vw;
+            max-height: 85vh;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        }
+
+</style>
         </head>
         <body>
             <div class="no-print" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; background: #e6f4f1; padding: 10px 16px; border-radius: 8px;">
@@ -6609,7 +6799,14 @@ function downloadCampaignPdf() {
                 <div>تم تصدير التقرير بواسطة WhatsApp Flow Pro</div>
                 <div>${dateStr}</div>
             </div>
-        </body>
+        
+    <!-- 🖼️ Image & Media Lightbox Modal -->
+    <div id="mediaLightboxModal" class="lightbox-modal" onclick="closeMediaLightbox()">
+        <button class="btn btn-sm btn-secondary" style="position:absolute;top:20px;left:20px;color:white;background:rgba(255,255,255,0.2)" onclick="closeMediaLightbox()"><i class="fa-solid fa-xmark"></i> إغلاق</button>
+        <img id="lightboxImgTarget" class="lightbox-img" src="" alt="Media Preview" onclick="event.stopPropagation()">
+    </div>
+
+</body>
         </html>
     `);
     printWin.document.close();
@@ -9146,5 +9343,12 @@ renderPhonePreview();
 loadDashboard();
 setInterval(loadDashboard, 60000); // Auto-refresh dashboard every 60 seconds
 </script>
+
+    <!-- 🖼️ Image & Media Lightbox Modal -->
+    <div id="mediaLightboxModal" class="lightbox-modal" onclick="closeMediaLightbox()">
+        <button class="btn btn-sm btn-secondary" style="position:absolute;top:20px;left:20px;color:white;background:rgba(255,255,255,0.2)" onclick="closeMediaLightbox()"><i class="fa-solid fa-xmark"></i> إغلاق</button>
+        <img id="lightboxImgTarget" class="lightbox-img" src="" alt="Media Preview" onclick="event.stopPropagation()">
+    </div>
+
 </body>
 </html>
