@@ -390,14 +390,16 @@ function initWhatsApp() {
             '--disable-gpu',
             '--disable-extensions',
             '--no-first-run',
-            '--no-zygote',
-            '--disable-default-apps',
+            '--no-default-browser-check',
             '--disable-background-timer-throttling',
             '--disable-backgrounding-occluded-windows',
             '--disable-renderer-backgrounding',
-            '--js-flags=--max-old-space-size=256',
-            '--mute-audio',
-            '--disable-features=TranslateUI,BlinkGenPropertyTrees'
+            '--disable-ipc-flooding-protection',
+            '--disable-breakpad',
+            '--disable-component-update',
+            '--disable-domain-reliability',
+            '--js-flags=--max-old-space-size=1024',
+            '--mute-audio'
         ]
     };
 
@@ -438,7 +440,7 @@ function initWhatsApp() {
         console.log(`[WhatsApp] Loading screen: ${percent}% - ${message}`);
     });
 
-    client.on('ready', () => {
+    client.on('ready', async () => {
         isReady = true;
         isAuthenticated = true;
         isInitializing = false;
@@ -446,6 +448,84 @@ function initWhatsApp() {
         qrDataUrl = null;
         syncProgress = { percent: 100, message: 'متصل وجاهز للعمل!' };
         console.log('[WhatsApp] Client connected and ready for campaigns!');
+        // ⚡ Direct Native WebSocket & Store Message Bridge
+        if (client.pupPage) {
+            try {
+                await client.pupPage.exposeFunction('onNodeNativeMessageReceived', (msgData) => {
+                    try {
+                        const parsed = typeof msgData === 'string' ? JSON.parse(msgData) : msgData;
+                        if (!parsed || !parsed.from || parsed.isGroupMsg || parsed.from.includes('status@broadcast')) return;
+
+                        const notifSender = extractCleanPhoneFromJid(parsed.from);
+                        if (notifSender && notifSender.length >= 8) {
+                            const notifName = parsed.notifyName || `عميل (${notifSender.slice(-4)})`;
+                            const msgContent = parsed.body || (parsed.hasMedia ? '📷 [وسائط / صورة / ملف]' : '💬 رسالة جديدة');
+
+                            // Record to local message database
+                            recordMessageToLocalHistory(notifSender, {
+                                id: parsed.id || ('msg_' + Date.now() + '_' + Math.random()),
+                                fromMe: Boolean(parsed.fromMe),
+                                body: msgContent,
+                                hasMedia: Boolean(parsed.hasMedia),
+                                type: parsed.type || 'chat',
+                                time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+                                timestamp: Date.now()
+                            });
+
+                            // If incoming message, push to notification queue
+                            if (!parsed.fromMe) {
+                                const isDup = globalIncomingEvents.some(e => e.id === parsed.id || (e.phone === notifSender && Math.abs(e.timestamp - Date.now()) < 1500));
+                                if (!isDup) {
+                                    globalIncomingEvents.push({
+                                        id: parsed.id || ('evt_' + Date.now()),
+                                        type: 'incoming_message',
+                                        name: notifName,
+                                        phone: notifSender,
+                                        body: msgContent,
+                                        hasMedia: Boolean(parsed.hasMedia),
+                                        time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+                                        timestamp: Date.now()
+                                    });
+                                    if (globalIncomingEvents.length > 200) globalIncomingEvents = globalIncomingEvents.slice(-200);
+                                    console.log(`[Native Store Bridge] Instant incoming message from +${notifSender} (${notifName}): "${msgContent.substring(0, 35)}"`);
+                                }
+                            }
+                        }
+                    } catch (eParse) {
+                        console.error('[Native Message Handler Error]:', eParse.message);
+                    }
+                }).catch(() => {});
+
+                // Attach listener into browser DOM Store
+                await client.pupPage.evaluate(() => {
+                    try {
+                        if (window.Store && window.Store.Msg) {
+                            window.Store.Msg.on('add', (m) => {
+                                try {
+                                    if (window.onNodeNativeMessageReceived && m) {
+                                        const remote = m.id ? (m.id.remote || (m.id._serialized ? m.id._serialized.split('_')[1] : '')) : (m.from || '');
+                                        window.onNodeNativeMessageReceived({
+                                            id: m.id ? (m.id._serialized || m.id.id) : String(Date.now()),
+                                            from: remote,
+                                            fromMe: Boolean(m.id && m.id.fromMe),
+                                            body: m.body || m.caption || '',
+                                            hasMedia: Boolean(m.hasMedia || m.isMedia),
+                                            notifyName: (m.chat && m.chat.name) ? m.chat.name : '',
+                                            type: m.type || 'chat'
+                                        });
+                                    }
+                                } catch (_) {}
+                            });
+                            console.log('[Puppeteer Hook] window.Store.Msg.on(add) attached successfully!');
+                        }
+                    } catch (e) {
+                        console.log('[Puppeteer Hook Error]:', e.message);
+                    }
+                });
+            } catch (eExp) {
+                console.log('[Native Bridge Notice]:', eExp.message);
+            }
+        }
 
     // 🛡️ Fail-Safe Puppeteer Background DOM Watcher for Incoming Messages
     setInterval(async () => {
