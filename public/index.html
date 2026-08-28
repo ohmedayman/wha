@@ -3042,57 +3042,65 @@
                 </div>
             </div>
 
-            <!-- ====== TAB 11: LIVE WHATSAPP INBOX ====== -->
+                        <!-- ====== TAB: LIVE WHATSAPP INBOX STUDIO 2.0 ====== -->
             <div class="panel" id="inboxPanel">
-                <div style="display:grid;grid-template-columns:340px 1fr;gap:16px;height:76vh;min-height:560px">
-                    <!-- Chat List -->
-                    <div class="card" style="margin-bottom:0;display:flex;flex-direction:column;padding:12px;overflow:hidden;border:1px solid var(--card-border)">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-                            <h3 style="font-size:1rem;font-weight:900;color:var(--primary);margin:0"><i class="fa-solid fa-comments"></i> استوديو المحادثات المباشرة</h3>
-                            <button class="btn btn-sm btn-secondary" onclick="loadInboxChats(true)"><i class="fa-solid fa-rotate"></i> تحديث</button>
+                <div style="display:grid;grid-template-columns:330px 1fr 280px;gap:14px;height:78vh;min-height:580px" id="inboxStudioContainer">
+                    
+                    <!-- 1. LEFT PANE: Chat List & Filters -->
+                    <div class="card" style="margin-bottom:0;display:flex;flex-direction:column;padding:12px;overflow:hidden;border:1px solid var(--card-border);border-radius:14px">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                            <h3 style="font-size:0.98rem;font-weight:900;color:var(--primary);margin:0;display:flex;align-items:center;gap:6px">
+                                <i class="fa-solid fa-comments"></i> صندوق المحادثات
+                            </h3>
+                            <button class="btn btn-xs btn-secondary" onclick="loadInboxChats(true)" title="تحديث المحادثات"><i class="fa-solid fa-rotate"></i></button>
                         </div>
                         
-                        <!-- 🏷️ Quick Category Filter Tabs in Inbox -->
+                        <!-- 🏷️ Quick Category Filter Tabs -->
                         <div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px" id="inboxFilterChipsContainer">
-                            <button class="btn btn-xs btn-primary" onclick="filterInboxByTag('all', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;white-space:nowrap">الكل</button>
-                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('whatsapp', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;color:#0284c7;white-space:nowrap">📱 محادثات</button>
-                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('manual', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;color:#d97706;white-space:nowrap">✍️ إضافة يدوية</button>
-                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('online', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;color:#059669;white-space:nowrap">🌐 أونلاين</button>
-                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('direct', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;color:#8b5cf6;white-space:nowrap">🤝 مباشر</button>
-                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('vip', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;color:#dc2626;white-space:nowrap">👑 VIP</button>
-                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('excel', this)" style="border-radius:12px;font-size:0.75rem;padding:2px 8px;color:#16a34a;white-space:nowrap">📊 إكسل</button>
+                            <button class="btn btn-xs btn-primary" onclick="filterInboxByTag('all', this)" style="border-radius:12px;font-size:0.72rem;padding:2px 8px;white-space:nowrap">الكل</button>
+                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('whatsapp', this)" style="border-radius:12px;font-size:0.72rem;padding:2px 8px;color:#0284c7;white-space:nowrap">📱 محادثات</button>
+                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('manual', this)" style="border-radius:12px;font-size:0.72rem;padding:2px 8px;color:#d97706;white-space:nowrap">✍️ يدوي</button>
+                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('online', this)" style="border-radius:12px;font-size:0.72rem;padding:2px 8px;color:#059669;white-space:nowrap">🌐 أونلاين</button>
+                            <button class="btn btn-xs btn-secondary" onclick="filterInboxByTag('vip', this)" style="border-radius:12px;font-size:0.72rem;padding:2px 8px;color:#dc2626;white-space:nowrap">👑 VIP</button>
                         </div>
 
-                        <!-- Search chats -->
-                        <div style="position:relative;margin-bottom:10px">
+                        <!-- 🔍 Search chats -->
+                        <div style="position:relative;margin-bottom:8px">
                             <i class="fa-solid fa-magnifying-glass" style="position:absolute;right:10px;top:9px;color:var(--text-muted);font-size:0.8rem"></i>
-                            <input type="text" id="inboxSearchInput" class="form-control" style="padding-right:32px;font-size:0.85rem;height:34px" placeholder="🔍 بحث بالاسم أو رقم الهاتف..." oninput="filterInboxChatsList()">
+                            <input type="text" id="inboxSearchInput" class="form-control" style="padding-right:30px;font-size:0.82rem;height:32px" placeholder="بحث بالاسم أو الرقم..." oninput="filterInboxChatsList()">
                         </div>
 
-                        <div id="inboxChatsList" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding-right:2px">
+                        <div id="inboxChatsList" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:5px;padding-right:2px">
                             <div style="text-align:center;padding:30px;color:var(--text-muted)"><i class="fa-solid fa-spinner fa-spin"></i> جاري جلب المحادثات...</div>
                         </div>
                     </div>
 
-                    <!-- Active Chat Area -->
-                    <div class="card" style="margin-bottom:0;display:flex;flex-direction:column;padding:0;overflow:hidden;border:1px solid var(--card-border)">
+                    <!-- 2. CENTER PANE: Active Interactive Chat Stream -->
+                    <div class="card" style="margin-bottom:0;display:flex;flex-direction:column;padding:0;overflow:hidden;border:1px solid var(--card-border);border-radius:14px;background:var(--bg-main)">
                         <!-- Chat Header -->
-                        <div id="inboxChatHeader" style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg-main);border-bottom:1px solid var(--card-border)">
+                        <div id="inboxChatHeader" style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:var(--card-bg);border-bottom:1px solid var(--card-border)">
                             <div style="display:flex;align-items:center;gap:12px">
-                                <div id="inboxActiveAvatar" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#008069,#25d366);color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;box-shadow:0 2px 8px rgba(0,128,105,0.2)">💬</div>
+                                <div style="position:relative">
+                                    <div id="inboxActiveAvatar" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#008069,#25d366);color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;box-shadow:0 2px 8px rgba(0,128,105,0.2)">💬</div>
+                                    <div style="position:absolute;bottom:0;right:0;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid var(--card-bg)" title="متاح للتواصل"></div>
+                                </div>
                                 <div>
-                                    <div id="inboxActiveName" style="font-weight:900;font-size:1rem;color:var(--text-primary)">اختر محادثة من القائمة</div>
-                                    <div id="inboxActivePhone" style="font-size:0.78rem;color:var(--success);font-weight:700">--</div>
+                                    <div id="inboxActiveName" style="font-weight:900;font-size:0.98rem;color:var(--text-primary)">اختر محادثة من القائمة</div>
+                                    <div style="display:flex;align-items:center;gap:6px">
+                                        <span id="inboxActivePhone" style="font-size:0.78rem;color:var(--primary);font-weight:700">--</span>
+                                        <span class="badge" id="inboxActiveCategoryBadge" style="font-size:0.68rem;padding:1px 6px;border-radius:8px;background:rgba(0,128,105,0.1);color:var(--primary)">عام</span>
+                                    </div>
                                 </div>
                             </div>
                             <div style="display:flex;gap:6px;align-items:center">
-                                <span class="badge" style="background:rgba(0,128,105,0.1);color:var(--primary);font-size:0.75rem"><i class="fa-solid fa-circle-dot" style="color:var(--success);font-size:0.6rem"></i> مزامنة حية</span>
-                                <button class="btn btn-sm btn-secondary" onclick="refreshCurrentChatMessages()" title="تحديث الرسائل"><i class="fa-solid fa-arrows-rotate"></i></button>
+                                <button class="btn btn-sm btn-secondary" onclick="copyActivePhone()" title="نسخ رقم الهاتف"><i class="fa-regular fa-copy"></i></button>
+                                <button class="btn btn-sm btn-secondary" onclick="openDirectWhatsAppWeb()" title="فتح في واتساب ويب المباشر"><i class="fa-brands fa-whatsapp" style="color:#25d366"></i></button>
+                                <button class="btn btn-sm btn-accent" onclick="requestAiSmartReply()" title="توليد رد ذكي بالذكاء الاصطناعي"><i class="fa-solid fa-wand-magic-sparkles"></i> رد ذكي AI</button>
                             </div>
                         </div>
 
                         <!-- Messages Stream Box -->
-                        <div id="inboxMessagesBox" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:16px;background:var(--bg-main);background-image:radial-gradient(var(--card-border) 1px, transparent 0);background-size:24px 24px">
+                        <div id="inboxMessagesBox" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:16px;background:var(--bg-main);background-image:radial-gradient(var(--card-border) 1px, transparent 0);background-size:20px 20px">
                             <div style="text-align:center;padding:60px 20px;color:var(--text-muted)">
                                 <i class="fa-brands fa-whatsapp" style="font-size:3rem;color:var(--primary);margin-bottom:12px;display:block;opacity:0.4"></i>
                                 <h4 style="font-size:1.05rem;color:var(--text-primary);margin-bottom:6px">استوديو المحادثات المباشرة</h4>
@@ -3100,21 +3108,70 @@
                             </div>
                         </div>
 
-                        <!-- Quick Canned Responses Bar -->
-                        <div style="display:flex;gap:6px;overflow-x:auto;padding:8px 14px;background:var(--card-bg);border-top:1px solid var(--card-border)">
-                            <span style="font-size:0.72rem;color:var(--text-muted);align-self:center;font-weight:700;white-space:nowrap">⚡ ردود سريعة:</span>
-                            <button type="button" class="btn btn-sm btn-secondary" style="font-size:0.75rem;padding:2px 8px;border-radius:12px;white-space:nowrap" onclick="insertCannedReply('👋 أهلاً بك يا فندم! كيف يمكننا مساعدتك اليوم؟')">👋 ترحيب</button>
-                            <button type="button" class="btn btn-sm btn-secondary" style="font-size:0.75rem;padding:2px 8px;border-radius:12px;white-space:nowrap" onclick="insertCannedReply('✅ تم استلام وتأكيد طلبك بنجاح وجاري التجهيز.')">✅ تأكيد الطلب</button>
-                            <button type="button" class="btn btn-sm btn-secondary" style="font-size:0.75rem;padding:2px 8px;border-radius:12px;white-space:nowrap" onclick="insertCannedReply('📍 فضلاً أرسل لنا العنوان بالتفصيل ورقم بديل لتأكيد الشحن.')">📍 طلب العنوان</button>
-                            <button type="button" class="btn btn-sm btn-secondary" style="font-size:0.75rem;padding:2px 8px;border-radius:12px;white-space:nowrap" onclick="insertCannedReply('🌟 سعداء جداً بخدمتك ونتمنى لك يوماً سعيداً!')">🌟 شكر</button>
+                        <!-- Canned Quick Replies & Actions Bar -->
+                        <div style="display:flex;gap:5px;overflow-x:auto;padding:6px 14px;background:var(--card-bg);border-top:1px solid var(--card-border);align-items:center">
+                            <span style="font-size:0.72rem;color:var(--text-muted);font-weight:800;white-space:nowrap"><i class="fa-solid fa-bolt" style="color:#eab308"></i> ردود سريعة:</span>
+                            <button type="button" class="btn btn-xs btn-secondary" style="border-radius:10px;white-space:nowrap;font-size:0.74rem" onclick="insertCannedReply('👋 أهلاً بك يا فندم! كيف يمكننا مساعدتك اليوم؟')">👋 ترحيب</button>
+                            <button type="button" class="btn btn-xs btn-secondary" style="border-radius:10px;white-space:nowrap;font-size:0.74rem" onclick="insertCannedReply('✅ تم استلام وتأكيد طلبك بنجاح وجاري التجهيز للشحن.')">✅ تأكيد الطلب</button>
+                            <button type="button" class="btn btn-xs btn-secondary" style="border-radius:10px;white-space:nowrap;font-size:0.74rem" onclick="insertCannedReply('📍 فضلاً أرسل لنا العنوان بالتفصيل ورقم هاتف بديل.')">📍 طلب العنوان</button>
+                            <button type="button" class="btn btn-xs btn-secondary" style="border-radius:10px;white-space:nowrap;font-size:0.74rem" onclick="insertCannedReply('💳 متاح الدفع عند الاستلام أو فودافون كاش أو تحويل بنكي.')">💳 الدفع</button>
+                            <button type="button" class="btn btn-xs btn-secondary" style="border-radius:10px;white-space:nowrap;font-size:0.74rem" onclick="insertCannedReply('🌟 سعداء جداً بخدمتك ونتمنى لك يوماً سعيداً!')">🌟 شكر</button>
+                            <button type="button" class="btn btn-xs btn-secondary" style="border-radius:10px;white-space:nowrap;font-size:0.74rem;color:var(--primary)" onclick="addNewCustomCannedReply()"><i class="fa-solid fa-plus"></i> إضافة رد</button>
                         </div>
 
-                        <!-- Chat Input Box -->
-                        <div style="display:flex;gap:8px;padding:12px 14px;background:var(--bg-main);border-top:1px solid var(--card-border)">
-                            <input type="text" id="inboxReplyInput" class="form-control" style="font-size:0.92rem;height:42px" placeholder="اكتب ردك المباشر هنا... (اضغط Enter للإرسال)" onkeydown="if(event.key==='Enter') sendInboxReply()">
-                            <button class="btn btn-primary btn-lg" style="padding:0 22px;height:42px;display:flex;align-items:center;gap:6px" onclick="sendInboxReply()"><i class="fa-solid fa-paper-plane"></i> إرسال</button>
+                        <!-- Chat Input Box & Attachments -->
+                        <div style="display:flex;gap:8px;padding:10px 14px;background:var(--card-bg);border-top:1px solid var(--card-border);align-items:center">
+                            <input type="file" id="inboxMediaFileInput" style="display:none" onchange="handleInboxMediaSelect(this)">
+                            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('inboxMediaFileInput').click()" title="إرفاق صورة أو مستند أو ملف"><i class="fa-solid fa-paperclip"></i></button>
+                            <input type="text" id="inboxReplyInput" class="form-control" style="font-size:0.9rem;height:40px" placeholder="اكتب ردك المباشر هنا... (اضغط Enter للإرسال)" onkeydown="if(event.key==='Enter') sendInboxReply()">
+                            <button class="btn btn-primary btn-md" style="padding:0 20px;height:40px;display:flex;align-items:center;gap:6px;font-weight:800" onclick="sendInboxReply()"><i class="fa-solid fa-paper-plane"></i> إرسال</button>
                         </div>
                     </div>
+
+                    <!-- 3. RIGHT PANE: Customer CRM Profile & Quick Actions -->
+                    <div class="card" style="margin-bottom:0;display:flex;flex-direction:column;padding:14px;overflow-y:auto;border:1px solid var(--card-border);border-radius:14px;background:var(--card-bg)" id="inboxCustomerProfilePane">
+                        <h4 style="font-size:0.92rem;font-weight:900;color:var(--text-primary);margin-bottom:12px;border-bottom:1px solid var(--card-border);padding-bottom:8px">
+                            <i class="fa-solid fa-id-card" style="color:var(--primary)"></i> ملف العميل السريع
+                        </h4>
+
+                        <!-- Edit Name -->
+                        <div class="form-group" style="margin-bottom:10px">
+                            <label style="font-size:0.78rem;font-weight:700">اسم العميل:</label>
+                            <input type="text" id="inboxProfileNameInput" class="form-control" style="height:32px;font-size:0.82rem" placeholder="اسم العميل">
+                        </div>
+
+                        <!-- Change Category Tag -->
+                        <div class="form-group" style="margin-bottom:10px">
+                            <label style="font-size:0.78rem;font-weight:700">تصنيف العميل (Tag):</label>
+                            <select id="inboxProfileCategorySelect" class="form-control" style="height:34px;font-size:0.82rem">
+                                <option value="محادثات واتساب">📱 محادثات واتساب</option>
+                                <option value="إضافة يدوية">✍️ إضافة يدوية</option>
+                                <option value="عملاء أونلاين">🌐 عملاء أونلاين</option>
+                                <option value="عملاء VIP">👑 عملاء VIP</option>
+                                <option value="عميل مهتم">🤝 عميل مهتم</option>
+                                <option value="تم تأكيد الطلب">✅ تم تأكيد الطلب</option>
+                                <option value="استيراد إكسل">📊 استيراد إكسل</option>
+                            </select>
+                        </div>
+
+                        <!-- Customer Notes -->
+                        <div class="form-group" style="margin-bottom:12px">
+                            <label style="font-size:0.78rem;font-weight:700">ملاحظات داخلية (خاصة بك):</label>
+                            <textarea id="inboxProfileNotesInput" class="form-control" style="font-size:0.82rem;height:80px;resize:none" placeholder="اكتب أي ملاحظة عن طلب العميل، العنوان، أو تفاصيل الاتفاق..."></textarea>
+                        </div>
+
+                        <button class="btn btn-primary btn-sm" style="width:100%;margin-bottom:14px;font-weight:800" onclick="saveInboxCustomerProfile()"><i class="fa-solid fa-floppy-disk"></i> حفظ بيانات العميل</button>
+
+                        <div style="border-top:1px solid var(--card-border);padding-top:12px">
+                            <label style="font-size:0.78rem;font-weight:700;margin-bottom:6px;display:block">إجراءات سريعة:</label>
+                            <div style="display:flex;flex-direction:column;gap:6px">
+                                <button class="btn btn-xs btn-secondary" style="text-align:right" onclick="quickTagCustomer('عملاء VIP')"><i class="fa-solid fa-crown" style="color:#eab308"></i> وسم كعميل VIP مميز</button>
+                                <button class="btn btn-xs btn-secondary" style="text-align:right" onclick="quickTagCustomer('تم تأكيد الطلب')"><i class="fa-solid fa-circle-check" style="color:#16a34a"></i> وسم كطلب مؤكد</button>
+                                <button class="btn btn-xs btn-secondary" style="text-align:right;color:var(--danger)" onclick="deleteCurrentInboxContact()"><i class="fa-solid fa-trash"></i> حذف الرقم من قاعدة البيانات</button>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -4616,8 +4673,24 @@ async function openInboxChat(chatId, name, phone) {
     const cleanDigits = (phone || chatId || '').replace(/[^0-9]/g, '');
     currentInboxChatId = cleanDigits + '@c.us';
 
-    document.getElementById('inboxActiveName').textContent = name || `عميل (+${cleanDigits})`;
+    activeCustomerPhone = cleanDigits;
+    activeCustomerName = name || `عميل (+${cleanDigits})`;
+    
+    // Find contact info in local memory
+    const existingContact = contacts.find(c => (c.phone || '').replace(/[^0-9]/g, '') === cleanDigits);
+    activeCustomerCategory = existingContact ? (existingContact.category || 'محادثات واتساب') : 'محادثات واتساب';
+    activeCustomerNotes = existingContact ? (existingContact.notes || '') : '';
+
+    document.getElementById('inboxActiveName').textContent = activeCustomerName;
     document.getElementById('inboxActivePhone').textContent = '+' + cleanDigits;
+    if (document.getElementById('inboxActiveCategoryBadge')) {
+        document.getElementById('inboxActiveCategoryBadge').textContent = activeCustomerCategory;
+    }
+    if (document.getElementById('inboxProfileNameInput')) {
+        document.getElementById('inboxProfileNameInput').value = activeCustomerName;
+        document.getElementById('inboxProfileCategorySelect').value = activeCustomerCategory;
+        document.getElementById('inboxProfileNotesInput').value = activeCustomerNotes;
+    }
     const avatar = document.getElementById('inboxActiveAvatar');
     if (avatar) avatar.textContent = (name && name.trim().length > 0) ? name.trim().charAt(0).toUpperCase() : '👤';
 
@@ -4648,6 +4721,131 @@ async function openInboxChat(chatId, name, phone) {
             </div>
         `).join('');
         msgBox.scrollTop = msgBox.scrollHeight;
+    }
+}
+
+// ==========================================
+// 💬 Advanced Live Inbox Studio 2.0 Handlers
+// ==========================================
+
+let activeCustomerPhone = '';
+let activeCustomerName = '';
+let activeCustomerCategory = 'محادثات واتساب';
+let activeCustomerNotes = '';
+
+function copyActivePhone() {
+    if (!activeCustomerPhone) return alert('اختر محادثة أولاً');
+    navigator.clipboard.writeText('+' + activeCustomerPhone);
+    showToast('📋 تم النسخ', `تم نسخ الرقم (+${activeCustomerPhone}) للحافظة`, 'success', 2000);
+    playChime('pop');
+}
+
+function openDirectWhatsAppWeb() {
+    if (!activeCustomerPhone) return alert('اختر محادثة أولاً');
+    window.open(`https://wa.me/${activeCustomerPhone}`, '_blank');
+}
+
+async function requestAiSmartReply() {
+    if (!currentInboxChatId) return alert('اختر محادثة أولاً');
+    showToast('🤖 الذكاء الاصطناعي', 'جاري صياغة رد تسويقي مقترح...', 'info', 2000);
+    
+    // Get last customer incoming message
+    const msgBox = document.getElementById('inboxMessagesBox');
+    const lastMsgText = msgBox ? (msgBox.innerText || '') : '';
+    
+    const res = await api('/api/inbox/ai-reply-suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lastMessage: lastMsgText.slice(-300), contactName: activeCustomerName })
+    });
+
+    if (res && res.suggestion) {
+        const input = document.getElementById('inboxReplyInput');
+        input.value = res.suggestion;
+        input.focus();
+        showToast('✨ رد ذكي جاهز', 'تم تجهيز الرد المقترح، راجعه واضغط إرسال!', 'success', 3000);
+        playChime('pop');
+    }
+}
+
+async function handleInboxMediaSelect(fileInput) {
+    const file = fileInput.files[0];
+    if (!file || !currentInboxChatId) return;
+
+    const caption = prompt('هل تريد إضافة تعليق/نص مع الملف المرفق؟ (اختياري)', '') || '';
+    showToast('📎 جاري الإرسال', `جاري رفع وإرسال الملف (${file.name})...`, 'info', 3000);
+
+    const fd = new FormData();
+    fd.append('chatId', currentInboxChatId);
+    fd.append('media', file);
+    fd.append('caption', caption);
+
+    const res = await api('/api/inbox/send-media', {
+        method: 'POST',
+        body: fd
+    });
+
+    fileInput.value = '';
+    if (res && res.success) {
+        showToast('✅ تم إرسال الملف', res.message, 'success', 3000);
+        playChime('send');
+        if (typeof openInboxChat === 'function') {
+            openInboxChat(currentInboxChatId, activeCustomerName, activeCustomerPhone);
+        }
+    } else {
+        showToast('❌ تعذر إرسال الملف', res ? res.error : 'فشل الإرسال', 'error', 3000);
+    }
+}
+
+function addNewCustomCannedReply() {
+    const text = prompt('اكتب نص الرد السريع الجديد الذي تود إضافته:');
+    if (!text || !text.trim()) return;
+    insertCannedReply(text.trim());
+}
+
+async function saveInboxCustomerProfile() {
+    if (!activeCustomerPhone) return alert('اختر محادثة أولاً');
+    const newName = document.getElementById('inboxProfileNameInput').value.trim();
+    const newCat = document.getElementById('inboxProfileCategorySelect').value;
+    const newNotes = document.getElementById('inboxProfileNotesInput').value.trim();
+
+    const res = await api('/api/inbox/update-contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            phone: activeCustomerPhone,
+            name: newName,
+            category: newCat,
+            notes: newNotes
+        })
+    });
+
+    if (res && res.success) {
+        activeCustomerName = newName || activeCustomerName;
+        activeCustomerCategory = newCat;
+        activeCustomerNotes = newNotes;
+        document.getElementById('inboxActiveName').textContent = activeCustomerName;
+        document.getElementById('inboxActiveCategoryBadge').textContent = activeCustomerCategory;
+        showToast('💾 تم الحفظ', 'تم حفظ بيانات وتصنيف العميل بنجاح!', 'success', 2500);
+        playChime('pop');
+        loadInboxChats(false);
+    }
+}
+
+async function quickTagCustomer(tagName) {
+    if (!activeCustomerPhone) return alert('اختر محادثة أولاً');
+    document.getElementById('inboxProfileCategorySelect').value = tagName;
+    await saveInboxCustomerProfile();
+}
+
+async function deleteCurrentInboxContact() {
+    if (!activeCustomerPhone) return alert('اختر محادثة أولاً');
+    if (!confirm(`هل أنت متأكد من حذف العميل (+${activeCustomerPhone}) نهائياً من قاعدة البيانات؟`)) return;
+    
+    const res = await api('/api/contacts/' + encodeURIComponent(activeCustomerPhone), { method: 'DELETE' });
+    if (res && res.success) {
+        showToast('🗑️ تم الحذف', 'تم حذف العميل بنجاح', 'info', 2000);
+        loadInboxChats(false);
     }
 }
 

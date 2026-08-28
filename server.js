@@ -3923,3 +3923,107 @@ app.post('/api/contacts/target-unsent', (req, res) => {
         res.status(500).json({ error: e.message });
     }
 });
+
+// ==========================================
+// 💬 Live Inbox Studio 2.0 Advanced APIs
+// ==========================================
+
+app.post('/api/inbox/send-media', upload.single('media'), async (req, res) => {
+    if (!isReady || !client) return res.status(400).json({ error: 'واتساب غير متصل حالياً' });
+    try {
+        const { chatId, caption = '' } = req.body;
+        if (!chatId || !req.file) return res.status(400).json({ error: 'الملف ومعرف المحادثة مطلوبين' });
+
+        let clean = chatId.replace(/[^0-9]/g, '');
+        if (clean.startsWith('00')) clean = clean.substring(2);
+        if (clean.startsWith('0') && clean.length === 11) clean = '20' + clean.substring(1);
+
+        let targetChatId = chatId.includes('@g.us') ? chatId : (clean + '@c.us');
+        if (!chatId.includes('@g.us') && typeof client.getNumberId === 'function') {
+            const numId = await client.getNumberId(clean).catch(() => null);
+            if (numId && numId._serialized) targetChatId = numId._serialized;
+        }
+
+        const media = MessageMedia.fromFilePath(req.file.path);
+        const sentMsg = await client.sendMessage(targetChatId, media, { caption });
+
+        res.json({
+            success: true,
+            message: 'تم إرسال الملف والوسائط بنجاح!',
+            id: sentMsg ? sentMsg.id._serialized : null
+        });
+    } catch (e) {
+        console.error('[Inbox Media Send Error]:', e.message);
+        res.status(500).json({ error: 'فشل إرسال الملف: ' + e.message });
+    }
+});
+
+app.post('/api/inbox/update-contact', (req, res) => {
+    try {
+        const { phone, category, notes, name } = req.body;
+        if (!phone) return res.status(400).json({ error: 'رقم الهاتف مطلوب' });
+
+        const norm = normalizePhoneNumber(phone);
+        const contacts = fs.existsSync(CONTACTS_FILE) ? fs.readJsonSync(CONTACTS_FILE) : [];
+        let found = false;
+
+        contacts.forEach(c => {
+            if (normalizePhoneNumber(c.phone) === norm) {
+                if (category) c.category = category;
+                if (notes !== undefined) c.notes = notes;
+                if (name) c.name = name;
+                found = true;
+            }
+        });
+
+        if (!found) {
+            contacts.unshift({
+                id: Date.now(),
+                name: name || `عميل (+${norm})`,
+                phone: '+' + norm,
+                category: category || 'إضافة يدوية',
+                notes: notes || '',
+                createdAt: new Date().toISOString()
+            });
+        }
+
+        fs.writeJsonSync(CONTACTS_FILE, contacts, { spaces: 2 });
+        res.json({ success: true, message: 'تم تحديث بيانات العميل بنجاح!' });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/inbox/ai-reply-suggest', async (req, res) => {
+    try {
+        const { lastMessage, contactName = 'العميل' } = req.body;
+        const defaultSuggestions = [
+            `أهلاً بك يا ${contactName}! يسعدنا خدمتك وتوفير كافة التفاصيل المطلوبة. هل تحب نجهز طلبك الآن؟ 😊`,
+            `مرحباً بك أستاذ ${contactName}، طلبك واستفسارك محل اهتمامنا فوراً. تم تحويل التفاصيل للتنفيذ السريع ✅`,
+            `أهلاً بحضرتك، شكراً لتواصلك معنا! العرض الحالي متاح بخصم خاص اليوم، تحب نرسل لك رابط الحجز؟ 🎁`
+        ];
+
+        let suggestion = defaultSuggestions[Math.floor(Math.random() * defaultSuggestions.length)];
+
+        // If Gemini API is configured
+        if (fs.existsSync(AI_SETTINGS_FILE)) {
+            try {
+                const aiSet = fs.readJsonSync(AI_SETTINGS_FILE);
+                if (aiSet.geminiApiKey && lastMessage) {
+                    const prompt = `أنت مساعد مبيعات وخدمة عملاء محترف لمتجر/شركة عبر واتساب. العميل اسمه "${contactName}" وكتب الرسالة التالية: "${lastMessage}". اكتب رداً تسويقياً ولطيفاً ومقنعاً في سطرين باللغة العربية مع إيموجي جذاب يدعوه للطلب أو اتخاذ القرار.`;
+                    const aiRes = await axios.post(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${aiSet.geminiApiKey}`, {
+                        contents: [{ parts: [{ text: prompt }] }]
+                    }, { timeout: 6000 });
+
+                    if (aiRes.data && aiRes.data.candidates && aiRes.data.candidates[0].content) {
+                        suggestion = aiRes.data.candidates[0].content.parts[0].text.trim();
+                    }
+                }
+            } catch (_) {}
+        }
+
+        res.json({ success: true, suggestion });
+    } catch (e) {
+        res.json({ success: true, suggestion: 'أهلاً بك يا فندم! كيف يمكننا مساعدتك اليوم؟' });
+    }
+});
