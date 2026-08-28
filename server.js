@@ -949,6 +949,17 @@ async function runCampaignExecution({
                 } else {
                     await client.sendMessage(targetChatId, personalizedMsg);
                 }
+
+                // 🔘 If combined Real Interactive Poll Buttons are attached, dispatch clickable buttons
+                if (Array.isArray(pollOptions) && pollOptions.length >= 2 && pollTitle) {
+                    try {
+                        await new Promise(r => setTimeout(r, 600));
+                        const interactivePoll = new Poll(pollTitle, pollOptions, { allowMultipleAnswers: false });
+                        await client.sendMessage(targetChatId, interactivePoll);
+                    } catch (ePoll) {
+                        console.log('[Combined Poll Buttons Notice]:', ePoll.message);
+                    }
+                }
             }
 
             currentCampaign.sent++;

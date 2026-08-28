@@ -8537,8 +8537,21 @@ async function launchCampaign() {
             }
         }
 
-        fd.append('isPoll', 'false');
-        fd.append('message', msg + buttonSuffix);
+        const buttonStyleChoice = document.getElementById('btnInteractionType') ? document.getElementById('btnInteractionType').value : 'links';
+        
+        if (isButtons && actionButtons.length >= 2 && buttonStyleChoice === 'native_poll') {
+            // Send as REAL Interactive Clickable Buttons (Poll Object)
+            const pTitle = document.getElementById('pollTitleBtn')?.value.trim() || 'اختر الخدمة أو الإجراء المطلوب 👇';
+            const pOpts = actionButtons.map(b => (b.text || 'خيار').trim()).filter(t => t.length > 0);
+            
+            fd.append('isPoll', 'false');
+            fd.append('message', msg);
+            fd.append('pollTitle', pTitle);
+            fd.append('pollOptions', JSON.stringify(pOpts));
+        } else {
+            fd.append('isPoll', 'false');
+            fd.append('message', msg + buttonSuffix);
+        }
 
         // Include variations if any
         const validVariations = [msg, ...msgVariations].map(s => s.trim()).filter(s => s.length > 0).map(s => s + buttonSuffix);
