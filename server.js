@@ -2750,10 +2750,15 @@ app.post('/api/contacts', (req, res) => {
 });
 
 app.delete('/api/contacts/:id', (req, res) => {
-    const contacts = fs.readJsonSync(CONTACTS_FILE);
-    const updated = contacts.filter(c => c.id !== parseInt(req.params.id));
-    fs.writeJsonSync(CONTACTS_FILE, updated, { spaces: 2 });
-    res.json({ success: true });
+    try {
+        const contacts = fs.existsSync(CONTACTS_FILE) ? fs.readJsonSync(CONTACTS_FILE) : [];
+        const targetId = String(req.params.id);
+        const updated = contacts.filter(c => String(c.id) !== targetId);
+        fs.writeJsonSync(CONTACTS_FILE, updated, { spaces: 2 });
+        res.json({ success: true, deletedCount: contacts.length - updated.length });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
 });
 
 app.post('/api/contacts/batch-delete', (req, res) => {
@@ -2762,9 +2767,9 @@ app.post('/api/contacts/batch-delete', (req, res) => {
         if (!Array.isArray(ids) || ids.length === 0) {
             return res.status(400).json({ error: 'لم يتم تحديد أرقام للحذف' });
         }
-        const idSet = new Set(ids.map(id => parseInt(id)));
+        const idSet = new Set(ids.map(id => String(id)));
         const contacts = fs.existsSync(CONTACTS_FILE) ? fs.readJsonSync(CONTACTS_FILE) : [];
-        const updated = contacts.filter(c => !idSet.has(c.id));
+        const updated = contacts.filter(c => !idSet.has(String(c.id)));
         fs.writeJsonSync(CONTACTS_FILE, updated, { spaces: 2 });
         res.json({ success: true, deletedCount: contacts.length - updated.length });
     } catch (e) {

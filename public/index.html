@@ -4604,6 +4604,15 @@ async function openInboxChat(chatId, name, phone) {
     }
 }
 
+// ⚡ Quick Canned Responses
+function insertCannedReply(text) {
+    const input = document.getElementById('inboxReplyInput');
+    if (!input) return;
+    input.value = text;
+    input.focus();
+    showToast('⚡ رد سريع', 'تم إدراج الرد، اضغط إرسال أو Enter للإرسال فوراً!', 'info', 1500);
+}
+
 async function sendInboxReply() {
     if (!currentInboxChatId) return alert('اختر محادثة أولاً من القائمة');
     const input = document.getElementById('inboxReplyInput');
@@ -7511,7 +7520,7 @@ function renderContactsTable() {
                 <div style="display:flex;gap:4px;justify-content:flex-end;align-items:center">
                     <button class="btn btn-sm btn-primary" style="padding:3px 8px;font-size:0.75rem;display:inline-flex;align-items:center;gap:4px;font-weight:700" onclick="openContactInLiveInbox('${c.phone}', '${escapeHtml(c.name || '')}')" title="فتح المحادثة المباشرة في صندوق الوارد"><i class="fa-solid fa-comments"></i> شات</button>
                     <button class="btn btn-sm btn-secondary" style="padding:3px 7px;font-size:0.75rem" onclick="openCustomerProfileModal(${c.id})" title="ملف العميل والتعديل"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button class="btn btn-sm btn-danger" style="padding:3px 7px;font-size:0.75rem" onclick="deleteContact(${c.id})" title="حذف هذا الرقم"><i class="fa-solid fa-trash"></i></button>
+                    <button class="btn btn-sm btn-danger" style="padding:3px 7px;font-size:0.75rem" onclick="deleteContact('${c.id}')" title="حذف هذا الرقم"><i class="fa-solid fa-trash"></i></button>
                 </div>
             </div>
         `;
@@ -7674,7 +7683,7 @@ function renderSendSelectionTable() {
             <span class="c-name">${highlightSearchMatch(c.name || '', tokens)}</span>
             <span class="c-phone" style="font-family:monospace;font-weight:700">${highlightSearchMatch(c.phone || '', tokens)}</span>
             <span class="c-tag">${highlightSearchMatch(c.category || 'عام', tokens)}</span>
-            <button class="btn btn-sm btn-danger" style="padding:2px 6px;font-size:0.75rem" onclick="deleteContact(${c.id})" title="حذف الرقم نهائياً"><i class="fa-solid fa-trash"></i></button>
+            <button class="btn btn-sm btn-danger" style="padding:2px 6px;font-size:0.75rem" onclick="deleteContact('${c.id}')" title="حذف الرقم نهائياً"><i class="fa-solid fa-trash"></i></button>
         </div>
     `).join('');
     updateSendCount();
@@ -7740,16 +7749,21 @@ async function uploadCsv() {
 }
 
 async function deleteContact(id) {
-    const contact = contacts.find(c => c.id === id);
+    const strId = String(id);
+    const contact = contacts.find(c => String(c.id) === strId);
     const phoneDisplay = contact ? contact.phone : 'هذا الرقم';
     if (!confirm(`هل أنت متأكد من حذف ${phoneDisplay}؟`)) return;
 
-    const res = await api('/api/contacts/' + id, { method: 'DELETE' });
+    const res = await api('/api/contacts/' + encodeURIComponent(strId), { method: 'DELETE' });
     if (res && res.success) {
-        contacts = contacts.filter(c => c.id !== id);
+        contacts = contacts.filter(c => String(c.id) !== strId);
+        updateSourceCounts();
         renderContactsTable();
         renderSendSelectionTable();
         showToast('🗑️ تم الحذف', `تم حذف الرقم ${phoneDisplay} بنجاح`, 'info', 2000);
+        playChime('pop');
+    } else {
+        showToast('❌ خطأ', res ? res.error : 'فشل الحذف', 'error', 3000);
     }
 }
 
