@@ -4565,6 +4565,53 @@ async function openContactInLiveInbox(phone, name) {
     await openInboxChat(chatId, name || `عميل (+${clean})`, clean);
 }
 
+// 🔄 Real-Time Live Inbox Message Stream & Sync
+let liveInboxTimer = null;
+let lastKnownMessagesCount = 0;
+
+function startLiveInboxSync() {
+    if (liveInboxTimer) clearInterval(liveInboxTimer);
+    liveInboxTimer = setInterval(async () => {
+        // Only poll if inbox tab is currently active
+        const inboxPanel = document.getElementById('inboxPanel');
+        if (!inboxPanel || !inboxPanel.classList.contains('active')) return;
+
+        // 1. If a conversation is currently open, fetch new messages
+        if (currentInboxChatId) {
+            try {
+                const res = await api('/api/inbox/chats/' + encodeURIComponent(currentInboxChatId) + '/messages');
+                if (res && Array.isArray(res.messages)) {
+                    if (res.messages.length !== lastKnownMessagesCount) {
+                        const msgBox = document.getElementById('inboxMessagesBox');
+                        if (msgBox) {
+                            const isAtBottom = (msgBox.scrollHeight - msgBox.scrollTop - msgBox.clientHeight) < 100;
+                            msgBox.innerHTML = res.messages.map(m => `
+                                <div style="display:flex;flex-direction:column;align-self:${m.fromMe ? 'flex-start' : 'flex-end'};max-width:75%;background:${m.fromMe ? 'var(--primary)' : 'var(--card-bg)'};color:${m.fromMe ? 'white' : 'var(--text-primary)'};border:1px solid ${m.fromMe ? 'transparent' : 'var(--card-border)'};padding:8px 12px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+                                    <div style="font-size:0.88rem;white-space:pre-wrap;line-height:1.4">${escapeHtml(m.body || (m.hasMedia ? '[📷 ملف/وسائط]' : ''))}</div>
+                                    <div style="font-size:0.65rem;opacity:0.85;text-align:left;direction:ltr;margin-top:3px;display:flex;align-items:center;justify-content:flex-end;gap:3px">
+                                        <span>${m.time}</span>
+                                        ${m.fromMe ? '<span style="color:#53bdeb;font-weight:bold">✓✓</span>' : ''}
+                                    </div>
+                                </div>
+                            `).join('');
+                            if (isAtBottom || res.messages.length > lastKnownMessagesCount) {
+                                msgBox.scrollTop = msgBox.scrollHeight;
+                            }
+                            if (res.messages.length > lastKnownMessagesCount && lastKnownMessagesCount > 0) {
+                                playChime('pop');
+                            }
+                            lastKnownMessagesCount = res.messages.length;
+                        }
+                    }
+                }
+            } catch (_) {}
+        }
+    }, 2500);
+}
+
+// Start live sync automatically
+startLiveInboxSync();
+
 async function openInboxChat(chatId, name, phone) {
     const cleanDigits = (phone || chatId || '').replace(/[^0-9]/g, '');
     currentInboxChatId = cleanDigits + '@c.us';

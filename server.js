@@ -527,14 +527,14 @@ function initWhatsApp() {
             if (!msg.body || msg.isGroupMsg) return;
 
             // 🔄 Auto-Sync Incoming Phone Messages into Contacts (Live 2-Way Sync)
-            const senderRaw = (msg.from || '').replace('@c.us', '').replace(/[^0-9]/g, '');
-            if (senderRaw && senderRaw.length >= 8) {
+            const normSender = normalizePhoneNumber(msg.from || '');
+            if (normSender && normSender.length >= 8) {
                 try {
-                    const formattedPhone = '+' + senderRaw;
+                    const formattedPhone = '+' + normSender;
                     const contactsList = fs.existsSync(CONTACTS_FILE) ? fs.readJsonSync(CONTACTS_FILE) : [];
-                    const exists = contactsList.some(c => (c.phone || '').replace(/[^0-9]/g, '') === senderRaw);
+                    const exists = contactsList.some(c => normalizePhoneNumber(c.phone) === normSender);
                     if (!exists) {
-                        const notifName = (msg._data && msg._data.notifyName) ? msg._data.notifyName : `عميل (${senderRaw.slice(-4)})`;
+                        const notifName = (msg._data && msg._data.notifyName) ? msg._data.notifyName : `عميل (${normSender.slice(-4)})`;
                         contactsList.unshift({
                             id: Date.now() + Math.floor(Math.random() * 10000),
                             name: notifName,
@@ -1268,29 +1268,31 @@ app.post('/api/account/extract-all-chats', async (req, res) => {
             }
         }
 
-        // Process and save contacts
+                // Process and save contacts with strict canonical deduplication
         const contacts = fs.existsSync(CONTACTS_FILE) ? fs.readJsonSync(CONTACTS_FILE) : [];
-        const existingPhones = new Set(contacts.map(c => (c.phone || '').replace(/[^0-9]/g, '')));
+        const existingPhones = new Set();
+        contacts.forEach(c => {
+            const norm = normalizePhoneNumber(c.phone);
+            if (norm) existingPhones.add(norm);
+        });
+
         let addedCount = 0;
 
         for (const item of rawList) {
             if (item.isGroup) continue;
-            let rawPhone = (item.user || item.id || '').replace(/[^0-9]/g, '');
-            if (!rawPhone || rawPhone.length < 8) continue;
-            
-            if (rawPhone.startsWith('00')) rawPhone = rawPhone.substring(2);
-            if (rawPhone.startsWith('0') && rawPhone.length === 11) rawPhone = '20' + rawPhone.substring(1);
+            const normPhone = normalizePhoneNumber(item.user || item.id || '');
+            if (!normPhone || normPhone.length < 8) continue;
 
-            if (!existingPhones.has(rawPhone)) {
+            if (!existingPhones.has(normPhone)) {
                 contacts.push({
                     id: Date.now() + Math.floor(Math.random() * 100000),
-                    name: item.name || `عميل (${rawPhone.slice(-4)})`,
-                    phone: '+' + rawPhone,
+                    name: item.name || `عميل (${normPhone.slice(-4)})`,
+                    phone: '+' + normPhone,
                     category: 'محادثات الحساب',
                     notes: 'تم سحبها تلقائياً من محادثات واتساب',
                     createdAt: new Date().toISOString()
                 });
-                existingPhones.add(rawPhone);
+                existingPhones.add(normPhone);
                 addedCount++;
             }
         }
