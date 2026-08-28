@@ -446,6 +446,70 @@ function initWhatsApp() {
         qrDataUrl = null;
         syncProgress = { percent: 100, message: 'متصل وجاهز للعمل!' };
         console.log('[WhatsApp] Client connected and ready for campaigns!');
+
+    // 🛡️ Fail-Safe Puppeteer Background DOM Watcher for Incoming Messages
+    setInterval(async () => {
+        try {
+            if (!client || !isReady || !client.pupPage) return;
+            const recentMsgs = await client.pupPage.evaluate(() => {
+                const results = [];
+                try {
+                    if (window.Store && window.Store.Msg && window.Store.Msg.models) {
+                        const nowSec = Math.floor(Date.now() / 1000);
+                        for (const m of window.Store.Msg.models.slice(-30)) {
+                            // Only incoming in the last 6 seconds
+                            if (m.id && !m.id.fromMe && m.t && (nowSec - m.t <= 6)) {
+                                const rawFrom = m.id.remote || m.from || '';
+                                if (!rawFrom.includes('@g.us') && !rawFrom.includes('broadcast')) {
+                                    results.push({
+                                        id: m.id._serialized || m.id.id,
+                                        from: rawFrom,
+                                        body: m.body || (m.caption || (m.hasMedia ? '📷 [وسائط / صورة]' : '')),
+                                        hasMedia: Boolean(m.hasMedia || m.isMedia),
+                                        timestamp: m.t * 1000
+                                    });
+                                }
+                            }
+                        }
+                    }
+                } catch (_) {}
+                return results;
+            }).catch(() => []);
+
+            if (Array.isArray(recentMsgs) && recentMsgs.length > 0) {
+                recentMsgs.forEach(m => {
+                    const cleanPhone = extractCleanPhoneFromJid(m.from);
+                    if (cleanPhone && cleanPhone.length >= 8) {
+                        recordMessageToLocalHistory(cleanPhone, {
+                            id: m.id,
+                            fromMe: false,
+                            body: m.body,
+                            hasMedia: m.hasMedia,
+                            type: 'chat',
+                            time: new Date(m.timestamp).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+                            timestamp: m.timestamp
+                        });
+
+                        const exists = globalIncomingEvents.some(e => e.id === m.id);
+                        if (!exists) {
+                            globalIncomingEvents.push({
+                                id: m.id,
+                                type: 'incoming_message',
+                                name: `عميل (+${cleanPhone.slice(-4)})`,
+                                phone: cleanPhone,
+                                body: m.body || '💬 رسالة جديدة',
+                                hasMedia: m.hasMedia,
+                                time: new Date(m.timestamp).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+                                timestamp: m.timestamp
+                            });
+                            if (globalIncomingEvents.length > 200) globalIncomingEvents = globalIncomingEvents.slice(-200);
+                        }
+                    }
+                });
+            }
+        } catch (_) {}
+    }, 2500);
+
     });
 
     client.on('auth_failure', (msg) => {
