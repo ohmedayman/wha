@@ -4642,15 +4642,18 @@ function startLiveInboxSync() {
                         const msgBox = document.getElementById('inboxMessagesBox');
                         if (msgBox) {
                             const isAtBottom = (msgBox.scrollHeight - msgBox.scrollTop - msgBox.clientHeight) < 100;
-                            msgBox.innerHTML = res.messages.map(m => `
-                                <div style="display:flex;flex-direction:column;align-self:${m.fromMe ? 'flex-start' : 'flex-end'};max-width:75%;background:${m.fromMe ? 'var(--primary)' : 'var(--card-bg)'};color:${m.fromMe ? 'white' : 'var(--text-primary)'};border:1px solid ${m.fromMe ? 'transparent' : 'var(--card-border)'};padding:8px 12px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+                            msgBox.innerHTML = res.messages.map(m => {
+                                const isMe = Boolean(m.fromMe);
+                                return `
+                                <div style="display:flex;flex-direction:column;align-self:${isMe ? 'flex-start' : 'flex-end'};max-width:78%;background:${isMe ? 'linear-gradient(135deg, #008069, #059669)' : 'var(--card-bg)'};color:${isMe ? '#ffffff' : 'var(--text-primary)'};border:1px solid ${isMe ? 'rgba(0,128,105,0.3)' : 'var(--card-border)'};padding:9px 13px;border-radius:${isMe ? '14px 14px 2px 14px' : '14px 14px 14px 2px'};box-shadow:0 2px 6px rgba(0,0,0,0.06);margin-bottom:2px">
                                     <div style="font-size:0.88rem;white-space:pre-wrap;line-height:1.4">${escapeHtml(m.body || (m.hasMedia ? '[📷 ملف/وسائط]' : ''))}</div>
-                                    <div style="font-size:0.65rem;opacity:0.85;text-align:left;direction:ltr;margin-top:3px;display:flex;align-items:center;justify-content:flex-end;gap:3px">
-                                        <span>${m.time}</span>
-                                        ${m.fromMe ? '<span style="color:#53bdeb;font-weight:bold">✓✓</span>' : ''}
+                                    <div style="font-size:0.65rem;opacity:${isMe ? '0.9' : '0.6'};text-align:left;direction:ltr;margin-top:4px;display:flex;align-items:center;justify-content:flex-end;gap:4px">
+                                        <span>${m.time || ''}</span>
+                                        ${isMe ? '<span style="color:#60a5fa;font-weight:bold;font-size:0.75rem">✓✓</span>' : ''}
                                     </div>
                                 </div>
-                            `).join('');
+                                `;
+                            }).join('');
                             if (isAtBottom || res.messages.length > lastKnownMessagesCount) {
                                 msgBox.scrollTop = msgBox.scrollHeight;
                             }
@@ -4663,7 +4666,7 @@ function startLiveInboxSync() {
                 }
             } catch (_) {}
         }
-    }, 2500);
+    }, 1500);
 }
 
 // Start live sync automatically
